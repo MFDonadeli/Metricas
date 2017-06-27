@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="http://crypto-js.googlecode.com/svn/tags/3.0.2/build/rollups/md5.js"></script>
+  </head>
+<body>
+
+<table>
+    <tr>
+        <td style="width: 150px;">Original hash:</td>
+        <td id="original"></td>
+    </tr>
+    <tr>
+        <td>Computed hash:</td>
+        <td id="computed"></td>
+    </tr>
+</table>
+
+<script>
+var gamedata = {"hash":"52260a1b3dd69ed623b5fbb045bf2b06","data":{"version":7,"Players":[{"v":1,"pid":1,"bestScore":1981650,"bestScoreNoResurrection":456180,"bestCoinScore":3857,"bestSpecialCurrencyScore":2,"bestDistanceScore":10270,"lifetimePlays":109,"lifetimeCoins":57585,"lifetimeSpecialCurrency":23,"lifetimeDistance":224673,"coinCount":1085,"specialCurrencyCount":1,"activePlayerCharacter":0,"gameCenterNeedsUpdate":true,"artifactsPurchased":[0,1,5,6,2,3,10,25,7,4,11,8,35,36,30,26,20],"artifactsDiscovered":[],"objectives":[2,1,0,6,5,3,4,7,9,11,10,8,16,17,18,14,23,24,22,21],"powersPurchased":[0,4],"randomSeed":-1118273536,"numberResurectsUsed":0,"hashID":null,"Buffs":[],"objectivesActiveData":[{"Title":"9 Lives","IconNamePre":"","IconName":"","DescriptionPre":"Use 'Save Me' 9 times","Description":"Used 'Save Me' 9 times","Points":1,"Hidden":false,"CanEarnMoreThanOnce":false,"Difficulty":30,"T":"Resurrects","TT":"OverTime","FT":"None","SV":9,"EarnedSV":6,"PID":27,"GCID":"com.imangi.templerun2.saveme9overtime"},{"Title":"Power Collector","IconNamePre":"","IconName":"","DescriptionPre":"Unlock a 2nd powerup","Description":"Unlock a 2nd powerup","Points":0,"Hidden":false,"CanEarnMoreThanOnce":false,"Difficulty":15,"T":"UnlockPowerups","TT":"PerRun","FT":"None","SV":2,"EarnedSV":1,"PID":12,"GCID":"com.imangi.templerun2.unlockpowerup2"},{"Title":"Allergic to Gold","IconNamePre":"","IconName":"","DescriptionPre":"1,000m collecting no coins","Description":"1,000m collecting no coins","Points":1,"Hidden":false,"CanEarnMoreThanOnce":false,"Difficulty":20,"T":"Distance","TT":"PerRun","FT":"WithoutCoins","SV":1000,"EarnedSV":0,"PID":15,"GCID":"com.imangi.templerun2.distance1000nocoins"}]}],"Characters":[{"v":1,"displayname":"Guy Dangerous","cid":0,"gear":[0,-1,-1,-1],"u":true,"uc":1200,"ct":"Coin","pvi":0,"art":[-1,-1,-1],"pid":0},{"v":1,"displayname":"Scarlett Fox","cid":1,"gear":[0,-1,-1,-1],"u":false,"uc":5000,"ct":"Coin","pvi":1,"art":[-1,-1,-1],"pid":0},{"v":1,"displayname":"Barry Bones","cid":2,"gear":[0,-1,-1,-1],"u":false,"uc":15000,"ct":"Coin","pvi":2,"art":[-1,-1,-1],"pid":0},{"v":1,"displayname":"Karma Lee","cid":3,"gear":[0,-1,-1,-1],"u":false,"uc":25000,"ct":"Coin","pvi":3,"art":[-1,-1,-1],"pid":0},{"v":1,"displayname":"Montanna Smith","cid":4,"gear":[0,-1,-1,-1],"u":false,"uc":25000,"ct":"Coin","pvi":4,"art":[-1,-1,-1],"pid":0},{"v":1,"displayname":"Francisco Montoya","cid":5,"gear":[0,-1,-1,-1],"u":false,"uc":25000,"ct":"Coin","pvi":5,"art":[-1,-1,-1],"pid":0},{"v":1,"displayname":"Zack Wonder","cid":6,"gear":[0,-1,-1,-1],"u":false,"uc":25000,"ct":"Coin","pvi":6,"art":[-1,-1,-1],"pid":0}],"ShowTutorial":false,"SMT":false,"ShowFriendMarkers":false,"SoundVolume":0.5,"MusicVolume":0.5,"LikeFB":false,"LikeTw":false,"LastPromoNumber":0,"TwitterURL":"http://bit.ly/TempleRun2Android","TwitterMessage":"I got {0} points while escaping from a Giant Demon Monkey. Beat that! {1}","ReviewBegEnable":true,"HSCCI":true,"HSAS":true,"HSPS":true,"HSNAS":false,"HSNPS":true,"Q":1}};
+
+var obj = { "name":"John", "age":30, "city":"New York"};
+var myJSON = JSON.stringify(gamedata["data"]);
+
+hash = CryptoJS.MD5(JSON.stringify(gamedata["data"]) + "BonusItemProtoData");
+
+document.getElementById('original').innerHTML = gamedata.hash;
+document.getElementById('computed').innerHTML = hash;
+
+</script>
+
+</body>
+</html>
