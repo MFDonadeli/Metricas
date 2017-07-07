@@ -26,6 +26,7 @@ class App extends CI_Controller {
         if($this->facebook->is_authenticated()){
             // Get user facebook profile details
             $userProfile = $this->facebook->request('get', '/me?fields=id,first_name,last_name,email,gender,locale');
+            log_message('debug',json_encode($userProfile));
 
             // Preparing data for database insertion
             $userData['oauth_provider'] = 'facebook';
@@ -87,6 +88,7 @@ class App extends CI_Controller {
     public function get_contas()
     {
       $accounts = $this->facebook->request('get', 'me/adaccounts?fields=name,account_status,age&limit=1200');
+      log_message('debug',json_encode($accounts));
       $contas = $accounts['data'];
       $ret = '';
 
@@ -128,6 +130,7 @@ class App extends CI_Controller {
 
       
       $detalhes = $this->facebook->request('get',$conta.get_param_contas());
+      log_message('debug',json_encode($detalhes));
 
       $this->grava_bd($detalhes);      
     }
