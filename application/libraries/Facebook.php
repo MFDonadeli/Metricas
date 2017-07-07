@@ -17,8 +17,7 @@
  * @version     2.0
  */
 
-// Include the autoloader provided in the SDK
-require_once 'vendor/autoload.php'; 
+require_once APPPATH  . 'libraries/vendor/autoload.php';
 
 use Facebook\Facebook as FB;
 use Facebook\Authentication\AccessToken;

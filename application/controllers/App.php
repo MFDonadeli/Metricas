@@ -1,14 +1,6 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-require_once APPPATH  . 'libraries/vendor/autoload.php';
-//include APPPATH . 'helpers/constants_helper.php'; 
-
-use Facebook\Facebook;
-use Facebook\FacebookApp;
-use Facebook\Exceptions\FacebookResponseException;
-use Facebook\Exceptions\FacebookSDKException;
-use Facebook\FacebookRequest;
 
 class App extends CI_Controller {
 
