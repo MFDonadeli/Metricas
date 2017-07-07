@@ -44,9 +44,9 @@ if(!empty($authUrl)) {
             <div class='container' id='div<?php echo $contas_item->id; ?>'>
                 Anúncio: <?php echo $contas_item->ad_name; ?><br>
                 ID: <?php echo $contas_item->id; ?><br>
-                Conta: <?php echo $contas_item->ad_name; ?><br>
-                Campanha: <?php echo $contas_item->ad_name; ?><br>
-                Conjunto: <?php echo $contas_item->ad_name; ?><br>
+                Conta: <?php echo $contas_item->account_name; ?><br>
+                Campanha: <?php echo $contas_item->campaigns_name; ?><br>
+                Conjunto: <?php echo $contas_item->ad_sets_name; ?><br>
                 Tag: <?php echo $contas_item->url_tags; ?><br>
                 <a href='https://www.facebook.com/<?php echo $arr[0] . '/posts/' . $arr[1];?>'>Link do Criativo</a>
             </div>
