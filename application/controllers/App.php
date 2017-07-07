@@ -24,44 +24,9 @@ class App extends CI_Controller {
     {
         // Check if user is logged in
         if($this->facebook->is_authenticated()){
-            // Get user facebook profile details
-            $userProfile = $this->facebook->request('get', '/me?fields=id,first_name,last_name,email,gender,locale');
-            log_message('debug',json_encode($userProfile));
-
-            // Preparing data for database insertion
-            $userData['oauth_provider'] = 'facebook';
-            $userData['oauth_uid'] = $userProfile['id'];
-            $userData['facebook_id'] = $userProfile['id'];
-            $userData['first_name'] = $userProfile['first_name'];
-            $userData['last_name'] = $userProfile['last_name'];
-            $userData['email'] = $userProfile['email'];
-            $userData['gender'] = $userProfile['gender'];
-            $userData['locale'] = $userProfile['locale'];
-            $userData['logged_in'] = true;
-
-            $userID = $userProfile['id'];
-
-            // Insert or update user data
-            $this->metricas->checkUser($userData);
-
-            // Check user data insert or update status
-            if($userID){
-                $data['userData'] = $userData;
-                $this->session->set_userdata('userData',$userData);
-                $this->session->set_userdata('facebook_id',$userID);
-            }else{
-               $data['userData'] = array();
-            }
-
-            // Get logout URL
-            $data['logoutUrl'] = $this->facebook->logout_url();
-
-            //Lista Contas
-            $contas = $this->metricas->getContas($userID);
-            $data['contas'] = $contas;
 
             // Load login & profile view
-            $this->load->view('home',$data);
+            redirect('home');
 
         }else{
             $fbuser = '';
@@ -179,7 +144,47 @@ class App extends CI_Controller {
     }
 
     public function home(){
-        $this->load->view('home',null);
+        if($this->facebook->is_authenticated()){
+            // Get user facebook profile details
+            $userProfile = $this->facebook->request('get', '/me?fields=id,first_name,last_name,email,gender,locale');
+            log_message('debug',json_encode($userProfile));
+
+            // Preparing data for database insertion
+            $userData['oauth_provider'] = 'facebook';
+            $userData['oauth_uid'] = $userProfile['id'];
+            $userData['facebook_id'] = $userProfile['id'];
+            $userData['first_name'] = $userProfile['first_name'];
+            $userData['last_name'] = $userProfile['last_name'];
+            $userData['email'] = $userProfile['email'];
+            $userData['gender'] = $userProfile['gender'];
+            $userData['locale'] = $userProfile['locale'];
+            $userData['logged_in'] = true;
+
+            $userID = $userProfile['id'];
+
+            // Insert or update user data
+            $this->metricas->checkUser($userData);
+
+            // Check user data insert or update status
+            if($userID){
+                $data['userData'] = $userData;
+                $this->session->set_userdata('userData',$userData);
+                $this->session->set_userdata('facebook_id',$userID);
+            }else{
+               $data['userData'] = array();
+            }
+
+            // Get logout URL
+            $data['logoutUrl'] = $this->facebook->logout_url();
+
+            //Lista Contas
+            $contas = $this->metricas->getContas($userID);
+            $data['contas'] = $contas;
+
+            // Load login & profile view
+            $this->load->view('home',$data);
+
+        }
     }
 
 }
