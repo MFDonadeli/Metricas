@@ -259,6 +259,7 @@ function processa_insights($insights, $tipo)
               $ad['creative']['object_story_spec_'.$key] = $val;
             }
             unset($ad['creative']['object_story_spec']); 
+            $ad['creative']['ad_id'] = $ad['id'];
           } 
           //unset($ad['creative']);
         }

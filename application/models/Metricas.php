@@ -42,6 +42,8 @@ class Metricas extends CI_Model{
 
             $this->db->insert('profiles', $data);
         }
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
     }
 
     /**
@@ -56,8 +58,21 @@ class Metricas extends CI_Model{
     public function getContas($id){
         log_message('debug', 'getContas');
 
-        $this->db->where('facebook_id',$id);
-        $result = $this->db->get('accounts');
+        $this->db->select("ads.id, ads.name as ad_name, adsets.name as ad_sets_name, campaigns.name as campaigns_name,
+                accounts.name as account_name, ad_creatives.effective_object_story_id, ad_creatives.url_tags");
+        $this->db->from("ads");
+        $this->db->join("adsets","ads.adset_id = adsets.id");
+        $this->db->join("campaigns","ads.campaign_id = campaigns.id");
+        $this->db->join("accounts","ads.account_id = accounts.id");
+        $this->db->join("ad_creatives","ad_creatives.ad_id = ads.id");
+        
+        $this->db->where("ads.status = 'ACTIVE'");
+        $this->db->where("adsets.status = 'ACTIVE'");
+        $this->db->where("campaigns.status = 'ACTIVE'");
+        $this->db->where("accounts.account_status = 1");
+
+        $this->db->where('ads.facebook_id',$id);
+        $result = $this->db->get();
 
         log_message('debug', 'Last Query: ' . $this->db->last_query());
 
@@ -211,7 +226,7 @@ class Metricas extends CI_Model{
             {
                 if(!$this->db->insert('ad_creatives',$arr_creative))
                     log_message('debug', 'Erro: ' . $this->db->error()->message);
-                    
+
                 log_message('debug', 'Last Query: ' . $this->db->last_query());
             }
         }

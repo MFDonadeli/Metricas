@@ -38,10 +38,17 @@ if(!empty($authUrl)) {
     <?php
     else: ?>
     <?php 
-        foreach($contas as $contas_item):?>
+        foreach($contas as $contas_item):
+            $arr = explode('_', $contas_item->effective_object_story_id);        
+        ?>    
             <div class='container' id='div<?php echo $contas_item->id; ?>'>
-                <strong><?php echo $contas_item->name; ?></strong><br>
+                Anúncio: <?php echo $contas_item->ad_name; ?><br>
                 ID: <?php echo $contas_item->id; ?><br>
+                Conta: <?php echo $contas_item->ad_name; ?><br>
+                Campanha: <?php echo $contas_item->ad_name; ?><br>
+                Conjunto: <?php echo $contas_item->ad_name; ?><br>
+                Tag: <?php echo $contas_item->url_tags; ?><br>
+                <a href='https://www.facebook.com/<?php echo $arr[0] . '/posts/' . $arr[1];?>'>Link do Criativo</a>
             </div>
         <?php 
         endforeach;
