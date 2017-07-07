@@ -23,7 +23,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | a PHP script and you can easily do that on your own.
 |
 */
-$config['base_url'] = 'http://localhost/~mfdonadeli/metricas/';
+//$config['base_url'] = 'http://localhost/~mfdonadeli/metricas/';
+$config['base_url'] = 'http://45.56.88.225/metricas/';
+
 
 /*
 |--------------------------------------------------------------------------
