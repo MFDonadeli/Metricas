@@ -71,7 +71,7 @@ class Metricas extends CI_Model{
         $this->db->where("campaigns.status = 'ACTIVE'");
         $this->db->where("accounts.account_status = 1");
 
-        $this->db->where('ads.facebook_id',$id);
+        $this->db->where('accounts.facebook_id',$id);
         $result = $this->db->get();
 
         log_message('debug', 'Last Query: ' . $this->db->last_query());
