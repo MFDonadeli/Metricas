@@ -22,6 +22,7 @@ class App extends CI_Controller {
         $this->load->model('metricas');
 
         $this->load->helper('constants_helper');
+        $this->load->helper('data_process_helper');
 
         
     }
@@ -136,267 +137,40 @@ class App extends CI_Controller {
       
       $detalhes = $this->facebook->request('get',$conta.get_param_contas());
 
-      log_message('debug', json_encode($detalhes));
-      
-      /*
-      $accounts = $this->facebook->request('get', 'me/adaccounts?fields=name,account_status,amount_spent,created_time,age,insights{actions,inline_link_click_ctr,cost_per_inline_link_click,account_id,account_name,action_values,app_store_clicks,call_to_action_clicks,canvas_avg_view_percent,canvas_avg_view_time,clicks,cost_per_10_sec_video_view,cost_per_estimated_ad_recallers,cost_per_inline_post_engagement,cost_per_unique_inline_link_click,cost_per_unique_click,cost_per_action_type,cost_per_outbound_click,cost_per_total_action,cpc,cpm,cpp,ctr,date_start,date_stop,deeplink_clicks,estimated_ad_recall_rate,estimated_ad_recallers,frequency,impressions,inline_link_clicks,inline_post_engagement,objective,reach,social_reach,social_spend,spend,total_action_value,unique_clicks,unique_ctr,unique_inline_link_click_ctr,unique_inline_link_clicks,website_clicks,age_targeting,buying_type,canvas_component_avg_pct_view,cost_per_unique_action_type,cost_per_unique_outbound_click,created_time,gender_targeting,labels,location,mobile_app_purchase_roas,outbound_clicks,outbound_clicks_ctr,place_page_name,relevance_score,social_clicks,social_impressions,total_actions,total_unique_actions,unique_actions,unique_link_clicks_ctr,unique_outbound_clicks,unique_outbound_clicks_ctr,unique_social_clicks,updated_time,video_10_sec_watched_actions,video_15_sec_watched_actions,video_30_sec_watched_actions,video_avg_percent_watched_actions,video_avg_time_watched_actions,video_p100_watched_actions,video_p25_watched_actions,video_p50_watched_actions,video_p75_watched_actions,video_p95_watched_actions,website_ctr,website_purchase_roas}&limit=50');
-            $contas = $accounts['data'];
-
-            while($accounts['paging']['next'] != '')
-            {
-              $str = "https://graph.facebook.com/v2.9/";
-              $next = str_replace($str, '', $accounts['paging']['next']);
-              $accounts = $this->facebook->request('get', $next);
-              $contas = array_merge($contas, $accounts['data']);
-            }
-            var_dump($userData);
-            var_dump($contas);
-            die();*/
-          
+      $this->grava_bd($detalhes);      
     }
 
-    public function grava_bd()
+    public function grava_bd($detalhes)
     {
-      $handle = fopen(APPPATH . "jsons", "r");
-      if ($handle) {
-          while (($line = fgets($handle)) !== false) {
-              $aaa[] = $line;
-          }
-
-          fclose($handle);
-      } else {
-          // error opening the file.
-      }
-
-      $bbb = json_decode($aaa[1],true);
-
       $fb_id = '162165580784731';
-      $campaigns = $bbb['campaigns']['data'];
-      $ads = $bbb['ads']['data'];
-      $adsets = $bbb['adsets']['data'];
+      $campaigns = $detalhes['campaigns']['data'];
+      $ads = $detalhes['ads']['data'];
+      $adsets = $detalhes['adsets']['data'];
       
-      if(array_key_exists('insights',$bbb))
+      if(array_key_exists('insights',$detalhes))
       {
-        $campaign_insights = $bbb['insights'];
-        unset($bbb['insights']);
+        $accounts_insights = $detalhes['insights'];
+        unset($detalhes['insights']);
       }
 
-      unset($bbb['campaigns']);
-      unset($bbb['ads']);
-      unset($bbb['adsets']);
+      unset($detalhes['campaigns']);
+      unset($detalhes['ads']);
+      unset($detalhes['adsets']);
 
-      $bbb['facebook_id'] = $fb_id;
-      $bbb['updated_timetime'] = date("Y-m-d H:i:s");
-      $bbb['sync_interval_minutes'] = 12; //De x horas
+      $detalhes['facebook_id'] = $fb_id;
+      $detalhes['updated_time'] = date("Y-m-d H:i:s");
+      $detalhes['sync_interval_minutes'] = 12; //De x horas
+      $detalhes['id'] = str_replace('act_','',$detalhes['id']);
 
-      for($i=0; $i<count($campaigns); $i++)
-      {
-        $campaigns[$i]['metrics_imported_at'] = date("Y-m-d H:i:s");
-      }
-    
-      $adsets = $this->processa_adsets($adsets);
-      $ads = $this->processa_ads($ads);
+      $campaigns = processa_campaigns($campaigns);
+      $adsets = processa_adsets($adsets);
+      $ads = processa_ads($ads);
 
-    }
+      $this->metricas->insertAccount($detalhes);
+      $this->metricas->insertCampaign($campaigns);
+      $this->metricas->insertAdSet($adsets);
+      $this->metricas->insertAd($ads);
 
-    public function processa_insights($insights, $tipo)
-    {
-
-      $arr_items = array("video_10_sec_watched_actions", "video_15_sec_watched_actions",
-          "video_30_sec_watched_actions", "video_avg_percent_watched_actions",
-          "video_avg_time_watched_actions", "video_p100_watched_actions",
-          "video_p25_watched_actions", "video_p50_watched_actions", "video_p75_watched_actions",
-          "video_p95_watched_actions","website_ctr","website_purchase_roas");
-
-      //$arr_action[] = {"actions", "cost_per_action_type", "cost_per_outbound_click"}
-
-      foreach($insights['data'] as $insight)
-      {
-        if(array_key_exists('relevance_score',$insight))
-        {
-          foreach($insight['relevance_score'] as $key=>$val)
-          {
-            $insight['relevance_score_'.$key] = $val;
-          }
-          unset($insight['relevance_score']); 
-        } 
-
-        foreach($arr_items as $item)
-        {
-          if(array_key_exists($item, $insight))
-          {
-            foreach($insight[$item][0] as $key=>$val)
-            {
-              $insight[$item . '_' . $key] = $val;
-            }
-            unset($insight[$item]);
-          } 
-        }
-
-        if(array_key_exists('actions',$insight))
-        {
-          foreach($insight['actions'] as $value)
-          {
-            $action[$value['action_type']]['action_type'] = $value['action_type'];
-            $action[$value['action_type']]['value'] = $value['value'];
-            $action[$value['action_type']][$tipo.'_id'] = $insight[$tipo.'_id'];
-          }
-          unset($insight['actions']);
-        }
-
-        if(array_key_exists('outbound_clicks',$insight))
-        {
-          $value['action_type'] = $insight['outbound_clicks'][0]['action_type'];
-          $action[$value['action_type']]['action_type'] = $value[0]['action_type'];
-          $action[$value['action_type']]['value'] = $value[0]['value'];
-          unset($insight['outbound_clicks']);
-        }
-
-        if(array_key_exists('cost_per_action_type',$insight))
-        {
-          foreach($insight['cost_per_action_type'] as $value)
-          {
-            $action[$value['action_type']]['action_type'] = $value['action_type'];
-            $action[$value['action_type']]['cost'] = $value['value'];
-          }
-          unset($insight['cost_per_action_type']);
-        }
-
-        if(array_key_exists('cost_per_outbound_click',$insight))
-        {
-          $value['action_type'] = $insight['cost_per_outbound_click'][0]['action_type'];
-          $action[$value['action_type']]['action_type'] = $value[0]['action_type'];
-          $action[$value['action_type']]['cost'] = $value[0]['value'];
-          unset($insight['cost_per_outbound_click']);
-        }
-
-        if(array_key_exists('unique_actions',$insight))
-        {
-          foreach($insight['unique_actions'] as $value)
-          {
-            $action[$value['action_type']]['action_type'] = $value['action_type'];
-            $action[$value['action_type']]['unique'] = $value['value'];
-          }
-          unset($insight['unique_actions']);
-        }
-
-        if(array_key_exists('unique_outbound_clicks',$insight))
-        {
-          $value['action_type'] = $insight['unique_outbound_clicks'][0]['action_type'];
-          $action[$value['action_type']]['action_type'] = $value[0]['action_type'];
-          $action[$value['action_type']]['unique'] = $value[0]['value'];
-          unset($insight['unique_outbound_clicks']);
-        }
-
-        if(array_key_exists('cost_per_unique_action_type',$insight))
-        {
-          foreach($insight['cost_per_action_type'] as $value)
-          {
-            $action[$value['action_type']]['action_type'] = $value['action_type'];
-            $action[$value['action_type']]['unique_cost'] = $value['value'];
-          }
-          unset($insight['cost_per_unique_action_type']);
-        }
-
-        if(array_key_exists('cost_per_unique_outbound_click',$insight))
-        {
-          $value['action_type'] = $insight['cost_per_unique_outbound_click'][0]['action_type'];
-          $action[$value['action_type']]['action_type'] = $value[0]['action_type'];
-          $action[$value['action_type']]['unique_cost'] = $value[0]['value'];
-          unset($insight['cost_per_unique_outbound_click']);
-        }
-
-        $insight['outbound_clicks_ctr'] = $insight['outboud_clicks_ctr'][0]['value'];   
-        $insight['unique_outbound_clicks_ctr'] = $insight['unique_outbound_clicks_ctr'][0]['value']; 
-
-        //RETORNO
-        $insights_ret[] = $insight;    
-        $insights_ret_action[] = $action;
-      }
-
-      
-    }
-
-    public function processa_ads($ads)
-    {
-      foreach($ads as $ad)
-      {
-        unset($ad['campaign']);
-        if(array_key_exists('ad_review_feedback',$ad))
-        {
-          $ad['ad_review_feedback_global'] = $ad['ad_review_feedback']['global'];
-          if(array_key_exists('placement_specific',$ad['ad_review_feedback']))
-          {
-            if(array_key_exists('facebook',$ad['ad_review_feedback']['placement_specific']))  
-              $ad['ad_review_feedback_placement_specific_facebook'] = $ad['ad_review_feedback']['placement_specific']['facebook'];
-            if(array_key_exists('instagram',$ad['ad_review_feedback']['placement_specific']))  
-              $ad['ad_review_feedback_placement_specific_instagram'] = $ad['ad_review_feedback']['placement_specific']['instagram'];
-          }
-        }
-
-        if(array_key_exists('recommendations',$ad))
-        {
-          foreach($ad['recommendations'][0] as $key=>$val)
-          {
-            $ad['recommendations_'.$key] = $val;
-          }
-          if(count($ad['recommendations']) > 1)
-            log_message('debug','****IMPORTANTE****: Quantidade de Recomenações maior que 1');
-
-          unset($adset['recommendations']); 
-        }
-
-        if(array_key_exists('tracking_specs',$ad))
-        {
-          $ad['tracking_specs_action_type'] = $ad['tracking_specs'][0]['action.type'][0];
-          foreach($ad['tracking_specs'] as $spec)
-          {
-            unset($spec['action.type']);
-            $key = key($spec);
-            $ad['tracking_specs_'.$key] = $spec[$key][0];
-          }
-
-          unset($ad['tracking_specs']); 
-        }
-        $ads_ret[] = $ad;
-
-        if(array_key_exists('insights',$ad))
-        {
-          $this->processa_insights($ad['insights'],'ad');
-        }
-
-      }
-      return $ads_ret;
-    }
-
-    public function processa_adsets($adsets)
-    {
-      
-      foreach($adsets as $adset)
-      {
-        if(array_key_exists('attribution_spec',$adset))
-        {
-          $adset['attribution_spec_event_type'] = $adset['attribution_spec'][0]['event_type'];
-          $adset['attribution_spec_window_days'] = $adset['attribution_spec'][0]['window_days'];
-          unset($adset['attribution_spec']);
-        }
-        
-        if(array_key_exists('pacing_type',$adset))
-          $adset['pacing_type'] = $adset['pacing_type'][0];
-
-        if(array_key_exists('promoted_object',$adset))
-        {
-          foreach($adset['promoted_object'] as $key=>$val)
-          {
-            $adset['promoted_object_'.$key] = $val;
-          }
-          unset($adset['promoted_object']); 
-        }
-        
-        $adsets_ret[] = $adset;
-      }
-
-      return $adsets_ret;
     }
 
     public function sync_ads()
