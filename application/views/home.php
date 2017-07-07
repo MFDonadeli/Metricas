@@ -77,7 +77,7 @@ if(!empty($authUrl)) {
 
             var form_data = { conta: id_conta };
             var resp = $.ajax({
-                url: 'sync_contas',
+                url: 'app/sync_contas',
                 type: 'POST',
                 data: form_data,
                 global: false,
@@ -91,7 +91,7 @@ if(!empty($authUrl)) {
 
     $('#btn_buscar_contas').click(function(){
         var resp = $.ajax({
-            url: 'get_contas',
+            url: 'app/get_contas',
             type: 'GET',
             data: '',
             global: false,
