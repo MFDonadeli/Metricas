@@ -26,7 +26,7 @@ class App extends CI_Controller {
         if($this->facebook->is_authenticated()){
 
             // Load login & profile view
-            redirect('home');
+            redirect('app/home');
 
         }else{
             $fbuser = '';
