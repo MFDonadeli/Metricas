@@ -211,6 +211,7 @@ function processa_insights($insights, $tipo)
 
         if(array_key_exists('creative', $ad))
         {
+          $ad['creative']['ad_id'] = $ad['id'];
           if(array_key_exists('object_story_spec',$ad['creative']))
           {
             //LINK DATA
@@ -259,7 +260,6 @@ function processa_insights($insights, $tipo)
               $ad['creative']['object_story_spec_'.$key] = $val;
             }
             unset($ad['creative']['object_story_spec']); 
-            $ad['creative']['ad_id'] = $ad['id'];
           } 
           //unset($ad['creative']);
         }
