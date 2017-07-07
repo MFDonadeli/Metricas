@@ -137,7 +137,7 @@ class App extends CI_Controller {
 
     public function grava_bd($detalhes)
     {
-      $fb_id = $this->session->set_userdata('facebook_id');
+      $fb_id = $this->session->userdata('facebook_id');
       $campaigns = $detalhes['campaigns']['data'];
       $ads = $detalhes['ads']['data'];
       $adsets = $detalhes['adsets']['data'];
