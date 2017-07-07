@@ -24,7 +24,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |
 */
 //$config['base_url'] = 'http://localhost/~mfdonadeli/metricas/';
-$config['base_url'] = 'http://45.56.88.225/metricas/';
+$config['base_url'] = 'http://mfdigital.com.br/metricas/';
 
 
 /*
