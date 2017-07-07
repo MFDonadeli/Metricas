@@ -48,6 +48,7 @@ class App extends CI_Controller {
             if($userID){
                 $data['userData'] = $userData;
                 $this->session->set_userdata('userData',$userData);
+                $this->session->set_userdata('facebook_id',$userID);
             }else{
                $data['userData'] = array();
             }
@@ -128,7 +129,6 @@ class App extends CI_Controller {
 
       $conta = str_replace('div_','',$conta);
 
-      
       $detalhes = $this->facebook->request('get',$conta.get_param_contas());
       log_message('debug',json_encode($detalhes));
 
@@ -137,7 +137,7 @@ class App extends CI_Controller {
 
     public function grava_bd($detalhes)
     {
-      $fb_id = $this->session->set_userdata('userData')['facebook_id'];
+      $fb_id = $this->session->set_userdata('facebook_id');
       $campaigns = $detalhes['campaigns']['data'];
       $ads = $detalhes['ads']['data'];
       $adsets = $detalhes['adsets']['data'];
