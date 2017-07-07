@@ -54,7 +54,7 @@ class Metricas extends CI_Model{
     * @return	boolean
     */
     public function getContas($id){
-        log_message('debug', 'checkUser');
+        log_message('debug', 'getContas');
 
         $this->db->where('facebook_id',$id);
         $result = $this->db->get('accounts');
@@ -77,17 +77,22 @@ class Metricas extends CI_Model{
             unset($arr_insights['action']);
         }
 
-        $this->db->insert('accounts', $arr_account);
+        if(!$this->db->insert('accounts', $arr_account))
+            log_message('debug', 'Erro: ' . $this->db->error()->message);
+
         log_message('debug', 'Last Query: ' . $this->db->last_query());
 
         if(isset($arr_insights))
         {
-            $this->db->insert('accounts_insights',$arr_insights);
-            log_message('debug', 'Last Query: ' . $this->db->last_query());
+            if(!$this->db->insert('accounts_insights',$arr_insights))
+                log_message('debug', 'Erro: ' . $this->db->error()->message);
+            log_message('error', 'Last Query: ' . $this->db->last_query());
 
             foreach($arr_insights_action as $action)
             {
-                $this->db->insert('accounts_insights_actions', $action);
+                if(!$this->db->insert('accounts_insights_actions', $action))
+                    log_message('debug', 'Erro: ' . $this->db->error()->message);
+
                 log_message('debug', 'Last Query: ' . $this->db->last_query());
             }
         }
@@ -106,17 +111,22 @@ class Metricas extends CI_Model{
                 unset($arr_insights['action']);
             }
 
-            $this->db->insert('campaigns', $array);
+            if(!$this->db->insert('campaigns', $array))
+                log_message('debug', 'Erro: ' . $this->db->error()->message);
+            
             log_message('debug', 'Last Query: ' . $this->db->last_query());
 
             if(isset($arr_insights))
             {
-                $this->db->insert('campaigns_insights',$arr_insights);
+                if(!$this->db->insert('campaigns_insights',$arr_insights))
+                    log_message('debug', 'Erro: ' . $this->db->error()->message);
+                
                 log_message('debug', 'Last Query: ' . $this->db->last_query());
 
                 foreach($arr_insights_action as $action)
                 {
-                    $this->db->insert('campaigns_insights_actions', $action);
+                    if(!$this->db->insert('campaigns_insights_actions', $action))
+                        log_message('debug', 'Erro: ' . $this->db->error()->message);
                     log_message('debug', 'Last Query: ' . $this->db->last_query());
                 }
             }
@@ -136,17 +146,22 @@ class Metricas extends CI_Model{
                 unset($arr_insights['action']);
             }
 
-            $this->db->insert('adsets', $array);
+            if(!$this->db->insert('adsets', $array))
+                log_message('debug', 'Erro: ' . $this->db->error()->message);
+
             log_message('debug', 'Last Query: ' . $this->db->last_query());
 
             if(isset($arr_insights))
             {
-                $this->db->insert('adsets_insights',$arr_insights);
+                if(!$this->db->insert('adsets_insights',$arr_insights))
+                    log_message('debug', 'Erro: ' . $this->db->error()->message);
+
                 log_message('debug', 'Last Query: ' . $this->db->last_query());
 
                 foreach($arr_insights_action as $action)
                 {
-                    $this->db->insert('adsets_insights_actions', $action);
+                    if(!$this->db->insert('adsets_insights_actions', $action))
+                        log_message('debug', 'Erro: ' . $this->db->error()->message);
                     log_message('debug', 'Last Query: ' . $this->db->last_query());
                 }
             }
@@ -171,24 +186,32 @@ class Metricas extends CI_Model{
                 unset($array['creative']);
             }
 
-            $this->db->insert('ads', $array);
+            if(!$this->db->insert('ads', $array))
+                log_message('debug', 'Erro: ' . $this->db->error()->message);
+
             log_message('debug', 'Last Query: ' . $this->db->last_query());
 
             if(isset($arr_insights))
             {
-                $this->db->insert('ad_insights',$arr_insights);
+                if(!$this->db->insert('ad_insights',$arr_insights))
+                    log_message('debug', 'Erro: ' . $this->db->error()->message);
+
                 log_message('debug', 'Last Query: ' . $this->db->last_query());
 
                 foreach($arr_insights_action as $action)
                 {
-                    $this->db->insert('ad_insights_actions', $action);
+                    if(!$this->db->insert('ad_insights_actions', $action))
+                        log_message('debug', 'Erro: ' . $this->db->error()->message);
+
                     log_message('debug', 'Last Query: ' . $this->db->last_query());
                 }
             }
 
             if(isset($arr_creative))
             {
-                $this->db->insert('ad_creatives',$arr_creative);
+                if(!$this->db->insert('ad_creatives',$arr_creative))
+                    log_message('debug', 'Erro: ' . $this->db->error()->message);
+                    
                 log_message('debug', 'Last Query: ' . $this->db->last_query());
             }
         }
