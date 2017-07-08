@@ -97,7 +97,7 @@ class App extends CI_Controller {
       $detalhes = $this->facebook->request('get',$conta.get_param_contas());
       log_message('debug',json_encode($detalhes));
 
-      $this->grava_bd($detalhes);      
+      $this->grava_bd($detalhes); 
     }
 
     public function grava_bd($detalhes)
@@ -135,11 +135,42 @@ class App extends CI_Controller {
 
     public function sync_ads()
     {
+      $ad = $this->input->post('id_ad');
 
+      $ad = str_replace('div','',$ad);
+
+      $dt_inicio = $this->metricas->getLastDateSyncAd($ad);
+
+      $url_params = get_param_contas_data($dt_inicio);
+
+      $detalhes = $this->facebook->request('get', $ad.'/insights'.$url_params);
+
+      log_message('debug',json_encode($detalhes));
+
+      foreach($detalhes['data'] as $insight_data)
+      {
+        $data['data'][] = $insight_data;
+        $insights_data[] = processa_insights($data, 'ad');
+      }
+
+      $this->metricas->insertInsights($insights_data);
+
+      $result = $this->metricas->getTableData($ad);
+      $data['metricas'] = $result;
+
+      $html = $this->load->view('table',$data,true);
+
+      echo $html;
+      
     }
 
-    public function sync_campanhas()
+    public function show_table()
     {
+      $id = '23842605010820642';
+      $result = $this->metricas->getTableData($id);
+      $data['metricas'] = $result;
+
+      $html = $this->load->view('table',$data,true);
 
     }
 

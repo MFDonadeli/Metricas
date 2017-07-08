@@ -149,6 +149,33 @@ class Metricas extends CI_Model{
         
     }
 
+    public function insertInsights($arr_insights)
+    {
+        foreach($arr_insights as $array)
+        {
+            $arr_action = $array['action'];
+            unset($array['action']);
+
+            $array['bydate'] = 1;
+
+            if(!$this->db->insert('ad_insights',$array))
+                log_message('debug', 'Erro: ' . $this->db->error()->message);
+            
+            log_message('debug', 'Last Query: ' . $this->db->last_query());
+            
+            $insert_id = $this->db->insert_id();
+
+            foreach($arr_action as $action)
+            {
+                $action['ad_insights_id'] = $insert_id;
+                if(!$this->db->insert('ad_insights_actions', $action))
+                    log_message('debug', 'Erro: ' . $this->db->error()->message);
+                log_message('debug', 'Last Query: ' . $this->db->last_query());
+            }
+        }
+        
+    }
+
     public function insertAdSet($arr_adset)
     {
         foreach($arr_adset as $array)
@@ -213,8 +240,11 @@ class Metricas extends CI_Model{
 
                 log_message('debug', 'Last Query: ' . $this->db->last_query());
 
+                $insert_id = $this->db->insert_id();
+
                 foreach($arr_insights_action as $action)
                 {
+                    $action['ad_insights_id'] = insert_id;
                     if(!$this->db->insert('ad_insights_actions', $action))
                         log_message('debug', 'Erro: ' . $this->db->error()->message);
 
@@ -230,5 +260,37 @@ class Metricas extends CI_Model{
                 log_message('debug', 'Last Query: ' . $this->db->last_query());
             }
         }
+    }
+
+    public function getLastDateSyncAd($id)
+    {
+        log_message('debug', 'getLastDateSyncAd');
+
+        //Validate
+        $this->db->where('id',$id);
+        $result = $this->db->get('ads');
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        $row = $result->row();
+
+        return explode('T', $row->created_time)[0];
+    }
+
+    public function getTableData($id)
+    {
+        log_message('debug', 'getData. Id:' . $id);
+        
+        $this->db->select('date_start, cost_per_inline_link_click, inline_link_click_ctr, inline_link_clicks,impressions,cpm, spend, bydate');
+        $this->db->from('ad_insights');
+        $this->db->where('ad_id', $id);
+        $this->db->order_by('bydate');
+        $this->db->order_by('date_start');
+        $result = $this->db->get();
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        return $result->result();
+
     }
 }

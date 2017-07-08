@@ -200,4 +200,17 @@ return '?fields=' . $accounts . ',campaigns{' . $campaigns . ',insights{' . $ins
  $insights . '}';  
 } 
 
+function get_param_contas_data($dt_inicio)
+{
+    $insights = str_replace("\n","",INSIGHTS);
+
+    $dt = date('Y-m-d', time());
+ 
+$aaa = "?fields=" . $insights . "&time_increment=1&time_range={'since':'" . $dt_inicio .
+ "','until':'" . $dt . "'}";
+
+ return $aaa;
+
+}
+
 ?>

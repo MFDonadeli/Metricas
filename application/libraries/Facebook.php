@@ -17,7 +17,8 @@
  * @version     2.0
  */
 
-require_once APPPATH  . 'libraries/vendor/autoload.php';
+//require_once APPPATH  . 'libraries/vendor/autoload.php';
+require_once 'vendor/autoload.php'; 
 
 use Facebook\Facebook as FB;
 use Facebook\Authentication\AccessToken;

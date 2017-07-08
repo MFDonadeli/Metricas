@@ -54,6 +54,10 @@ if(!empty($authUrl)) {
         endforeach;
      endif;    
      ?>
+
+     <div id="numeros">
+         <button id='btnfechar'>Fechar</button>
+     </div>
 </div>
 
 <?php } ?>
@@ -61,6 +65,32 @@ if(!empty($authUrl)) {
 <script>
     $( document ).ready(function() {
         <?php if(!$contas) { ?> $('#botao_contas').hide(); <?php } ?>
+        $('#numeros').hide();
+    });
+
+    $('.container').click(function(){
+        id = $(this).attr('id');
+        var form_data = { id_ad: id };
+
+        var resp = $.ajax({
+            url: '<?php echo base_url(); ?>app/sync_ads',
+            type: 'POST',
+            data: form_data,
+            global: false,
+            async:false,
+            success: function(msg) { 
+                resp = msg; 
+            }
+        }).responseText;
+
+        $('#numeros').html(resp);
+        $('#numeros').show();
+
+
+    });
+
+    $('#btnfechar').click(function(){
+        $('#numeros').hide();
     });
 
     $('#btn_todas').click(function(){
