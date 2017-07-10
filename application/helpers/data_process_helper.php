@@ -21,7 +21,7 @@ function processa_insights($insights, $tipo)
           "video_30_sec_watched_actions", "video_avg_percent_watched_actions",
           "video_avg_time_watched_actions", "video_p100_watched_actions",
           "video_p25_watched_actions", "video_p50_watched_actions", "video_p75_watched_actions",
-          "video_p95_watched_actions","website_ctr","website_purchase_roas");
+          "video_p95_watched_actions","website_ctr","website_purchase_roas","cost_per_10_sec_video_view");
 
       //$arr_action[] = {"actions", "cost_per_action_type", "cost_per_outbound_click"}
 
