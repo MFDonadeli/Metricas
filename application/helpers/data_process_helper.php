@@ -55,6 +55,7 @@ function processa_insights($insights, $tipo)
             $action[$value['action_type']]['action_type'] = $value['action_type'];
             $action[$value['action_type']]['value'] = $value['value'];
             $action[$value['action_type']][$tipo.'_id'] = $insight[$tipo.'_id'];
+            $action[$value['action_type']]['account_id'] = $insight['account_id'];
           }
           unset($insight['actions']);
         }
@@ -66,6 +67,7 @@ function processa_insights($insights, $tipo)
                 $action[$value['action_type']]['action_type'] = $value['action_type'];
                 $action[$value['action_type']]['action_values'] = $value['value'];
                 $action[$value['action_type']][$tipo.'_id'] = $insight[$tipo.'_id'];
+                $action[$value['action_type']]['account_id'] = $insight['account_id'];
             }
             unset($insight['action_values']);       
         }
@@ -76,6 +78,7 @@ function processa_insights($insights, $tipo)
           $action[$value['action_type']]['action_type'] = $value['action_type'];
           $action[$value['action_type']]['value'] = $value['value'];
           $action[$value['action_type']][$tipo.'_id'] = $insight[$tipo.'_id'];
+          $action[$value['action_type']]['account_id'] = $insight['account_id'];
           unset($insight['outbound_clicks']);
         }
 
@@ -133,16 +136,24 @@ function processa_insights($insights, $tipo)
           unset($insight['cost_per_unique_outbound_click']);
         }
 
-        $insight['outbound_clicks_ctr_value'] = $insight['outbound_clicks_ctr'][0]['value'];  
-        $insight['outbound_clicks_ctr_action_type'] = $insight['outbound_clicks_ctr'][0]['action_type'];  
-        unset($insight['outbound_clicks_ctr']);
-        $insight['unique_outbound_clicks_ctr_value'] = $insight['unique_outbound_clicks_ctr'][0]['value']; 
-        $insight['unique_outbound_clicks_ctr_action_type'] = $insight['unique_outbound_clicks_ctr'][0]['action_type']; 
-        unset($insight['unique_outbound_clicks_ctr']);
+        if(array_key_exists('outbound_clicks_ctr', $insight))
+        {
+          $insight['outbound_clicks_ctr_value'] = $insight['outbound_clicks_ctr'][0]['value'];  
+          $insight['outbound_clicks_ctr_action_type'] = $insight['outbound_clicks_ctr'][0]['action_type'];  
+          unset($insight['outbound_clicks_ctr']);
+        }
+
+        if(array_key_exists('unique_outbound_clicks_ctr', $insight))
+        {
+          $insight['unique_outbound_clicks_ctr_value'] = $insight['unique_outbound_clicks_ctr'][0]['value']; 
+          $insight['unique_outbound_clicks_ctr_action_type'] = $insight['unique_outbound_clicks_ctr'][0]['action_type']; 
+          unset($insight['unique_outbound_clicks_ctr']);
+        }
 
         //RETORNO
-        $insights_ret = $insight;   
-        $insights_ret['action'] = $action;
+        $insights_ret = $insight; 
+        if(isset($action))  
+          $insights_ret['action'] = $action;
       }
 
       return $insights_ret;
@@ -211,12 +222,18 @@ function processa_insights($insights, $tipo)
 
         if(array_key_exists('creative', $ad))
         {
+          unset($ad['creative']['image_crops']);
+          unset($ad['creative']['platform_customizations']);
+
           $ad['creative']['ad_id'] = $ad['id'];
           if(array_key_exists('object_story_spec',$ad['creative']))
           {
             //LINK DATA
             if(array_key_exists('link_data',$ad['creative']['object_story_spec']))
             {
+              if(array_key_exists('image_crops', $ad['creative']['object_story_spec']['link_data']))
+                unset($ad['creative']['object_story_spec']['link_data']['image_crops']);
+
               if(array_key_exists('call_to_action', $ad['creative']['object_story_spec']['link_data']))
               {
                 $ad['creative']['object_story_spec_link_data_call_to_action'] =
@@ -227,6 +244,11 @@ function processa_insights($insights, $tipo)
 
               foreach($ad['creative']['object_story_spec']['link_data'] as $key1=>$val1)
               {
+                if(is_array($val1))
+                {
+                  $val1 = json_encode($val1);
+                }
+
                 $ad['creative']['object_story_spec_link_data_'.$key1] = $val1;                  
               }
               unset($ad['creative']['object_story_spec']['link_data']);
@@ -280,6 +302,11 @@ function processa_insights($insights, $tipo)
           $adset['attribution_spec_event_type'] = $adset['attribution_spec'][0]['event_type'];
           $adset['attribution_spec_window_days'] = $adset['attribution_spec'][0]['window_days'];
           unset($adset['attribution_spec']);
+        }
+
+        if(array_key_exists('adset_schedule', $adset))
+        {
+          $adset['adset_schedule'] = json_encode($adset['adset_schedule']);
         }
         
         if(array_key_exists('pacing_type',$adset))

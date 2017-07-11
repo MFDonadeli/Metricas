@@ -87,9 +87,12 @@ class Metricas extends CI_Model{
         if(array_key_exists('insights',$arr_account))
         {
             $arr_insights = $arr_account['insights'];
-            $arr_insights_action = $arr_insights['action'];
+            if(array_key_exists('action', $array))
+            {
+                $arr_insights_action = $arr_insights['action'];  
+                unset($arr_insights['action']);                  
+            }
             unset($arr_account['insights']);
-            unset($arr_insights['action']);
         }
 
         if(!$this->db->insert('accounts', $arr_account))
@@ -103,12 +106,15 @@ class Metricas extends CI_Model{
                 log_message('debug', 'Erro: ' . $this->db->error()->message);
             log_message('error', 'Last Query: ' . $this->db->last_query());
 
-            foreach($arr_insights_action as $action)
+            if(isset($arr_insights_action))
             {
-                if(!$this->db->insert('accounts_insights_actions', $action))
-                    log_message('debug', 'Erro: ' . $this->db->error()->message);
+                foreach($arr_insights_action as $action)
+                {
+                    if(!$this->db->insert('accounts_insights_actions', $action))
+                        log_message('debug', 'Erro: ' . $this->db->error()->message);
 
-                log_message('debug', 'Last Query: ' . $this->db->last_query());
+                    log_message('debug', 'Last Query: ' . $this->db->last_query());
+                }
             }
         }
         
@@ -121,9 +127,12 @@ class Metricas extends CI_Model{
             if(array_key_exists('insights',$array))
             {
                 $arr_insights = $array['insights'];
-                $arr_insights_action = $arr_insights['action'];
+                if(array_key_exists('action', $array))
+                {
+                    $arr_insights_action = $arr_insights['action'];  
+                    unset($arr_insights['action']);                  
+                }
                 unset($array['insights']);
-                unset($arr_insights['action']);
             }
 
             if(!$this->db->insert('campaigns', $array))
@@ -138,11 +147,14 @@ class Metricas extends CI_Model{
                 
                 log_message('debug', 'Last Query: ' . $this->db->last_query());
 
-                foreach($arr_insights_action as $action)
+                if(isset($arr_insights_action))
                 {
-                    if(!$this->db->insert('campaigns_insights_actions', $action))
-                        log_message('debug', 'Erro: ' . $this->db->error()->message);
-                    log_message('debug', 'Last Query: ' . $this->db->last_query());
+                    foreach($arr_insights_action as $action)
+                    {
+                        if(!$this->db->insert('campaigns_insights_actions', $action))
+                            log_message('debug', 'Erro: ' . $this->db->error()->message);
+                        log_message('debug', 'Last Query: ' . $this->db->last_query());
+                    }
                 }
             }
         }
@@ -183,9 +195,12 @@ class Metricas extends CI_Model{
             if(array_key_exists('insights',$array))
             {
                 $arr_insights = $array['insights'];
-                $arr_insights_action = $arr_insights['action'];
+                if(array_key_exists('action', $array))
+                {
+                    $arr_insights_action = $arr_insights['action'];  
+                    unset($arr_insights['action']);                  
+                }
                 unset($array['insights']);
-                unset($arr_insights['action']);
             }
 
             if(!$this->db->insert('adsets', $array))
@@ -200,11 +215,14 @@ class Metricas extends CI_Model{
 
                 log_message('debug', 'Last Query: ' . $this->db->last_query());
 
-                foreach($arr_insights_action as $action)
+                if(isset($arr_insights_action))
                 {
-                    if(!$this->db->insert('adsets_insights_actions', $action))
-                        log_message('debug', 'Erro: ' . $this->db->error()->message);
-                    log_message('debug', 'Last Query: ' . $this->db->last_query());
+                    foreach($arr_insights_action as $action)
+                    {
+                        if(!$this->db->insert('adsets_insights_actions', $action))
+                            log_message('debug', 'Erro: ' . $this->db->error()->message);
+                        log_message('debug', 'Last Query: ' . $this->db->last_query());
+                    }
                 }
             }
         }
@@ -217,9 +235,12 @@ class Metricas extends CI_Model{
             if(array_key_exists('insights',$array))
             {
                 $arr_insights = $array['insights'];
-                $arr_insights_action = $arr_insights['action'];
+                if(array_key_exists('action', $array))
+                {
+                    $arr_insights_action = $arr_insights['action'];  
+                    unset($arr_insights['action']);                  
+                }
                 unset($array['insights']);
-                unset($arr_insights['action']);
             }
 
             if(array_key_exists('creative',$array))
@@ -242,13 +263,16 @@ class Metricas extends CI_Model{
 
                 $insert_id = $this->db->insert_id();
 
-                foreach($arr_insights_action as $action)
+                if(isset($arr_insights_action))
                 {
-                    $action['ad_insights_id'] = insert_id;
-                    if(!$this->db->insert('ad_insights_actions', $action))
-                        log_message('debug', 'Erro: ' . $this->db->error()->message);
+                    foreach($arr_insights_action as $action)
+                    {
+                        $action['ad_insights_id'] = $insert_id;
+                        if(!$this->db->insert('ad_insights_actions', $action))
+                            log_message('debug', 'Erro: ' . $this->db->error()->message);
 
-                    log_message('debug', 'Last Query: ' . $this->db->last_query());
+                        log_message('debug', 'Last Query: ' . $this->db->last_query());
+                    }
                 }
             }
 
@@ -292,5 +316,64 @@ class Metricas extends CI_Model{
 
         return $result->result();
 
+    }
+
+    public function deleteToNewSync($id)
+    {
+        log_message('debug', 'deleteToNewSync. Id:' . $id);
+        
+        $this->db->query("DELETE ad_insights_actions, ad_insights FROM ad_insights_actions
+	                        JOIN ad_insights ON ad_insights_actions.ad_insights_id = ad_insights.ad_insights_id
+                            WHERE ad_insights.bydate is NULL AND ad_insights.account_id = '" . $id . "';");
+        
+        $this->db->where('account_id', $id);
+        $this->db->delete('ads');
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query()); 
+
+        $this->db->where('account_id', $id);
+        $this->db->delete('adsets_insights_actions');
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query()); 
+
+        $this->db->where('account_id', $id);
+        $this->db->delete('adsets_insights');
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query()); 
+
+        $this->db->where('account_id', $id);
+        $this->db->delete('adsets');
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query()); 
+
+        $this->db->where('account_id', $id);
+        $this->db->delete('campaigns_insights_actions');
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query()); 
+
+        $this->db->where('account_id', $id);
+        $this->db->delete('campaigns_insights');
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query()); 
+
+        $this->db->where('account_id', $id);
+        $this->db->delete('campaigns');
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query()); 
+
+        $this->db->where('account_id', $id);
+        $this->db->delete('account_insights_actions');
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query()); 
+
+        $this->db->where('account_id', $id);
+        $this->db->delete('account_insights');
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query()); 
+
+        $this->db->where('id', $id);
+        $this->db->delete('accounts');
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());    
     }
 }

@@ -54,6 +54,7 @@ class App extends CI_Controller {
     public function get_contas()
     {
       $accounts = $this->facebook->request('get', 'me/adaccounts?fields=name,account_status,age&limit=1200');
+
       log_message('debug',json_encode($accounts));
       $contas = $accounts['data'];
       $ret = '';
@@ -73,22 +74,22 @@ class App extends CI_Controller {
       }
 
       echo $ret;
-
-/*
-      while($accounts['paging']['next'] != '')
-      {
-        $str = "https://graph.facebook.com/v2.9/";
-        $next = str_replace($str, '', $accounts['paging']['next']);
-        $accounts = $this->facebook->request('get', $next);
-        $contas = array_merge($contas, $accounts['data']);
-      } */
-      
-      
     }
 
     public function sync_contas()
     {
       log_message('debug', $this->input->raw_input_stream);
+
+      /*$handle = fopen(APPPATH."jsons2.txt", "r");
+      if ($handle) {
+          while (($line = fgets($handle)) !== false) {
+              $aaa[] = $line;
+          }
+
+          fclose($handle);
+      } else {
+          // error opening the file.
+      } */
 
       $conta = $this->input->post('conta');
 
@@ -102,10 +103,66 @@ class App extends CI_Controller {
 
     public function grava_bd($detalhes)
     {
-      $fb_id = $this->session->userdata('facebook_id');
+      $fb_id = '1621655807847312';//$this->session->userdata('facebook_id');
+      
+      $this->metricas->deleteToNewSync(str_replace('act_','',$detalhes['id']));
+
       $campaigns = $detalhes['campaigns']['data'];
       $ads = $detalhes['ads']['data'];
       $adsets = $detalhes['adsets']['data'];
+
+      if(array_key_exists('next', $detalhes['campaigns']['paging']))
+      {
+        $next = $detalhes['campaigns']['paging']['next'];
+        while($next != '')
+        {
+          $retorno = $this->process_pagination($next);
+
+          if(array_key_exists('next', $retorno['paging']))
+            $next = $retorno['paging']['next'];
+          else
+            $next = '';
+
+          $campaigns = array_merge($campaigns, $retorno['data']);
+        }
+      }
+
+      if(array_key_exists('next', $detalhes['adsets']['paging']))
+      {
+        $next = $detalhes['adsets']['paging']['next'];
+        while($next != '')
+        {
+          $retorno = $this->process_pagination($next);
+          
+          if(array_key_exists('next', $retorno['paging']))
+            $next = $retorno['paging']['next'];
+          else
+            $next = '';
+
+          $adsets = array_merge($adsets, $retorno['data']);
+        }
+      }
+
+      if(array_key_exists('next', $detalhes['ads']['paging']))
+      {
+        $next = $detalhes['ads']['paging']['next'];
+        while($next != '')
+        {
+          $retorno = $this->process_pagination($next);
+          
+          if(array_key_exists('paging', $retorno))
+          {
+            if(array_key_exists('next', $retorno['paging']))
+              $next = $retorno['paging']['next'];
+            else
+              $next = '';
+
+            $ads = array_merge($ads, $retorno['data']);
+          }
+        }
+      }
+
+        
       
       if(array_key_exists('insights',$detalhes))
       {
@@ -216,6 +273,26 @@ class App extends CI_Controller {
             $this->load->view('home',$data);
 
         }
+    }
+
+    public function exec_fb_conn($id)
+    {
+      $result = $this->facebook->request('get', $id);
+      log_message('debug',json_encode($accounts));
+      
+      echo json_encode($result);
+      
+    }
+
+    public function process_pagination($url)
+    {
+      
+        $str = "https://graph.facebook.com/v2.9/";
+        $next = str_replace($str, '', $url);
+        $detalhes = $this->facebook->request('get', $next);
+
+        return $detalhes;
+        //$contas = array_merge($contas, $accounts['data']);
     }
 
 }
