@@ -153,7 +153,10 @@ function processa_insights($insights, $tipo)
         //RETORNO
         $insights_ret = $insight; 
         if(isset($action))  
+        {
           $insights_ret['action'] = $action;
+          unset($action);
+        }
       }
 
       return $insights_ret;

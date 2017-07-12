@@ -326,9 +326,9 @@ class Metricas extends CI_Model{
 
     public function getTableData($id)
     {
-        log_message('debug', 'getData. Id:' . $id);
+        log_message('debug', 'getTableData. Id:' . $id);
         
-        $this->db->select('date_start, cost_per_inline_link_click, inline_link_click_ctr, inline_link_clicks,impressions,cpm, spend, bydate');
+        $this->db->select('date_start, cost_per_inline_link_click, inline_link_click_ctr, inline_link_clicks,impressions, cpm, relevance_score_score, spend, bydate, ad_insights_id');
         $this->db->from('ad_insights');
         $this->db->where('ad_id', $id);
         $this->db->order_by('bydate');
@@ -339,6 +339,39 @@ class Metricas extends CI_Model{
 
         return $result->result();
 
+    }
+
+    public function getTableDataActions($id)
+    {
+        log_message('debug', 'getTableDataActions. Id:' . $id);
+        
+        $this->db->select('action_type, value, cost, ad_insights_id');
+        $this->db->from('ad_insights_actions');
+        $this->db->like('action_type', 'offsite_conversion.', 'after');
+        $this->db->where('ad_insights_id', $id);
+        
+        $result = $this->db->get();
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        return $result->result();
+    }
+
+    public function getPossibleConversions($id)
+    {
+        log_message('debug', 'getPossibleConversions. Id:' . $id);
+        
+        $this->db->distinct();
+        $this->db->select('action_type');
+        $this->db->from('ad_insights_actions');
+        $this->db->like('action_type', 'offsite_conversion.', 'after');
+        $this->db->where('ad_id', $id);
+        
+        $result = $this->db->get();
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        return $result->result();
     }
 
     public function deleteToNewSync($id)

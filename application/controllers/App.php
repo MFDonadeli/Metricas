@@ -103,7 +103,7 @@ class App extends CI_Controller {
 
     public function sync_contas_from_file()
     {
-      log_message('debug', $this->input->raw_input_stream);
+      log_message('debug', 'sync_contas_from_file');
 
       $handle = fopen(APPPATH."jsons2.txt", "r");
       if ($handle) {
@@ -219,6 +219,8 @@ class App extends CI_Controller {
 
     public function sync_ads()
     {
+      log_message('debug', 'sync_ads');
+
       $ad = $this->input->post('id_ad');
 
       $ad = str_replace('div','',$ad);
@@ -242,19 +244,41 @@ class App extends CI_Controller {
       $result = $this->metricas->getTableData($ad);
       $data['metricas'] = $result;
 
-      $html = $this->load->view('table',$data,true);
+      $html = $this->show_table($ad);
 
       echo $html;
       
     }
 
-    public function show_table()
+    public function show_table($id)
     {
-      $id = '23842605010820642';
       $result = $this->metricas->getTableData($id);
+      $conversions = $this->metricas->getPossibleConversions($id);
+
+      foreach($result as $dados)
+      {
+        $result_actions = $this->metricas->getTableDataActions($dados->ad_insights_id);
+        foreach($conversions as $conv)
+        {
+          $dados->{$conv->action_type} = '';
+          $dados->{'Valor por ' . $conv->action_type} = '';
+        }
+
+        foreach($result_actions as $action)
+        {
+          $dados->{$action->action_type} = $action->value;  
+          $dados->{'Valor por ' . $action->action_type} = $action->cost;
+        }
+        $retorno[] = $dados;
+      }
+
       $data['metricas'] = $result;
 
       $html = $this->load->view('table',$data,true);
+
+      echo $html;
+
+      return $html;
 
     }
 
