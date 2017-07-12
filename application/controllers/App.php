@@ -259,6 +259,7 @@ class App extends CI_Controller {
 
     public function home(){
         if($this->facebook->is_authenticated()){
+            log_message('debug','TOKEN FB: ' . $this->facebook->is_authenticated() );
             // Get user facebook profile details
             $userProfile = $this->facebook->request('get', '/me?fields=id,first_name,last_name,email,gender,locale');
             log_message('debug',json_encode($userProfile));
