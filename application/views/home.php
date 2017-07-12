@@ -125,11 +125,12 @@ if(!empty($authUrl)) {
                 }
             }).responseText;
         });
+
+        location.reload();
     }
 
     $('#btn_sincronizar').click(function(){
         sync_contas();
-        location.reload();
     });
 
     $('.buscar_contas').click(function(){
