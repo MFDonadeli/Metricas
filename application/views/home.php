@@ -97,7 +97,7 @@ if(!empty($authUrl)) {
 
         $('#numeros' + id).html(resp);
         $('#numeros' + id).show();
-        $('#'.divid).toggleClass('bigContainer');
+        $('#' + divid).toggleClass('bigContainer');
 
 
 
