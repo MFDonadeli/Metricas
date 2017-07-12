@@ -71,7 +71,9 @@ if(!empty($authUrl)) {
 
     $('.ver_metrica').click(function(){
         //id = $(this).attr('id'); 
-        id = this.parentElement.id;
+        divid = this.parentElement.id;
+        id = divid.replace("div","");
+        
         var form_data = { id_ad: id };
 
         var resp = $.ajax({
@@ -85,8 +87,8 @@ if(!empty($authUrl)) {
             }
         }).responseText;
 
-        $('#numeros').html(resp);
-        $('#numeros').show();
+        $('#numeros' + id).html(resp);
+        $('#numeros' + id).show();
 
 
     });
