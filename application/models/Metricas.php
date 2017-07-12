@@ -294,7 +294,7 @@ class Metricas extends CI_Model{
         $this->db->from('ad_insights');
         $this->db->where('ad_id', $id);
         $this->db->where('bydate = 1');
-        $this->db->order_by('ad_insights_id');
+        $this->db->order_by('ad_insights_id', 'desc');
         $this->db->limit(1);
         $result = $this->db->get();
 
