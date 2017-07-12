@@ -290,6 +290,29 @@ class Metricas extends CI_Model{
     {
         log_message('debug', 'getLastDateSyncAd');
 
+        $this->db->select('date_start, ad_insights_id');
+        $this->db->from('ad_insights');
+        $this->db->where('ad_id', $id);
+        $this->db->where('bydate = 1');
+        $this->db->order_by('ad_insights_id');
+        $this->db->limit(1);
+        $result = $this->db->get();
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        if($result->num_rows() > 0)
+        {
+            $row = $result->row();
+
+            $this->db->where('ad_insights_id', $row->ad_insights_id);
+            $this->db->delete('ad_insights_actions');
+
+            $this->db->where('ad_insights_id', $row->ad_insights_id);
+            $this->db->delete('ad_insights');
+
+            return explode(' ', $row->created_time)[0];    
+        }
+
         //Validate
         $this->db->where('id',$id);
         $result = $this->db->get('ads');
