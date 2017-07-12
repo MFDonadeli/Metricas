@@ -21,11 +21,12 @@ if(!empty($authUrl)) {
 </div>
 <div id='div_items'>
     <div id='botao_contas'>
-        <button id='btn_adicionar'>Adicionar Mais Contas</button>
+        <button class='buscar_contas' id='btn_adicionar'>Adicionar Mais Contas</button>
         <button id='btn_todas'>Adicionar Todas</button>
         <button id='btn_sincronizar'>Sincronizar</button>
     </div>
-    <p id='msg'></p>
+    <p id="msg"></p>
+    <div id="progressbar"></div>
     <div id='contas'>
     </div>
 
@@ -33,7 +34,7 @@ if(!empty($authUrl)) {
     if(!$contas): ?>
         <div id='sem_contas'>
             <h2>Sem Contas Sincronizadas</h2>
-            <button id='btn_buscar_contas'>Buscar Contas</button>
+            <button class='buscar_contas' id='btn_buscar_contas'>Buscar Contas</button>
         </div>
     <?php
     else: ?>
@@ -97,13 +98,20 @@ if(!empty($authUrl)) {
         $('.div_caixa').toggleClass('selected_container');
     });
 
-    $('#btn_sincronizar').click(function(){
+    function sync_contas()
+    {
         var id_conta;
+        var count_divs = $('.selected_container').length;
+        var i = 0;
 
         $('.selected_container').each(function(){
+            i++;
             id_conta = $(this).attr('id');
 
             $('#msg').html('Sincronizando: ' + id_conta);
+            $( "#progressbar" ).progressbar({
+                value: i/count_divs
+            });
 
             var form_data = { conta: id_conta };
             var resp = $.ajax({
@@ -117,9 +125,14 @@ if(!empty($authUrl)) {
                 }
             }).responseText;
         });
+    }
+
+    $('#btn_sincronizar').click(function(){
+        sync_contas();
+        location.reload();
     });
 
-    $('#btn_buscar_contas').click(function(){
+    $('.buscar_contas').click(function(){
         var resp = $.ajax({
             url: '<?php echo base_url(); ?>app/get_contas',
             type: 'GET',
