@@ -101,6 +101,32 @@ class App extends CI_Controller {
       $this->grava_bd($detalhes); 
     }
 
+    public function sync_contas_from_file()
+    {
+      log_message('debug', $this->input->raw_input_stream);
+
+      $handle = fopen(APPPATH."jsons2.txt", "r");
+      if ($handle) {
+          while (($line = fgets($handle)) !== false) {
+              $aaa[] = $line;
+          }
+
+          fclose($handle);
+      } else {
+          // error opening the file.
+      } 
+
+      //$conta = $this->input->post('conta');
+
+      //$conta = str_replace('div_','',$conta);
+
+      $detalhes = json_decode($aaa[0], true);
+      //$detalhes = $this->facebook->request('get',$conta.get_param_contas());
+      //log_message('debug',json_encode($detalhes));
+
+      $this->grava_bd($detalhes); 
+    }
+
     public function grava_bd($detalhes)
     {
       $fb_id = '1621655807847312';//$this->session->userdata('facebook_id');

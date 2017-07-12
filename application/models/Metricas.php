@@ -127,7 +127,7 @@ class Metricas extends CI_Model{
             if(array_key_exists('insights',$array))
             {
                 $arr_insights = $array['insights'];
-                if(array_key_exists('action', $array))
+                if(array_key_exists('action', $arr_insights))
                 {
                     $arr_insights_action = $arr_insights['action'];  
                     unset($arr_insights['action']);                  
@@ -195,7 +195,7 @@ class Metricas extends CI_Model{
             if(array_key_exists('insights',$array))
             {
                 $arr_insights = $array['insights'];
-                if(array_key_exists('action', $array))
+                if(array_key_exists('action', $arr_insights))
                 {
                     $arr_insights_action = $arr_insights['action'];  
                     unset($arr_insights['action']);                  
@@ -235,7 +235,7 @@ class Metricas extends CI_Model{
             if(array_key_exists('insights',$array))
             {
                 $arr_insights = $array['insights'];
-                if(array_key_exists('action', $array))
+                if(array_key_exists('action', $arr_insights))
                 {
                     $arr_insights_action = $arr_insights['action'];  
                     unset($arr_insights['action']);                  
