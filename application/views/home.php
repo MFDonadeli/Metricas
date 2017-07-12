@@ -51,8 +51,8 @@ if(!empty($authUrl)) {
                 Tag: <?php echo $contas_item->url_tags; ?><br>
                 <a href='https://www.facebook.com/<?php echo $arr[0] . '/posts/' . $arr[1];?>'>Link do Criativo</a><br>
                 <button class='ver_metrica'>Métricas do Anúncio</button>
-                <div id="numeros<?php echo $contas_item->id; ?>">
-                    <button id='btnfechar'>Fechar</button>
+                <div class='numeros' id="numeros<?php echo $contas_item->id; ?>">
+                    
                 </div>
             </div>
         <?php 
@@ -66,11 +66,19 @@ if(!empty($authUrl)) {
 <script>
     $( document ).ready(function() {
         <?php if(!$contas) { ?> $('#botao_contas').hide(); <?php } ?>
-        $('#numeros').hide();
+        $('.numeros').hide();
     });
 
     $('.ver_metrica').click(function(){
         //id = $(this).attr('id'); 
+
+        if($('#numeros' + id).is(':visible'))
+        {
+            $('#numeros' + id).hide();
+            $('#numeros' + id).toggleClass('bigContainer');
+            return;
+        }
+
         divid = this.parentElement.id;
         id = divid.replace("div","");
         
@@ -83,18 +91,20 @@ if(!empty($authUrl)) {
             global: false,
             async:false,
             success: function(msg) { 
-                resp = msg; 
+                resp += msg; 
             }
         }).responseText;
 
         $('#numeros' + id).html(resp);
         $('#numeros' + id).show();
+        $('#'.divid).toggleClass('bigContainer');
+
 
 
     });
 
     $('#btnfechar').click(function(){
-        $('#numeros').hide();
+        $('.numeros').hide();
     });
 
     $('#btn_todas').click(function(){
