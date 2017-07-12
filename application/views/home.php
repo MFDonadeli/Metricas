@@ -103,35 +103,28 @@ if(!empty($authUrl)) {
         var id_conta;
         var count_divs = $('.selected_container').length;
         var i = 0;
-        var activeAjaxConnections = 0;
 
         $('.selected_container').each(function(){
+            i++;
             id_conta = $(this).attr('id');
+
+            $('#msg').html('Sincronizando: ' + id_conta);
+            $( "#progressbar" ).progressbar({
+                value: i/count_divs
+            });
 
             var form_data = { conta: id_conta };
             var resp = $.ajax({
-                beforesend: function(xhr) {
-                    i++;
-                    activeAjaxConnections++;
-                    $('#msg').html('Sincronizando: ' + id_conta);
-                },
                 url: '<?php echo base_url(); ?>app/sync_contas',
                 type: 'POST',
                 data: form_data,
                 global: false,
+                async:false,
                 success: function(msg) { 
-                    activeAjaxConnections--;
-                    $( "#progressbar" ).progressbar({
-                        value: i/count_divs
-                    });
-                    if(activeAjaxConnections == 0)
-                        location.reload();
                     resp = msg; 
                 }
             }).responseText;
         });
-
-        
     }
 
     $('#btn_sincronizar').click(function(){
