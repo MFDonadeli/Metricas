@@ -124,12 +124,13 @@ class App extends CI_Controller {
       //$detalhes = $this->facebook->request('get',$conta.get_param_contas());
       //log_message('debug',json_encode($detalhes));
 
-      $this->grava_bd($detalhes); 
+      $this->grava_bd($detalhes, '1621655807847312'); 
     }
 
-    public function grava_bd($detalhes)
+    public function grava_bd($detalhes, $fb_id = '0')
     {
-      $fb_id = '1621655807847312';//$this->session->userdata('facebook_id');
+      if($fb_id == 0)
+        $fb_id = $this->session->userdata('facebook_id');
       
       $this->metricas->deleteToNewSync(str_replace('act_','',$detalhes['id']));
 
