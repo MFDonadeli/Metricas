@@ -72,15 +72,15 @@ if(!empty($authUrl)) {
     $('.ver_metrica').click(function(){
         //id = $(this).attr('id'); 
 
+        divid = this.parentElement.id;
+        id = divid.replace("div","");
+
         if($('#numeros' + id).is(':visible'))
         {
             $('#numeros' + id).hide();
             $('#numeros' + id).toggleClass('bigContainer');
             return;
         }
-
-        divid = this.parentElement.id;
-        id = divid.replace("div","");
         
         var form_data = { id_ad: id };
 
