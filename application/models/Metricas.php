@@ -310,7 +310,7 @@ class Metricas extends CI_Model{
             $this->db->where('ad_insights_id', $row->ad_insights_id);
             $this->db->delete('ad_insights');
 
-            return explode(' ', $row->created_time)[0];    
+            return explode(' ', $row->date_start)[0];    
         }
 
         //Validate
