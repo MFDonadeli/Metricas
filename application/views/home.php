@@ -49,16 +49,16 @@ if(!empty($authUrl)) {
                 Campanha: <?php echo $contas_item->campaigns_name; ?><br>
                 Conjunto: <?php echo $contas_item->ad_sets_name; ?><br>
                 Tag: <?php echo $contas_item->url_tags; ?><br>
-                <a href='https://www.facebook.com/<?php echo $arr[0] . '/posts/' . $arr[1];?>'>Link do Criativo</a>
+                <a href='https://www.facebook.com/<?php echo $arr[0] . '/posts/' . $arr[1];?>'>Link do Criativo</a><br>
+                <button class='ver_metrica'>Métricas do Anúncio</button>
+                <div id="numeros<?php echo $contas_item->id; ?>">
+                    <button id='btnfechar'>Fechar</button>
+                </div>
             </div>
         <?php 
         endforeach;
      endif;    
      ?>
-
-     <div id="numeros">
-         <button id='btnfechar'>Fechar</button>
-     </div>
 </div>
 
 <?php } ?>
@@ -69,8 +69,9 @@ if(!empty($authUrl)) {
         $('#numeros').hide();
     });
 
-    $('.container').click(function(){
-        id = $(this).attr('id');
+    $('.ver_metrica').click(function(){
+        //id = $(this).attr('id'); 
+        id = this.parentElement.id;
         var form_data = { id_ad: id };
 
         var resp = $.ajax({
