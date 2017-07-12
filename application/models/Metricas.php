@@ -322,9 +322,14 @@ class Metricas extends CI_Model{
     {
         log_message('debug', 'deleteToNewSync. Id:' . $id);
         
+        $this->db->where('account_id', $id);
+        $this->db->delete('ad_creatives');
+        
         $this->db->query("DELETE ad_insights_actions, ad_insights FROM ad_insights_actions
 	                        JOIN ad_insights ON ad_insights_actions.ad_insights_id = ad_insights.ad_insights_id
                             WHERE ad_insights.bydate is NULL AND ad_insights.account_id = '" . $id . "';");
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query()); 
         
         $this->db->where('account_id', $id);
         $this->db->delete('ads');
