@@ -77,7 +77,7 @@ if(!empty($authUrl)) {
 
         if($('#numeros' + id).is(':visible'))
         {
-            $('#numeros' + id).toggleClass('bigContainer');
+            $('#' + divid).toggleClass('bigContainer');
             $('#numeros' + id).hide();
             return;
         }
