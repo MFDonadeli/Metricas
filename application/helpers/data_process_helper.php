@@ -331,8 +331,7 @@ function processa_insights($insights, $tipo)
 
         if(array_key_exists('targeting',$adset))
         {
-          processa_targeting($adset['targeting'],$adset['id']);
-          unset($adset['targeting']);
+          $adset['targeting'] = processa_targeting($adset['targeting'],$adset['id']);
         }
         
         $adsets_ret[] = $adset;
@@ -343,9 +342,20 @@ function processa_insights($insights, $tipo)
 
     function processa_targeting($targeting,$adset_id)
     {
-      foreach($targeting as $target)
+      $retorno['adset_id'] = $adset_id;
+      foreach($targeting as $key => $val)
       {
-        //if(is_array($target))
+        if($key == 'flexible_spec')
+        {
+          for($i=0;$i<count($val);$i++)
+          {
+            $retorno['flexible_spec_' . key($val[$i])] = json_encode($val[$i][key($val[$i])]);
+          }
+          unset($retorno['flexible_spec']);
+        }
+        $retorno[$key] = json_encode($val);
       }
+
+      return $retorno;
     }
   ?>  

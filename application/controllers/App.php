@@ -99,6 +99,12 @@ class App extends CI_Controller {
       log_message('debug',json_encode($detalhes));
 
       $this->grava_bd($detalhes); 
+
+      $detalhes = $this->facebook->request('get',$conta.'/customconversions?fields=id,name,custom_event_type,account_id');
+      log_message('debug',json_encode($detalhes));
+
+      if(!empty($detalhes['data']))
+        $this->metricas->grava_custom_conversions($detalhes['data']);
     }
 
     public function sync_contas_from_file()
@@ -116,15 +122,26 @@ class App extends CI_Controller {
           // error opening the file.
       } 
 
-      //$conta = $this->input->post('conta');
+      foreach($aaa as $aa)
+      {
+        $detalhes = json_decode($aa, true);
 
-      //$conta = str_replace('div_','',$conta);
+        $this->grava_bd($detalhes, '1621655807847312'); 
 
-      $detalhes = json_decode($aaa[0], true);
-      //$detalhes = $this->facebook->request('get',$conta.get_param_contas());
-      //log_message('debug',json_encode($detalhes));
+        $detalhes = $this->facebook->request('get',$detalhes['id'].'/customconversions?fields=id,name,custom_event_type,account_id','EAAGkQhc0J9UBAMyMWDsopZBuxpx6E8bgZBcB7kXW2O6QGxSCKXOuYradgpxrxeZAO7BN74w9G1YQcf5JjJIXE3JTeUZCVZCrb1DOMusZAwlbvYDPD9QmW4BAcj4QsbQrEVARcqVxf11dwZATsEmC28nXMAqV0UIA98ZD');
+        log_message('debug',json_encode($detalhes));
 
-      $this->grava_bd($detalhes, '1621655807847312'); 
+        if(array_key_exists('error', $detalhes))
+        {
+          //Joga erro na tela
+        }
+        else
+        {
+          if(!empty($detalhes['data']))
+            $this->metricas->grava_custom_conversions($detalhes['data']);
+        }
+      }
+      
     }
 
     public function grava_bd($detalhes, $fb_id = '0')
@@ -188,8 +205,6 @@ class App extends CI_Controller {
           }
         }
       }
-
-        
       
       if(array_key_exists('insights',$detalhes))
       {
@@ -275,8 +290,6 @@ class App extends CI_Controller {
       $data['metricas'] = $result;
 
       $html = $this->load->view('table',$data,true);
-
-      echo $html;
 
       return $html;
 

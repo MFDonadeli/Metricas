@@ -147,15 +147,20 @@ class Metricas extends CI_Model{
                 
                 log_message('debug', 'Last Query: ' . $this->db->last_query());
 
+                $insert_id = $this->db->insert_id();
+
                 if(isset($arr_insights_action))
                 {
+                    $action['campaigns_insights_id'] = $insert_id;
                     foreach($arr_insights_action as $action)
                     {
                         if(!$this->db->insert('campaigns_insights_actions', $action))
                             log_message('debug', 'Erro: ' . $this->db->error()->message);
                         log_message('debug', 'Last Query: ' . $this->db->last_query());
                     }
+                    unset($arr_insights_action);
                 }
+                unset($arr_insights);
             }
         }
         
@@ -192,6 +197,12 @@ class Metricas extends CI_Model{
     {
         foreach($arr_adset as $array)
         {
+            if(array_key_exists('targeting',$array))
+            {
+                $arr_targeting = $array['targeting'];
+                unset($array['targeting']);
+            }
+
             if(array_key_exists('insights',$array))
             {
                 $arr_insights = $array['insights'];
@@ -208,6 +219,15 @@ class Metricas extends CI_Model{
 
             log_message('debug', 'Last Query: ' . $this->db->last_query());
 
+            if(isset($arr_targeting))
+            {
+                if(!$this->db->insert('adsets_targeting',$arr_targeting))
+                    log_message('debug', 'Erro: ' . $this->db->error()->message);
+
+                log_message('debug', 'Last Query: ' . $this->db->last_query());  
+                unset($arr_targeting);  
+            }
+
             if(isset($arr_insights))
             {
                 if(!$this->db->insert('adsets_insights',$arr_insights))
@@ -215,15 +235,20 @@ class Metricas extends CI_Model{
 
                 log_message('debug', 'Last Query: ' . $this->db->last_query());
 
+                $insert_id = $this->db->insert_id();
+
                 if(isset($arr_insights_action))
                 {
                     foreach($arr_insights_action as $action)
                     {
+                        $action['adsets_insights_id'] = $insert_id;
                         if(!$this->db->insert('adsets_insights_actions', $action))
                             log_message('debug', 'Erro: ' . $this->db->error()->message);
                         log_message('debug', 'Last Query: ' . $this->db->last_query());
                     }
+                    unset($arr_insights_action);
                 }
+                unset($arr_insights);
             }
         }
     }
@@ -273,7 +298,9 @@ class Metricas extends CI_Model{
 
                         log_message('debug', 'Last Query: ' . $this->db->last_query());
                     }
+                    unset($arr_insights_action);
                 }
+                unset($arr_insights);
             }
 
             if(isset($arr_creative))
@@ -282,7 +309,18 @@ class Metricas extends CI_Model{
                     log_message('debug', 'Erro: ' . $this->db->error()->message);
 
                 log_message('debug', 'Last Query: ' . $this->db->last_query());
+                unset($arr_creative);
             }
+        }
+    }
+
+    public function grava_custom_conversions($arr_custom_conversions)
+    {
+        foreach($arr_custom_conversions as $array)
+        {
+            if(!$this->db->insert('account_custom_conversion',$array))
+                log_message('debug', 'Erro: ' . $this->db->error()->message); 
+            log_message('debug', 'Last Query: ' . $this->db->last_query());   
         }
     }
 
@@ -392,30 +430,23 @@ class Metricas extends CI_Model{
 
         log_message('debug', 'Last Query: ' . $this->db->last_query()); 
 
-        $this->db->where('account_id', $id);
-        $this->db->delete('adsets_insights_actions');
+        $this->db->query("DELETE adsets_insights_actions, adsets_insights FROM adsets_insights_actions
+	                        JOIN adsets_insights ON adsets_insights_actions.adsets_insights_id = adsets_insights.adsets_insights_id
+                            WHERE adsets_insights.bydate is NULL AND adsets_insights.account_id = '" . $id . "';");
 
         log_message('debug', 'Last Query: ' . $this->db->last_query()); 
 
-        $this->db->where('account_id', $id);
-        $this->db->delete('adsets_insights');
+        $this->db->query("DELETE adsets, adsets_targeting FROM adsets
+	                        JOIN adsets_targeting ON adsets.id = adsets_targeting.adset_id
+                            WHERE adsets.account_id = '" . $id . "';");
 
         log_message('debug', 'Last Query: ' . $this->db->last_query()); 
 
-        $this->db->where('account_id', $id);
-        $this->db->delete('adsets');
+        $this->db->query("DELETE campaigns_insights_actions, campaigns_insights FROM campaigns_insights_actions
+	                        JOIN campaigns_insights ON campaigns_insights_actions.campaigns_insights_id = campaigns_insights.campaigns_insights_id
+                            WHERE campaigns_insights.bydate is NULL AND campaigns_insights.account_id = '" . $id . "';");
 
-        log_message('debug', 'Last Query: ' . $this->db->last_query()); 
-
-        $this->db->where('account_id', $id);
-        $this->db->delete('campaigns_insights_actions');
-
-        log_message('debug', 'Last Query: ' . $this->db->last_query()); 
-
-        $this->db->where('account_id', $id);
-        $this->db->delete('campaigns_insights');
-
-        log_message('debug', 'Last Query: ' . $this->db->last_query()); 
+        log_message('debug', 'Last Query: ' . $this->db->last_query());  
 
         $this->db->where('account_id', $id);
         $this->db->delete('campaigns');
@@ -431,6 +462,11 @@ class Metricas extends CI_Model{
         $this->db->delete('account_insights');
 
         log_message('debug', 'Last Query: ' . $this->db->last_query()); 
+
+        $this->db->where('account_id', $id);
+        $this->db->delete('account_custom_conversion');
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());   
 
         $this->db->where('id', $id);
         $this->db->delete('accounts');
