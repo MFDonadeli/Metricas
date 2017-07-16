@@ -38,25 +38,36 @@ if(!empty($authUrl)) {
         </div>
     <?php
     else: ?>
-    <?php 
-        foreach($contas as $contas_item):
-            $arr = explode('_', $contas_item->effective_object_story_id);        
-        ?>    
-            <div class='container' id='div<?php echo $contas_item->id; ?>'>
-                Anúncio: <?php echo $contas_item->ad_name; ?><br>
-                ID: <?php echo $contas_item->id; ?><br>
-                Conta: <?php echo $contas_item->account_name; ?><br>
-                Campanha: <?php echo $contas_item->campaigns_name; ?><br>
-                Conjunto: <?php echo $contas_item->ad_sets_name; ?><br>
-                Tag: <?php echo $contas_item->url_tags; ?><br>
-                <a href='https://www.facebook.com/<?php echo $arr[0] . '/posts/' . $arr[1];?>'>Link do Criativo</a><br>
-                <button class='ver_metrica'>Métricas do Anúncio</button>
-                <div class='numeros' id="numeros<?php echo $contas_item->id; ?>">
-                    
-                </div>
-            </div>
+        <div id="div_select_contas">
+            <label for="contas">Conta:</label>
+            <select name="contas" id="cmbcontas">
+                <?php 
+                    foreach($contas as $conta):
+                ?>
+                        <option value="<?php echo $conta->account_id; ?>"><?php echo $conta->account_name; ?></option>
+                <?php
+                    endforeach;
+                ?>
+            </select><br>
+        </div>
+        <div id="div_select_campanhas">
+            <label for="campanhas">Conta:</label>
+            <select name="campanhas" id="cmbcampanhas">
+            </select><br>
+        </div>
+        <div id="div_select_conjuntos">
+            <label for="conjunto">Conta:</label>
+            <select name="conjunto" id="cmbconjunto">
+            </select><br>
+        </div>
+        <div id="div_select_anuncios">
+            <label for="anuncios">Conta:</label>
+            <select name="anuncios" id="cmbanuncios">
+            </select><br>
+        </div>
+        <button id="btnvernumeros">Ver Números</button>
+        <div id="numeros"></div>
         <?php 
-        endforeach;
      endif;    
      ?>
 </div>
@@ -66,26 +77,91 @@ if(!empty($authUrl)) {
 <script>
     $( document ).ready(function() {
         <?php if(!$contas) { ?> $('#botao_contas').hide(); <?php } ?>
-        $('.numeros').hide();
+        $('#numeros').hide();
+        $('#btnvernumeros').hide();
     });
 
-    $('.ver_metrica').click(function(){
+    function ajax_fill_combo(id, tipo)
+    {
+        var form_data = { id: id,
+                          tipo: tipo };
+
+
+        var resp = $.ajax({
+            url: '<?php echo base_url(); ?>app/fill_combo',
+            type: 'POST',
+            data: form_data,
+            global: false,
+            async:false,
+            success: function(msg) { 
+                resp = msg; 
+            }
+        }).responseText;
+
+        return resp;        
+    }
+
+    $('#cmbcontas').change(function(){
+        var retorno = ajax_fill_combo($('#cmbcontas').val(), 'campaigns');
+
+        $('#div_select_campanhas').show();
+        $('#div_select_conjuntos').hide();
+        $('#div_select_anuncios').hide();
+        $('#numeros').hide();
+
+        $('#cmbcampanhas').append(retorno);
+        $('#btnvernumeros').show();
+    });
+
+    $('#cmbcampanhas').change(function(){
+        var retorno = ajax_fill_combo($('#cmbcampanhas').val(), 'adsets');
+
+        $('#div_select_conjuntos').show();
+        $('#div_select_anuncios').hide();
+        $('#numeros').hide();
+
+        $('#cmbconjunto').append(retorno);
+    });
+
+    $('#cmbconjunto').change(function(){
+        var retorno = ajax_fill_combo($('#cmbconjunto').val(), 'ads');
+
+        $('#div_select_anuncios').show();
+        $('#numeros').hide();
+
+        $('#cmbanuncios').append(retorno);
+    });
+
+    $('.btnvernumeros').click(function(){
         //id = $(this).attr('id'); 
+
+        var val;
+        var tipo;
 
         divid = this.parentElement.id;
         id = divid.replace("div","");
 
-        if($('#numeros' + id).is(':visible'))
+        if($('#div_select_anuncios').is(':visible'))
         {
-            $('#' + divid).toggleClass('bigContainer');
-            $('#numeros' + id).hide();
-            return;
+            val = $('#cmbanuncios').val();
+            tipo = 'ad';
+        }
+        else if($('#div_select_conjuntos').is(':visible'))
+        {
+            val = $('#cmbconjunto').val();
+            tipo = 'adset';
+        }
+        else if($('#div_select_campanhas').is(':visible'))
+        {
+            val = $('#cmbcampanhas').val();
+            tipo = 'campaign';
         }
         
-        var form_data = { id_ad: id };
+        var form_data = { tipo: tipo,
+                          val: val };
 
         var resp = $.ajax({
-            url: '<?php echo base_url(); ?>app/sync_ads',
+            url: '<?php echo base_url(); ?>app/sync_metricas',
             type: 'POST',
             data: form_data,
             global: false,
@@ -95,11 +171,10 @@ if(!empty($authUrl)) {
             }
         }).responseText;
 
-        $('#numeros' + id).html(resp);
-        $('#numeros' + id).show();
-        $('#' + divid).toggleClass('bigContainer');
+        $('#numeros').hide();
 
-
+        $('#numeros').html("<iframe width='100%' height='500 px' src=' \
+            https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>/template/" + resp + "'>";
 
     });
 

@@ -235,29 +235,28 @@ class App extends CI_Controller {
 
     }
 
-    public function sync_ads()
+    public function sync_metricas()
     {
-      log_message('debug', 'sync_ads');
+      log_message('debug', 'sync_metricas');
 
-      $ad = $this->input->post('id_ad');
+      $id = $this->input->post('val');
+      $tipo = $this->input->post('tipo');
 
-      $ad = str_replace('div','',$ad);
-
-      $dt_inicio = $this->metricas->getLastDateSyncAd($ad);
+      $dt_inicio = $this->metricas->getLastDateSync($id, $tipo);
 
       $url_params = get_param_contas_data($dt_inicio);
 
-      $detalhes = $this->facebook->request('get', $ad.'/insights'.$url_params);
+      $detalhes = $this->facebook->request('get', $id.'/insights'.$url_params);
 
       log_message('debug',json_encode($detalhes));
 
       foreach($detalhes['data'] as $insight_data)
       {
         $data['data'][] = $insight_data;
-        $insights_data[] = processa_insights($data, 'ad');
+        $insights_data[] = processa_insights($data, $tipo);
       }
 
-      $this->metricas->insertInsights($insights_data);
+      $this->metricas->insertInsights($insights_data, $tipo);
 
       $result = $this->metricas->getTableData($ad);
       $data['metricas'] = $result;
@@ -350,6 +349,33 @@ class App extends CI_Controller {
       
       echo json_encode($result);
       
+    }
+
+    public function fill_combo()
+    {
+      log_message('debug', 'fill_combo');
+
+      $id = $this->input->post('id'); 
+      $tipo = $this->input->post('tipo');   
+
+      $retorno = $this->metricas->get_from_tipo($id, $tipo);
+
+      $ret = "";
+
+      if($retorno == "Nenhum ativo")
+      {
+        $ret .= "<option value='-1'>Nenhum ativo</option>";
+      }
+      else
+      {
+        $ret .= "<option value='-1'>Selecione</option>";
+        foreach($retorno as $val)
+        {
+          $ret .= "<option value='" . $val->id . "'>" . $val->name . "</option>";  
+        }
+      }
+    
+      echo $ret;
     }
 
     public function process_pagination($url)
