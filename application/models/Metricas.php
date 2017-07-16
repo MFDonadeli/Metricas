@@ -412,6 +412,21 @@ class Metricas extends CI_Model{
         return $result->result();
     }
 
+    public function get_custom_conversion_name($id)
+    {
+        log_message('debug', 'get_custom_conversion_name. Id:' . $id);
+        
+        $this->db->select('name');
+        $this->db->from('account_custom_conversion');
+        $this->db->where('id', $id);
+        
+        $result = $this->db->get();
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        return $result->row()->name;    
+    }
+
     public function deleteToNewSync($id)
     {
         log_message('debug', 'deleteToNewSync. Id:' . $id);

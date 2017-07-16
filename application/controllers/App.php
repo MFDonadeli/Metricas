@@ -9,12 +9,15 @@ class App extends CI_Controller {
 
         // Load facebook library
         $this->load->library('facebook');
+        // Load phpexcel library
+        $this->load->library('phpexcel');
 
         //Load user model
         $this->load->model('metricas');
 
         $this->load->helper('constants_helper');
         $this->load->helper('data_process_helper');
+        $this->load->helper('excel_helper');
 
         
     }
@@ -267,31 +270,31 @@ class App extends CI_Controller {
 
     public function show_table($id)
     {
-      $result = $this->metricas->getTableData($id);
+      $resultado = $this->metricas->getTableData($id);
       $conversions = $this->metricas->getPossibleConversions($id);
+      $translate = translate_conversions($conversions, $this->metricas);
 
-      foreach($result as $dados)
+      foreach($resultado as $dados)
       {
         $result_actions = $this->metricas->getTableDataActions($dados->ad_insights_id);
         foreach($conversions as $conv)
         {
-          $dados->{$conv->action_type} = '';
-          $dados->{'Valor por ' . $conv->action_type} = '';
+          $dados->conversao->name->{$conv->action_type} = $translate[$conv->action_type];
+          $dados->conversao->{$conv->action_type} = '';
+          $dados->conversao->{'Valor por ' . $conv->action_type} = '';
         }
 
         foreach($result_actions as $action)
         {
-          $dados->{$action->action_type} = $action->value;  
-          $dados->{'Valor por ' . $action->action_type} = $action->cost;
+          $dados->conversao->{$action->action_type} = $action->value;  
+          $dados->conversao->{'Valor por ' . $action->action_type} = $action->cost;
         }
+
         $retorno[] = $dados;
       }
 
-      $data['metricas'] = $result;
-
-      $html = $this->load->view('table',$data,true);
-
-      return $html;
+      $filename = generate_excel($retorno, $this->phpexcel);
+      return $filename;
 
     }
 

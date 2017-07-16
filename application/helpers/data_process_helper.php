@@ -1,5 +1,29 @@
 <?php
 
+function translate_conversions($conversions,$db)
+{
+  foreach($conversions as $conversion)
+  {
+    if($conversion->action_type == 'offsite_conversion.fb_pixel_view_content')
+      $retorno[$conversion->action_type] = "Visualização de Conteúdo";
+    elseif($conversion->action_type == 'offsite_conversion.fb_pixel_initiate_checkout')
+      $retorno[$conversion->action_type] = "Inicialização de Compra";
+    elseif($conversion->action_type == 'offsite_conversion.fb_pixel_purchase')
+      $retorno[$conversion->action_type] = "Compra";
+    elseif($conversion->action_type == 'offsite_conversion.fb_pixel_lead')
+      $retorno[$conversion->action_type] = "Lead";  
+    elseif(strpos($conversion->action_type,'offsite_conversion.custom.') !== false)
+    {
+      $id = str_replace('offsite_conversion.custom.', '', $conversion->action_type);
+      $name = $db->get_custom_conversion_name($id);
+      $retorno[$conversion->action_type] = $name;
+    }
+      
+  }
+
+  return $retorno;
+}
+
 function processa_campaigns($campaigns)
 {
     for($i=0; $i<count($campaigns); $i++)
