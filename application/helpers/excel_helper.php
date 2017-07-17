@@ -69,6 +69,8 @@ function generate_excel($dados, $excel)
 
     $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
     $objWriter->save($file_name);
+
+    return $file_name;
 }
 
 function duplicate_column($col, $sheet)

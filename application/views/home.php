@@ -171,14 +171,14 @@ if(!empty($authUrl)) {
             global: false,
             async:false,
             success: function(msg) { 
-                resp += msg; 
+                resp = msg; 
             }
         }).responseText;
 
-        $('#numeros').hide();
+        $('#numeros').show();
 
         $('#numeros').html("<iframe width='100%' height='500 px' src=' \
-            https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>/template/" + resp + "'>");
+            https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>template/" + resp + "'>");
 
     });
 
