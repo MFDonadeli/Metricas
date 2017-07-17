@@ -278,8 +278,11 @@ class App extends CI_Controller {
         foreach($resultado as $dados)
         {
           $result_actions = $this->metricas->getTableDataActions($dados->ad_insights_id);
+
           foreach($conversions as $conv)
           {
+            if(!isset($dados->conversao)) $dados->conversao = new stdClass();
+            if(!isset($dados->conversao->name)) $dados->conversao->name = new stdClass();
             $dados->conversao->name->{$conv->action_type} = $translate[$conv->action_type];
             $dados->conversao->{$conv->action_type} = '';
             $dados->conversao->{'Valor por ' . $conv->action_type} = '';

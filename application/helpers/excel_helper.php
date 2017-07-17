@@ -20,6 +20,9 @@ function generate_excel($dados, $excel)
 
     foreach($dados as $dado)
     {
+        if($column != $qtde_colunas)
+            duplicate_column($column, $objPHPExcel->getActiveSheet());
+
         foreach($dado->conversao as $key => $val)
         {
             $dado->{$key} = $val;
@@ -41,9 +44,9 @@ function generate_excel($dados, $excel)
                         $valor = $dado->{$campo};
                         if($campo == 'date_start')
                         {
-                            $date_start = explode(" ", $metrica->date_start)[0];
+                            $date_start = explode(" ", $dado->date_start)[0];
                             $date = DateTime::createFromFormat('Y-m-d', $date_start);
-                            $dado->{$campo} = $date->format('d/m');
+                            $dado->{$campo} = $date->format('d/M');
                         }
                         elseif(strpos($valor,'.') !== false)
                         {
@@ -59,10 +62,8 @@ function generate_excel($dados, $excel)
 
         }
 
-        if($column != $qtde_colunas)
-            duplicate_column($column, $objPHPExcel->getActiveSheet());
-
         $objPHPExcel->getActiveSheet()->getCellByColumnAndRow($column, $row)->getValue(); 
+        $column++;
 
     }
 
@@ -72,16 +73,23 @@ function generate_excel($dados, $excel)
 
 function duplicate_column($col, $sheet)
 {
-    $row = START_ROW;
-    $value = $sheet->getCellByColumnAndRow($col, $row)->getValue();
-    while($value != '#end_of_file')
+    for($row=START_ROW; $row<=$sheet->getHighestRow(); $row++)
     {
+        $value = $sheet->getCellByColumnAndRow($col, $row)->getValue();
         $style = $sheet->getStyleByColumnAndRow($col, $row);
+        $orgCellColumn = PHPExcel_Cell::stringFromColumnIndex($col);
+        $dstCellColumn = PHPExcel_Cell::stringFromColumnIndex($col+1);
         $dstCell = PHPExcel_Cell::stringFromColumnIndex($col+1) . (string)($row);
+        if(!empty($value))
+        {
+            if($value[0] == '=')
+            {
+                $value = str_replace($orgCellColumn, $dstCellColumn, $value);
+            }
+        }
         $sheet->setCellValue($dstCell, $value);
         $sheet->duplicateStyle($style, $dstCell);
 
-        $row++;
         $value = $sheet->getCellByColumnAndRow($col, $row)->getValue();
     }
 }
