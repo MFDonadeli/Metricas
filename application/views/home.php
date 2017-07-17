@@ -155,17 +155,17 @@ if(!empty($authUrl)) {
         var val_conjunto = $('#cmbconjunto').val();
         var val_anuncio = $('#cmbanuncios').val();
 
-        if(val_anuncio != -1 || val_anuncio !== null)
+        if(val_anuncio != -1 && val_anuncio !== null)
         {
             val = $('#cmbanuncios').val();
             tipo = 'ad';
         }
-        else if(val_conjunto != -1 || val_conjunto !== null)
+        else if(val_conjunto != -1 && val_conjunto !== null)
         {
             val = $('#cmbconjunto').val();
             tipo = 'adset';
         }
-        else if(val_campanha != -1 || val_campanha !== null)
+        else if(val_campanha != -1 && val_campanha !== null)
         {
             val = $('#cmbcampanhas').val();
             tipo = 'campaign';
