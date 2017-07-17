@@ -258,38 +258,41 @@ class App extends CI_Controller {
 
       $this->metricas->insertInsights($insights_data, $tipo);
 
-      $result = $this->metricas->getTableData($id);
-      $data['metricas'] = $result;
-
-      $html = $this->show_table($id);
+      $html = $this->show_table($id, $tipo);
 
       echo $html;
       
     }
 
-    public function show_table($id)
+    public function show_table($id, $tipo)
     {
-      $resultado = $this->metricas->getTableData($id);
+      $resultado = $this->metricas->getTableData($id, $tipo);
       if($resultado)
       {
-        $conversions = $this->metricas->getPossibleConversions($id);
+        $conversions = $this->metricas->getPossibleConversions($id, $tipo);
         $translate = translate_conversions($conversions, $this->metricas);
 
         foreach($resultado as $dados)
         {
-          $result_actions = $this->metricas->getTableDataActions($dados->ad_insights_id);
+          $result_actions = $this->metricas->getTableDataActions($dados->{$tipo.'_insights_id'}, $tipo);
 
           foreach($conversions as $conv)
           {
-            if(!isset($dados->conversao)) $dados->conversao = new stdClass();
-            if(!isset($dados->conversao->name)) $dados->conversao->name = new stdClass();
-            $dados->conversao->name->{$conv->action_type} = $translate[$conv->action_type];
-            $dados->conversao->{$conv->action_type} = '';
-            $dados->conversao->{'Valor por ' . $conv->action_type} = '';
+            if(isset($translate[$conv->action_type]))
+            {
+              if(!isset($dados->conversao)) $dados->conversao = new stdClass();
+              if(!isset($dados->conversao->name)) $dados->conversao->name = new stdClass();
+              $dados->conversao->name->{$conv->action_type} = $translate[$conv->action_type];
+              $dados->conversao->{$conv->action_type} = '';
+              $dados->conversao->{'Valor por ' . $conv->action_type} = '';
+            }
           }
 
           foreach($result_actions as $action)
           {
+            if($action->action_type == 'offsite_conversion.fb_pixel_custom')
+              continue;
+              
             $dados->conversao->{$action->action_type} = $action->value;  
             $dados->conversao->{'Valor por ' . $action->action_type} = $action->cost;
           }

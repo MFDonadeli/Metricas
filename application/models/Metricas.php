@@ -415,13 +415,13 @@ class Metricas extends CI_Model{
         return explode('T', $row->created_time)[0];
     }
 
-    public function getTableData($id)
+    public function getTableData($id, $tipo)
     {
         log_message('debug', 'getTableData. Id:' . $id);
         
-        $this->db->select('date_start, cost_per_inline_link_click, inline_link_click_ctr, inline_link_clicks,impressions, cpm, relevance_score_score, spend, bydate, ad_insights_id');
-        $this->db->from('ad_insights');
-        $this->db->where('ad_id', $id);
+        $this->db->select('date_start, cost_per_inline_link_click, inline_link_click_ctr, inline_link_clicks,impressions, cpm, relevance_score_score, spend, bydate, ' . $tipo . '_insights_id');
+        $this->db->from($tipo.'_insights');
+        $this->db->where($tipo.'_id', $id);
         $this->db->order_by('bydate');
         $this->db->order_by('date_start');
         $result = $this->db->get();
@@ -432,14 +432,14 @@ class Metricas extends CI_Model{
 
     }
 
-    public function getTableDataActions($id)
+    public function getTableDataActions($id, $tipo)
     {
         log_message('debug', 'getTableDataActions. Id:' . $id);
         
-        $this->db->select('action_type, value, cost, ad_insights_id');
-        $this->db->from('ad_insights_actions');
+        $this->db->select($tipo.'_insights_id, action_type, value, cost');
+        $this->db->from($tipo.'_insights_actions');
         $this->db->like('action_type', 'offsite_conversion.', 'after');
-        $this->db->where('ad_insights_id', $id);
+        $this->db->where($tipo.'_insights_id', $id);
         
         $result = $this->db->get();
 
@@ -448,15 +448,15 @@ class Metricas extends CI_Model{
         return $result->result();
     }
 
-    public function getPossibleConversions($id)
+    public function getPossibleConversions($id, $tipo)
     {
         log_message('debug', 'getPossibleConversions. Id:' . $id);
         
         $this->db->distinct();
         $this->db->select('action_type');
-        $this->db->from('ad_insights_actions');
+        $this->db->from($tipo.'_insights_actions');
         $this->db->like('action_type', 'offsite_conversion.', 'after');
-        $this->db->where('ad_id', $id);
+        $this->db->where($tipo.'_id', $id);
         
         $result = $this->db->get();
 

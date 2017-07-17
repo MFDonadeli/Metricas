@@ -114,6 +114,7 @@ if(!empty($authUrl)) {
         $('#div_select_anuncios').hide();
         $('#numeros').hide();
 
+        $('#cmbcampanhas').empty();
         $('#cmbcampanhas').append(retorno);
         $('#btnvernumeros').show();
     });
@@ -126,6 +127,7 @@ if(!empty($authUrl)) {
         $('#numeros').hide();
 
         $('#cmbconjunto').append(retorno);
+        $('#cmbconjunto').empty();
     });
 
     $('#cmbconjunto').change(function(){
@@ -135,6 +137,7 @@ if(!empty($authUrl)) {
         $('#numeros').hide();
 
         $('#cmbanuncios').append(retorno);
+        $('#cmbanuncios').empty();
     });
 
     $('#btnvernumeros').click(function(){
@@ -151,17 +154,17 @@ if(!empty($authUrl)) {
         var val_conjunto = $('#cmbconjunto').val();
         var val_anuncio = $('#cmbanuncios').val();
 
-        if($('#div_select_anuncios').is(':visible'))
+        if(val_anuncio != -1 || val_anuncio != null)
         {
             val = $('#cmbanuncios').val();
             tipo = 'ad';
         }
-        else if($('#div_select_conjuntos').is(':visible'))
+        else if(val_conjunto != -1 || val_conjunto != null)
         {
             val = $('#cmbconjunto').val();
             tipo = 'adset';
         }
-        else if($('#div_select_campanhas').is(':visible'))
+        else if(val_campanha != -1 || val_campanha != null)
         {
             val = $('#cmbcampanhas').val();
             tipo = 'campaign';
