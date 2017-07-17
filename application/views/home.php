@@ -126,8 +126,9 @@ if(!empty($authUrl)) {
         $('#div_select_anuncios').hide();
         $('#numeros').hide();
 
-        $('#cmbconjunto').append(retorno);
         $('#cmbconjunto').empty();
+        $('#cmbconjunto').append(retorno);
+        
     });
 
     $('#cmbconjunto').change(function(){
@@ -136,8 +137,8 @@ if(!empty($authUrl)) {
         $('#div_select_anuncios').show();
         $('#numeros').hide();
 
-        $('#cmbanuncios').append(retorno);
         $('#cmbanuncios').empty();
+        $('#cmbanuncios').append(retorno);
     });
 
     $('#btnvernumeros').click(function(){
