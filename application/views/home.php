@@ -41,6 +41,7 @@ if(!empty($authUrl)) {
         <div id="div_select_contas">
             <label for="contas">Conta:</label>
             <select name="contas" id="cmbcontas">
+                <option value="-1">Selecione</option>
                 <?php 
                     foreach($contas as $conta):
                 ?>
@@ -145,6 +146,11 @@ if(!empty($authUrl)) {
         divid = this.parentElement.id;
         id = divid.replace("div","");
 
+        var val_conta = $('#cmbcontas').val();
+        var val_campanha = $('#cmbcampanhas').val();
+        var val_conjunto = $('#cmbconjunto').val();
+        var val_anuncio = $('#cmbanuncios').val();
+
         if($('#div_select_anuncios').is(':visible'))
         {
             val = $('#cmbanuncios').val();
@@ -177,8 +183,7 @@ if(!empty($authUrl)) {
 
         $('#numeros').show();
 
-        $('#numeros').html("<iframe width='100%' height='500 px' src=' \
-            https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>template/" + resp + "'>");
+        $('#numeros').html("<iframe width='100%' height='500 px' src='https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>template/" + resp.trim() + "'>");
 
     });
 
