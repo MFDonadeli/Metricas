@@ -406,7 +406,7 @@ class Metricas extends CI_Model{
 
         //Validate
         $this->db->where('id',$id);
-        $result = $this->db->get($tipo);
+        $result = $this->db->get($tipo.'s');
 
         log_message('debug', 'Last Query: ' . $this->db->last_query());
 
