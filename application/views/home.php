@@ -51,17 +51,17 @@ if(!empty($authUrl)) {
             </select><br>
         </div>
         <div id="div_select_campanhas">
-            <label for="campanhas">Conta:</label>
+            <label for="campanhas">Campanha:</label>
             <select name="campanhas" id="cmbcampanhas">
             </select><br>
         </div>
         <div id="div_select_conjuntos">
-            <label for="conjunto">Conta:</label>
+            <label for="conjunto">Conjunto:</label>
             <select name="conjunto" id="cmbconjunto">
             </select><br>
         </div>
         <div id="div_select_anuncios">
-            <label for="anuncios">Conta:</label>
+            <label for="anuncios">Anúncio:</label>
             <select name="anuncios" id="cmbanuncios">
             </select><br>
         </div>
@@ -79,6 +79,10 @@ if(!empty($authUrl)) {
         <?php if(!$contas) { ?> $('#botao_contas').hide(); <?php } ?>
         $('#numeros').hide();
         $('#btnvernumeros').hide();
+
+        $('#div_select_campanhas').hide();
+        $('#div_select_conjuntos').hide();
+        $('#div_select_anuncios').hide();
     });
 
     function ajax_fill_combo(id, tipo)
@@ -132,7 +136,7 @@ if(!empty($authUrl)) {
         $('#cmbanuncios').append(retorno);
     });
 
-    $('.btnvernumeros').click(function(){
+    $('#btnvernumeros').click(function(){
         //id = $(this).attr('id'); 
 
         var val;
