@@ -270,30 +270,36 @@ class App extends CI_Controller {
     public function show_table($id)
     {
       $resultado = $this->metricas->getTableData($id);
-      $conversions = $this->metricas->getPossibleConversions($id);
-      $translate = translate_conversions($conversions, $this->metricas);
-
-      foreach($resultado as $dados)
+      if($resultado)
       {
-        $result_actions = $this->metricas->getTableDataActions($dados->ad_insights_id);
-        foreach($conversions as $conv)
+        $conversions = $this->metricas->getPossibleConversions($id);
+        $translate = translate_conversions($conversions, $this->metricas);
+
+        foreach($resultado as $dados)
         {
-          $dados->conversao->name->{$conv->action_type} = $translate[$conv->action_type];
-          $dados->conversao->{$conv->action_type} = '';
-          $dados->conversao->{'Valor por ' . $conv->action_type} = '';
+          $result_actions = $this->metricas->getTableDataActions($dados->ad_insights_id);
+          foreach($conversions as $conv)
+          {
+            $dados->conversao->name->{$conv->action_type} = $translate[$conv->action_type];
+            $dados->conversao->{$conv->action_type} = '';
+            $dados->conversao->{'Valor por ' . $conv->action_type} = '';
+          }
+
+          foreach($result_actions as $action)
+          {
+            $dados->conversao->{$action->action_type} = $action->value;  
+            $dados->conversao->{'Valor por ' . $action->action_type} = $action->cost;
+          }
+
+          $retorno[] = $dados;
         }
 
-        foreach($result_actions as $action)
-        {
-          $dados->conversao->{$action->action_type} = $action->value;  
-          $dados->conversao->{'Valor por ' . $action->action_type} = $action->cost;
-        }
-
-        $retorno[] = $dados;
+        $filename = generate_excel($retorno, $this->phpexcel);
+        return $filename;
       }
 
-      $filename = generate_excel($retorno, $this->phpexcel);
-      return $filename;
+      return false;
+      
 
     }
 

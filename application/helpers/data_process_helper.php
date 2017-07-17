@@ -2,6 +2,7 @@
 
 function translate_conversions($conversions,$db)
 {
+  $retorno = false;
   foreach($conversions as $conversion)
   {
     if($conversion->action_type == 'offsite_conversion.fb_pixel_view_content')
