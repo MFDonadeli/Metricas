@@ -261,7 +261,7 @@ class App extends CI_Controller {
       $result = $this->metricas->getTableData($ad);
       $data['metricas'] = $result;
 
-      $html = $this->show_table($ad);
+      $html = $this->show_table($id);
 
       echo $html;
       
