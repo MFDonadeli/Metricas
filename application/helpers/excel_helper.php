@@ -6,7 +6,8 @@ define('START_ROW',5);
 function generate_excel($dados, $excel)
 {
     $file_name_old = FCPATH."template/Template.xlsx";
-    $file_name = FCPATH."template/Template".md5(mt_rand() . time()).".xlsx";
+    $raw_file_name = "Template".md5(mt_rand() . time()).".xlsx";
+    $file_name = FCPATH."template/".$raw_file_name;
 
     copy($file_name_old, $file_name);
 
@@ -70,7 +71,7 @@ function generate_excel($dados, $excel)
     $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
     $objWriter->save($file_name);
 
-    return $file_name;
+    return $raw_file_name;
 }
 
 function duplicate_column($col, $sheet)
