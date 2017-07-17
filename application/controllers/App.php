@@ -258,7 +258,7 @@ class App extends CI_Controller {
 
       $this->metricas->insertInsights($insights_data, $tipo);
 
-      $result = $this->metricas->getTableData($ad);
+      $result = $this->metricas->getTableData($id);
       $data['metricas'] = $result;
 
       $html = $this->show_table($id);
