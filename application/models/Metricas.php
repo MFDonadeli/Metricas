@@ -99,9 +99,44 @@ class Metricas extends CI_Model{
             return false;   
     }
 
+    public function getFromConta($id, $tipo){
+        log_message('debug', 'getFromConta');
+
+        $this->db->select("name, id, status");
+        $this->db->from($tipo);
+        $this->db->where('account_id',$id);
+
+        $result = $this->db->get();
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        if($result->num_rows() > 0)
+            return $result->result();  
+        else
+            return false;   
+    }
+
+    public function getProfileToken($id){
+        log_message('debug', 'getProfileToken');
+
+        $this->db->select("token");
+        $this->db->from("profiles");
+        $this->db->where('facebook_id',$id);
+
+        $result = $this->db->get();
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        if($result->num_rows() > 0)
+            return $result->result();  
+        else
+            return false;   
+    }
+
+
     public function get_from_tipo($id, $tipo)
     {
-        log_message('debug', 'getContas');
+        log_message('debug', 'get_from_tipo');
 
 
         $this->db->select("name, id");

@@ -4,6 +4,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class App extends CI_Controller {
 
+    private $usrtkn = null;
+
     function __construct() {
         parent::__construct();
 
@@ -11,9 +13,6 @@ class App extends CI_Controller {
         $this->load->library('facebook');
         // Load phpexcel library
         $this->load->library('phpexcel');
-
-        //Load user model
-        $this->load->model('metricas');
 
         $this->load->helper('constants_helper');
         $this->load->helper('data_process_helper');
@@ -56,7 +55,7 @@ class App extends CI_Controller {
 
     public function get_contas()
     {
-      $accounts = $this->facebook->request('get', 'me/adaccounts?fields=name,account_status,age&limit=1200');
+      $accounts = $this->facebook->request('get', 'me/adaccounts?fields=name,account_status,age&limit=1200',$usrtkn);
 
       log_message('debug',json_encode($accounts));
       $contas = $accounts['data'];
@@ -79,7 +78,7 @@ class App extends CI_Controller {
       echo $ret;
     }
 
-    public function sync_contas()
+    public function sync_contas($conta = null)
     {
       log_message('debug', $this->input->raw_input_stream);
 
@@ -94,16 +93,23 @@ class App extends CI_Controller {
           // error opening the file.
       } */
 
-      $conta = $this->input->post('conta');
+      if(isset($_POST['conta']))
+      {
+        $conta = $this->input->post('conta');
+        $conta = str_replace('div_','',$conta);
+      }
+      elseif($conta == null)
+      {
+        die('Erro. Sem acesso ao sistema');  
+      }
+      
 
-      $conta = str_replace('div_','',$conta);
-
-      $detalhes = $this->facebook->request('get',$conta.get_param_contas());
+      $detalhes = $this->facebook->request('get',$conta.get_param_contas(),$usrtkn);
       log_message('debug',json_encode($detalhes));
 
       $this->grava_bd($detalhes); 
 
-      $detalhes = $this->facebook->request('get',$conta.'/customconversions?fields=id,name,custom_event_type,account_id');
+      $detalhes = $this->facebook->request('get',$conta.'/customconversions?fields=id,name,custom_event_type,account_id',$usrtkn);
       log_message('debug',json_encode($detalhes));
 
       if(!empty($detalhes['data']))
@@ -131,7 +137,7 @@ class App extends CI_Controller {
 
         $this->grava_bd($detalhes, '1621655807847312'); 
 
-        $detalhes = $this->facebook->request('get',$detalhes['id'].'/customconversions?fields=id,name,custom_event_type,account_id','EAAGkQhc0J9UBAMyMWDsopZBuxpx6E8bgZBcB7kXW2O6QGxSCKXOuYradgpxrxeZAO7BN74w9G1YQcf5JjJIXE3JTeUZCVZCrb1DOMusZAwlbvYDPD9QmW4BAcj4QsbQrEVARcqVxf11dwZATsEmC28nXMAqV0UIA98ZD');
+        $detalhes = $this->facebook->request('get',$detalhes['id'].'/customconversions?fields=id,name,custom_event_type,account_id',$usrtkn);
         log_message('debug',json_encode($detalhes));
 
         if(array_key_exists('error', $detalhes))
@@ -235,18 +241,25 @@ class App extends CI_Controller {
 
     }
 
-    public function sync_metricas()
+    public function sync_metricas($id = null, $tipo = null)
     {
       log_message('debug', 'sync_metricas');
 
-      $id = $this->input->post('val');
-      $tipo = $this->input->post('tipo');
+      if(isset($_POST['val']) && isset($_POST['tipo']))
+      {
+        $id = $this->input->post('val');
+        $tipo = $this->input->post('tipo');
+      }
+      elseif($val == null && $tipo == null)
+      {
+        die('Erro. Sem acesso ao sistema');
+      }
 
       $dt_inicio = $this->metricas->getLastDateSync($id, $tipo);
 
       $url_params = get_param_contas_data($dt_inicio);
 
-      $detalhes = $this->facebook->request('get', $id.'/insights'.$url_params);
+      $detalhes = $this->facebook->request('get', $id.'/insights'.$url_params,$usrtkn);
 
       log_message('debug',json_encode($detalhes));
 
@@ -309,11 +322,48 @@ class App extends CI_Controller {
 
     }
 
+    public function resync($id = 'all')
+    {
+      if($id == 'all')
+      {
+        //pega todos
+      }  
+      else
+      {
+        $profiles = new stdClass();
+        $profiles->id = $id;
+      }
+
+      foreach($profiles as $profile)
+      {
+        $tipos = array("campaign", "adset", "ad");
+
+        $token = $this->db->getProfileToken($profile->id);
+        $this->usrtkn = $token;
+
+        $results = $this->metricas->getContas($profile->id);
+        foreach($results as $result)
+        {
+          $this->sync_contas($result->account_id);
+          foreach($tipos as $tipo)
+          {
+            $results_tipo = $this->metricas->getFromConta($result->account_id, $tipo.'s');
+            foreach($results_tipo as $res_tipo)
+            {
+              $this->sync_metricas($res_tipo->id, $tipo);
+            }
+          }
+        }
+      }
+
+
+    }
+
     public function home(){
         if($this->facebook->is_authenticated()){
             log_message('debug','TOKEN FB: ' . $this->facebook->is_authenticated() );
             // Get user facebook profile details
-            $userProfile = $this->facebook->request('get', '/me?fields=id,first_name,last_name,email,gender,locale');
+            $userProfile = $this->facebook->request('get', '/me?fields=id,first_name,last_name,email,gender,locale',$usrtkn);
             log_message('debug',json_encode($userProfile));
 
             // Preparing data for database insertion
@@ -326,11 +376,16 @@ class App extends CI_Controller {
             $userData['gender'] = $userProfile['gender'];
             $userData['locale'] = $userProfile['locale'];
             $userData['logged_in'] = true;
+            $userData['token'] = $this->session->userdata('fb_access_token');
+            $userData['token_expiration'] = $this->session->userdata('fb_expire');
 
             $userID = $userProfile['id'];
 
             // Insert or update user data
             $this->metricas->checkUser($userData);
+
+            unset($userData['token']);
+            unset($userData['token_expiration']);
 
             // Check user data insert or update status
             if($userID){
@@ -356,7 +411,7 @@ class App extends CI_Controller {
 
     public function exec_fb_conn($id)
     {
-      $result = $this->facebook->request('get', $id);
+      $result = $this->facebook->request('get', $id,$usrtkn);
       log_message('debug',json_encode($accounts));
       
       echo json_encode($result);
@@ -395,7 +450,7 @@ class App extends CI_Controller {
       
         $str = "https://graph.facebook.com/v2.9/";
         $next = str_replace($str, '', $url);
-        $detalhes = $this->facebook->request('get', $next);
+        $detalhes = $this->facebook->request('get', $next, $usrtkn);
 
         return $detalhes;
         //$contas = array_merge($contas, $accounts['data']);

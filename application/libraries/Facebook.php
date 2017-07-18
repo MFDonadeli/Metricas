@@ -165,7 +165,8 @@ Class Facebook
      */
     private function authenticate(){
         $access_token = $this->get_access_token();
-        if($access_token && $this->get_expire_time() > (time() + 30) || $access_token && !$this->get_expire_time()){
+        //One month to expire
+        if($access_token && $this->get_expire_time() > (time() + (30 * 24 * 60 * 60)) || $access_token && !$this->get_expire_time()){
             $this->fb->setDefaultAccessToken($access_token);
             return $access_token;
         }

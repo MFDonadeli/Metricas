@@ -7,12 +7,6 @@
 
 <?php
 
-$session_data = $this->session->all_userdata();
-
-echo '<pre>';
-print_r($session_data);
-echo '</pre>';
-
 if(!empty($authUrl)) {
     echo '<a href="'.$authUrl.'"><img src="'.base_url().'assets/facebook.png" alt=""/></a>';
 }else{
