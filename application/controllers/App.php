@@ -55,7 +55,7 @@ class App extends CI_Controller {
 
     public function get_contas()
     {
-      $accounts = $this->facebook->request('get', 'me/adaccounts?fields=name,account_status,age&limit=1200',$usrtkn);
+      $accounts = $this->facebook->request('get', 'me/adaccounts?fields=name,account_status,age&limit=1200',$this->usrtkn);
 
       log_message('debug',json_encode($accounts));
       $contas = $accounts['data'];
@@ -104,12 +104,12 @@ class App extends CI_Controller {
       }
       
 
-      $detalhes = $this->facebook->request('get',$conta.get_param_contas(),$usrtkn);
+      $detalhes = $this->facebook->request('get',$conta.get_param_contas(),$this->usrtkn);
       log_message('debug',json_encode($detalhes));
 
       $this->grava_bd($detalhes); 
 
-      $detalhes = $this->facebook->request('get',$conta.'/customconversions?fields=id,name,custom_event_type,account_id',$usrtkn);
+      $detalhes = $this->facebook->request('get',$conta.'/customconversions?fields=id,name,custom_event_type,account_id',$this->usrtkn);
       log_message('debug',json_encode($detalhes));
 
       if(!empty($detalhes['data']))
@@ -137,7 +137,7 @@ class App extends CI_Controller {
 
         $this->grava_bd($detalhes, '1621655807847312'); 
 
-        $detalhes = $this->facebook->request('get',$detalhes['id'].'/customconversions?fields=id,name,custom_event_type,account_id',$usrtkn);
+        $detalhes = $this->facebook->request('get',$detalhes['id'].'/customconversions?fields=id,name,custom_event_type,account_id',$this->usrtkn);
         log_message('debug',json_encode($detalhes));
 
         if(array_key_exists('error', $detalhes))
@@ -259,7 +259,7 @@ class App extends CI_Controller {
 
       $url_params = get_param_contas_data($dt_inicio);
 
-      $detalhes = $this->facebook->request('get', $id.'/insights'.$url_params,$usrtkn);
+      $detalhes = $this->facebook->request('get', $id.'/insights'.$url_params,$this->usrtkn);
 
       log_message('debug',json_encode($detalhes));
 
@@ -363,7 +363,7 @@ class App extends CI_Controller {
         if($this->facebook->is_authenticated()){
             log_message('debug','TOKEN FB: ' . $this->facebook->is_authenticated() );
             // Get user facebook profile details
-            $userProfile = $this->facebook->request('get', '/me?fields=id,first_name,last_name,email,gender,locale',$usrtkn);
+            $userProfile = $this->facebook->request('get', '/me?fields=id,first_name,last_name,email,gender,locale',$this->usrtkn);
             log_message('debug',json_encode($userProfile));
 
             // Preparing data for database insertion
@@ -411,7 +411,7 @@ class App extends CI_Controller {
 
     public function exec_fb_conn($id)
     {
-      $result = $this->facebook->request('get', $id,$usrtkn);
+      $result = $this->facebook->request('get', $id,$this->usrtkn);
       log_message('debug',json_encode($accounts));
       
       echo json_encode($result);
@@ -450,7 +450,7 @@ class App extends CI_Controller {
       
         $str = "https://graph.facebook.com/v2.9/";
         $next = str_replace($str, '', $url);
-        $detalhes = $this->facebook->request('get', $next, $usrtkn);
+        $detalhes = $this->facebook->request('get', $next, $this->usrtkn);
 
         return $detalhes;
         //$contas = array_merge($contas, $accounts['data']);
