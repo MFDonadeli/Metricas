@@ -7,6 +7,12 @@
 
 <?php
 
+$session_data = $this->session->all_userdata();
+
+echo '<pre>';
+print_r($session_data);
+echo '</pre>';
+
 if(!empty($authUrl)) {
     echo '<a href="'.$authUrl.'"><img src="'.base_url().'assets/facebook.png" alt=""/></a>';
 }else{
@@ -116,29 +122,39 @@ if(!empty($authUrl)) {
 
         $('#cmbcampanhas').empty();
         $('#cmbcampanhas').append(retorno);
-        $('#btnvernumeros').show();
+        $('#btnvernumeros').hide();
     });
 
     $('#cmbcampanhas').change(function(){
-        var retorno = ajax_fill_combo($('#cmbcampanhas').val(), 'adsets');
+        var val = $('#cmbcampanhas').val();
+        if(val==-1)
+        {
+            var retorno = ajax_fill_combo(val, 'adsets');
 
-        $('#div_select_conjuntos').show();
-        $('#div_select_anuncios').hide();
-        $('#numeros').hide();
+            $('#div_select_conjuntos').show();
+            $('#div_select_anuncios').hide();
+            $('#numeros').hide();
 
-        $('#cmbconjunto').empty();
-        $('#cmbconjunto').append(retorno);
+            $('#cmbconjunto').empty();
+            $('#cmbconjunto').append(retorno);
+            $('#btnvernumeros').show();
+        }
         
     });
 
     $('#cmbconjunto').change(function(){
-        var retorno = ajax_fill_combo($('#cmbconjunto').val(), 'ads');
+        var val = $('#cmbconjunto').val();
+        var retorno = ajax_fill_combo(val, 'ads');
 
-        $('#div_select_anuncios').show();
-        $('#numeros').hide();
+        if(val==-1)
+        {
+            $('#div_select_anuncios').show();
+            $('#numeros').hide();
 
-        $('#cmbanuncios').empty();
-        $('#cmbanuncios').append(retorno);
+            $('#cmbanuncios').empty();
+            $('#cmbanuncios').append(retorno);
+        }
+        
     });
 
     $('#btnvernumeros').click(function(){

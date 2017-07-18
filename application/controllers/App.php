@@ -292,7 +292,7 @@ class App extends CI_Controller {
           {
             if($action->action_type == 'offsite_conversion.fb_pixel_custom')
               continue;
-              
+
             $dados->conversao->{$action->action_type} = $action->value;  
             $dados->conversao->{'Valor por ' . $action->action_type} = $action->cost;
           }
@@ -380,7 +380,7 @@ class App extends CI_Controller {
       }
       else
       {
-        $ret .= "<option value='-1'>Selecione</option>";
+        $ret .= "<option value='-1'>Todos</option>";
         foreach($retorno as $val)
         {
           $ret .= "<option value='" . $val->id . "'>" . $val->name . "</option>";  
