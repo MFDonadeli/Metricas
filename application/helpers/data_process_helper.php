@@ -42,6 +42,7 @@ function processa_campaigns($campaigns)
 function processa_insights($insights, $tipo)
     {
 
+      $i = 0;
       $arr_items = array("video_10_sec_watched_actions", "video_15_sec_watched_actions",
           "video_30_sec_watched_actions", "video_avg_percent_watched_actions",
           "video_avg_time_watched_actions", "video_p100_watched_actions",
@@ -50,6 +51,7 @@ function processa_insights($insights, $tipo)
 
       //$arr_action[] = {"actions", "cost_per_action_type", "cost_per_outbound_click"}
 
+      $i = count($insights['data']);
       foreach($insights['data'] as $insight)
       {
         if(array_key_exists('relevance_score',$insight))
@@ -184,6 +186,7 @@ function processa_insights($insights, $tipo)
         }
       }
 
+      log_message('debug','****IMPORTANTE****: Quantidade de insights:' . $i);
       return $insights_ret;
       
     }

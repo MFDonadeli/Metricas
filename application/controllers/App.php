@@ -5,6 +5,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 class App extends CI_Controller {
 
     private $usrtkn = null;
+    private $fb_id = null;
 
     function __construct() {
         parent::__construct();
@@ -102,6 +103,10 @@ class App extends CI_Controller {
       {
         die('Erro. Sem acesso ao sistema');  
       }
+      else
+      {
+        $conta = 'act_'.$conta;
+      }
       
 
       $detalhes = $this->facebook->request('get',$conta.get_param_contas(),$this->usrtkn);
@@ -156,7 +161,7 @@ class App extends CI_Controller {
     public function grava_bd($detalhes, $fb_id = '0')
     {
       if($fb_id == 0)
-        $fb_id = $this->session->userdata('facebook_id');
+        $fb_id = $this->fb_id;
       
       $this->metricas->deleteToNewSync(str_replace('act_','',$detalhes['id']));
 
@@ -241,7 +246,7 @@ class App extends CI_Controller {
 
     }
 
-    public function sync_metricas($id = null, $tipo = null)
+    public function sync_metricas($id = null, $tipo = null, $gera_planilha = true)
     {
       log_message('debug', 'sync_metricas');
 
@@ -250,7 +255,7 @@ class App extends CI_Controller {
         $id = $this->input->post('val');
         $tipo = $this->input->post('tipo');
       }
-      elseif($val == null && $tipo == null)
+      elseif($id == null && $tipo == null)
       {
         die('Erro. Sem acesso ao sistema');
       }
@@ -265,15 +270,31 @@ class App extends CI_Controller {
 
       foreach($detalhes['data'] as $insight_data)
       {
+        $data['data'] = null;
         $data['data'][] = $insight_data;
-        $insights_data[] = processa_insights($data, $tipo);
+        $ret_insights = processa_insights($data, $tipo);
+
+        $dt_start = $data['data'][0]['date_start'];
+        $dt_end = $data['data'][0]['date_stop'];
+
+        if(isset($insights_data[$dt_start.$dt_end]))
+        {
+          if(count($insights_data[$dt_start.$dt_end]) < count($ret_insights))
+            $insights_data[$dt_start.$dt_end] = $ret_insights;
+        }
+        else
+          $insights_data[$dt_start.$dt_end] = $ret_insights;
       }
 
-      $this->metricas->insertInsights($insights_data, $tipo);
+      if(isset($insights_data))
+        $this->metricas->insertInsights($insights_data, $tipo);
 
-      $html = $this->show_table($id, $tipo);
+      if($gera_planilha)
+      {
+        $html = $this->show_table($id, $tipo);
 
-      echo $html;
+        echo $html;
+      }
       
     }
 
@@ -331,15 +352,17 @@ class App extends CI_Controller {
       else
       {
         $profiles = new stdClass();
-        $profiles->id = $id;
+        $profiles->A = new stdClass();
+        $profiles->A->id = $id;
       }
 
       foreach($profiles as $profile)
       {
         $tipos = array("campaign", "adset", "ad");
 
-        $token = $this->db->getProfileToken($profile->id);
-        $this->usrtkn = $token;
+        $usr = $this->metricas->getProfileToken($profile->id);
+        $this->usrtkn = $usr->token;
+        $this->fb_id =  $usr->facebook_id;
 
         $results = $this->metricas->getContas($profile->id);
         foreach($results as $result)
@@ -350,7 +373,7 @@ class App extends CI_Controller {
             $results_tipo = $this->metricas->getFromConta($result->account_id, $tipo.'s');
             foreach($results_tipo as $res_tipo)
             {
-              $this->sync_metricas($res_tipo->id, $tipo);
+              $this->sync_metricas($res_tipo->id, $tipo, false);
             }
           }
         }
@@ -380,6 +403,7 @@ class App extends CI_Controller {
             $userData['token_expiration'] = $this->session->userdata('fb_expire');
 
             $userID = $userProfile['id'];
+            $this->fb_id = $userID;
 
             // Insert or update user data
             $this->metricas->checkUser($userData);

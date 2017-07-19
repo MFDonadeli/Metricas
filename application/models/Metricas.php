@@ -119,7 +119,7 @@ class Metricas extends CI_Model{
     public function getProfileToken($id){
         log_message('debug', 'getProfileToken');
 
-        $this->db->select("token");
+        $this->db->select("token, facebook_id");
         $this->db->from("profiles");
         $this->db->where('facebook_id',$id);
 
@@ -128,7 +128,7 @@ class Metricas extends CI_Model{
         log_message('debug', 'Last Query: ' . $this->db->last_query());
 
         if($result->num_rows() > 0)
-            return $result->result();  
+            return $result->row();  
         else
             return false;   
     }
@@ -239,9 +239,9 @@ class Metricas extends CI_Model{
 
                 if(isset($arr_insights_action))
                 {
-                    $action['campaign_insights_id'] = $insert_id;
                     foreach($arr_insights_action as $action)
                     {
+                        $action['campaign_insights_id'] = $insert_id;
                         if(!$this->db->insert('campaign_insights_actions', $action))
                             log_message('debug', 'Erro: ' . $this->db->error()->message);
                         log_message('debug', 'Last Query: ' . $this->db->last_query());
@@ -258,9 +258,12 @@ class Metricas extends CI_Model{
     {
         foreach($arr_insights as $array)
         {
-            $arr_action = $array['action'];
-            unset($array['action']);
-
+            if(array_key_exists('action', $array))
+            {
+                $arr_action = $array['action'];
+                unset($array['action']);
+            }
+            
             $array['bydate'] = 1;
 
             if(!$this->db->insert($tipo.'_insights',$array))
@@ -270,13 +273,17 @@ class Metricas extends CI_Model{
             
             $insert_id = $this->db->insert_id();
 
-            foreach($arr_action as $action)
+            if(isset($arr_action))
             {
-                $action[$tipo.'_insights_id'] = $insert_id;
-                if(!$this->db->insert($tipo.'_insights_actions', $action))
-                    log_message('debug', 'Erro: ' . $this->db->error()->message);
-                log_message('debug', 'Last Query: ' . $this->db->last_query());
+                foreach($arr_action as $action)
+                {
+                    $action[$tipo.'_insights_id'] = $insert_id;
+                    if(!$this->db->insert($tipo.'_insights_actions', $action))
+                        log_message('debug', 'Erro: ' . $this->db->error()->message);
+                    log_message('debug', 'Last Query: ' . $this->db->last_query());
+                }
             }
+            
         }
         
     }
@@ -430,10 +437,10 @@ class Metricas extends CI_Model{
         {
             $row = $result->row();
 
-            $this->db->where($tipo.'_insights_id', $row->ad_insights_id);
+            $this->db->where($tipo.'_insights_id', $row->{$tipo.'_insights_id'});
             $this->db->delete($tipo.'_insights_actions');
 
-            $this->db->where($tipo.'_insights_id', $row->ad_insights_id);
+            $this->db->where($tipo.'_insights_id', $row->{$tipo.'_insights_id'});
             $this->db->delete($tipo.'_insights');
 
             return explode(' ', $row->date_start)[0];    
