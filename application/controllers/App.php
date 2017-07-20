@@ -162,6 +162,11 @@ class App extends CI_Controller {
     {
       if($fb_id == 0)
         $fb_id = $this->fb_id;
+
+      if($fb_id == null)
+      {
+        $fb_id = $this->session->userdata('facebook_id');
+      }
       
       $this->metricas->deleteToNewSync(str_replace('act_','',$detalhes['id']));
 
