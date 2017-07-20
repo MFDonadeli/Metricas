@@ -102,9 +102,28 @@ class Metricas extends CI_Model{
     public function getFromConta($id, $tipo){
         log_message('debug', 'getFromConta');
 
-        $this->db->select("name, id, status");
-        $this->db->from($tipo);
-        $this->db->where('account_id',$id);
+        if($tipo == 'campaign')
+        {
+            $this->db->select("name, id, status");
+            $this->db->from("campaigns");
+            $this->db->where('account_id',$id);
+            $this->db->where("status = 'ACTIVE'");
+        }
+        elseif($tipo == 'adset')
+        {
+            $this->db->select("adsets.name, adsets.id, adsets.status");
+            $this->db->from("adsets");
+            $this->db->where("adsets.account_id", $id);
+            $this->db->where("adsets.effective_status = 'ACTIVE'");
+        }
+        elseif($tipo == 'ad')
+        {
+            $this->db->select("ads.name, ads.id, ads.status");
+            $this->db->from("ads");
+            $this->db->where("ads.account_id", $id);
+            $this->db->where("ads.effective_status = 'ACTIVE'");
+        }
+        
 
         $result = $this->db->get();
 

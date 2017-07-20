@@ -268,26 +268,47 @@ class App extends CI_Controller {
 
       log_message('debug',json_encode($detalhes));
 
-      foreach($detalhes['data'] as $insight_data)
+      if(array_key_exists('data', $detalhes))
       {
-        $data['data'] = null;
-        $data['data'][] = $insight_data;
-        $ret_insights = processa_insights($data, $tipo);
+        $insights = $detalhes['data'];
 
-        $dt_start = $data['data'][0]['date_start'];
-        $dt_end = $data['data'][0]['date_stop'];
-
-        if(isset($insights_data[$dt_start.$dt_end]))
+        if(array_key_exists('next', $detalhes['paging']))
         {
-          if(count($insights_data[$dt_start.$dt_end]) < count($ret_insights))
+          $next = $detalhes['paging']['next'];
+          while($next != '')
+          {
+            $retorno = $this->process_pagination($next);
+            
+            if(array_key_exists('next', $retorno['paging']))
+              $next = $retorno['paging']['next'];
+            else
+              $next = '';
+
+            $insights = array_merge($insights, $retorno['data']);
+          }
+        }
+
+        foreach($insights as $insight_data)
+        {
+          $data['data'] = null;
+          $data['data'][] = $insight_data;
+          $ret_insights = processa_insights($data, $tipo);
+
+          $dt_start = $data['data'][0]['date_start'];
+          $dt_end = $data['data'][0]['date_stop'];
+
+          if(isset($insights_data[$dt_start.$dt_end]))
+          {
+            if(count($insights_data[$dt_start.$dt_end]) < count($ret_insights))
+              $insights_data[$dt_start.$dt_end] = $ret_insights;
+          }
+          else
             $insights_data[$dt_start.$dt_end] = $ret_insights;
         }
-        else
-          $insights_data[$dt_start.$dt_end] = $ret_insights;
-      }
 
-      if(isset($insights_data))
-        $this->metricas->insertInsights($insights_data, $tipo);
+        if(isset($insights_data))
+          $this->metricas->insertInsights($insights_data, $tipo);
+      }
 
       if($gera_planilha)
       {
@@ -370,7 +391,7 @@ class App extends CI_Controller {
           $this->sync_contas($result->account_id);
           foreach($tipos as $tipo)
           {
-            $results_tipo = $this->metricas->getFromConta($result->account_id, $tipo.'s');
+            $results_tipo = $this->metricas->getFromConta($result->account_id, $tipo);
             foreach($results_tipo as $res_tipo)
             {
               $this->sync_metricas($res_tipo->id, $tipo, false);
