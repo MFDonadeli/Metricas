@@ -121,7 +121,7 @@ if(!empty($authUrl)) {
 
     $('#cmbcampanhas').change(function(){
         var val = $('#cmbcampanhas').val();
-        if(val==-1)
+        if(val!=-1)
         {
             var retorno = ajax_fill_combo(val, 'adsets');
 
@@ -140,7 +140,7 @@ if(!empty($authUrl)) {
         var val = $('#cmbconjunto').val();
         var retorno = ajax_fill_combo(val, 'ads');
 
-        if(val==-1)
+        if(val!=-1)
         {
             $('#div_select_anuncios').show();
             $('#numeros').hide();
