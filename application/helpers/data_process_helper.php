@@ -386,4 +386,6 @@ function processa_insights($insights, $tipo)
 
       return $retorno;
     }
+
+    
   ?>  

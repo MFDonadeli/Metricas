@@ -1,7 +1,7 @@
 <?php
 
 require_once APPPATH . '/libraries/PHPExcel/IOFactory.php';
-define('START_ROW',5);
+define('START_ROW',1);
 
 function generate_excel($dados, $excel)
 {
@@ -57,7 +57,7 @@ function generate_excel($dados, $excel)
                         $objPHPExcel->getActiveSheet()->getCellByColumnAndRow($column, $row)->setValue($dado->{$campo});
                     }
                     else
-                        $objPHPExcel->getActiveSheet()->getCellByColumnAndRow($column, $row)->setValue('-');                              
+                        $objPHPExcel->getActiveSheet()->getCellByColumnAndRow($column, $row)->setValue('');                              
                 }     
             }
 
@@ -80,8 +80,8 @@ function duplicate_column($col, $sheet)
     {
         $value = $sheet->getCellByColumnAndRow($col, $row)->getValue();
         $style = $sheet->getStyleByColumnAndRow($col, $row);
-        $orgCellColumn = PHPExcel_Cell::stringFromColumnIndex($col);
-        $dstCellColumn = PHPExcel_Cell::stringFromColumnIndex($col+1);
+        $orgCellColumn = '$'.PHPExcel_Cell::stringFromColumnIndex($col);
+        $dstCellColumn = '$'.PHPExcel_Cell::stringFromColumnIndex($col+1);
         $dstCell = PHPExcel_Cell::stringFromColumnIndex($col+1) . (string)($row);
         if(!empty($value))
         {

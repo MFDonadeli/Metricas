@@ -541,6 +541,235 @@ class Metricas extends CI_Model{
         return $result->row()->name;    
     }
 
+    function get_tags_from_ad($ad_id)
+    {
+        log_message('debug', 'get_tags_from_ad. Id:' . $ad_id);
+        
+        $this->db->select('url_tags');
+        $this->db->from('ad_creatives');
+        $this->db->where('ad_id', $ad_id);
+        
+        $result = $this->db->get();
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        return $result->row();  
+      
+    }
+
+    function getAdSetFromAd($ad_id)
+    {
+        log_message('debug', 'getAdSetFromAd. Id:' . $ad_id);
+        
+        $this->db->select('adset_id');
+        $this->db->from('ads');
+        $this->db->where('id', $ad_id);
+        
+        $result = $this->db->get();
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        return $result->row()->adset_id;  
+      
+    }
+
+    function dados_vendas($id, $tipo)
+    {
+        log_message('debug', 'dados_vendas');
+
+        $this->db->select("sum(boletos_gerados) as boletos_gerados, sum(boletos_pagos) as boletos_pagos, 
+            sum(cartoes) as cartoes, sum(boletos_pagos * comissao) as faturamento_boleto, 
+            sum(cartoes * comissao) as faturamento_cartao, produto,
+            substring(data,1,10) as dt, ad_id");
+
+        $this->db->from("ads_vendas");
+        $this->db->where("ad_id",$id);
+        $this->db->group_by(array("ad_id","dt"));
+        
+        $result = $this->db->get();
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        return $result->result();
+    }
+
+    function getCampaignFromAd($ad_id)
+    {
+        log_message('debug', 'getCampaignFromAd. Id:' . $ad_id);
+        
+        $this->db->select('campaign_id');
+        $this->db->from('ads');
+        $this->db->where('id', $ad_id);
+        
+        $result = $this->db->get();
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        return $result->row()->campaign_id;  
+      
+    }
+
+    function busca_vendas_tag($ad_id,$var_array)
+    {
+        log_message('debug', 'busca_vendas_tag.'); 
+
+        $retorno = false;
+
+        $adset_id = $this->getAdSetFromAd($ad_id);
+        $campaign_id = $this->getCampaignFromAd($ad_id);
+
+        $this->db->select('ad_id, plataforma, id_plataforma');
+        $this->db->from('ads_vendas');
+        $this->db->where('ad_id', $ad_id);   
+
+        $result = $this->db->get();
+
+        if($result->num_rows() > 0)
+        {
+            $retorno = $this->{'busca_'.$result->row()->plataforma}($var_array);
+        }
+        else
+        {
+            $retornoh = $this->busca_hotmart($var_array);
+            $retornom = $this->busca_monetizze($var_array);
+
+            if($retornoh && $retornom)
+            {
+                //SRC Duplicado: Impossível distinguir
+                return false;
+            }
+            else if($retornoh)
+                $retorno = $retornoh;
+            else if($retornom)
+                $retorno = $retornom;
+        }
+
+        return $retorno;
+    }
+
+    function busca_monetizze($var_array)
+    {
+        log_message('debug', 'busca_monetizze.');  
+
+        $ret = false;
+
+        $this->db->select("venda_data_inicio as data_compra, venda_data_finalizada as data_confirmacao,
+		    venda_valor as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
+            'monetizze' as plataforma");
+        $this->db->from("postback_monetizze");
+        $this->db->like('venda_src', $var_array['src'], 'both'); 
+        $this->db->where("ad_status != 'OK'");
+        $this->db->where("venda_status = 'Aguardando pagamento'");
+        $this->db->where("venda_forma_pagamento = 'Boleto'");
+        $result = $this->db->get();
+
+        if($result->num_rows() > 0) $ret = true;
+
+        $retorno['boleto_impresso'] = $result->result();
+
+        $this->db->select("venda_data_inicio as data_compra, venda_data_finalizada as data_confirmacao,
+		    venda_valor as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
+            'monetizze' as plataforma");
+        $this->db->from("postback_monetizze");
+        $this->db->like('venda_src', $var_array['src'], 'both'); 
+        $this->db->where("ad_status != 'OK'");
+        $this->db->where("venda_status = 'Finalizada'");
+        $this->db->where("venda_forma_pagamento != 'Boleto'");
+        $result = $this->db->get();
+
+        if($result->num_rows() > 0) $ret = true;
+
+        $retorno['cartao'] = $result->result();
+
+        $this->db->select("venda_data_inicio as data_compra, venda_data_finalizada as data_confirmacao,
+		    venda_valor as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
+            'monetizze' as plataforma");
+        $this->db->from("postback_monetizze");
+        $this->db->like('venda_src', $var_array['src'], 'both'); 
+        $this->db->where("ad_status != 'OK'");
+        $this->db->where("venda_status = 'Finalizada'");
+        $this->db->where("venda_forma_pagamento = 'Boleto'");
+        $result = $this->db->get();
+
+        if($result->num_rows() > 0) $ret = true;
+
+        $retorno['boleto_pago'] = $result->result();
+
+        if($ret)
+            return $retorno;
+        else
+            return false;
+    }
+
+    function busca_hotmart($var_array)
+    {
+        log_message('debug', 'busca_hotmart.');  
+
+        $ret = false;
+
+        $this->db->select("purchase_date as data_compra, confirmation_purchase_date as data_confirmacao,
+		    cms_aff as comissao, prod_name as produto, postback_hotmart_id as id_plataforma,
+            'hotmart' as plataforma");
+        $this->db->from("postback_hotmart");
+        $this->db->like('src', $var_array['src'], 'both'); 
+        $this->db->where("ad_status != 'OK'");
+        $this->db->where("status = 'billet_printed'");
+        $result = $this->db->get();
+
+        if($result->num_rows() > 0) $ret = true;
+
+        $retorno['boleto_impresso'] = $result->result();
+
+        $this->db->select("purchase_date as data_compra, confirmation_purchase_date as data_confirmacao,
+		    cms_aff as comissao, prod_name as produto, postback_hotmart_id as id_plataforma,
+            'hotmart' as plataforma");
+        $this->db->from("postback_hotmart");
+        $this->db->like('src', $var_array['src'], 'both'); 
+        $this->db->where("ad_status != 'OK'");
+        $this->db->where("status = 'approved'");
+        $this->db->where("payment_type != 'billet'");
+        $result = $this->db->get();
+
+        if($result->num_rows() > 0) $ret = true;
+
+        $retorno['cartao'] = $result->result();
+
+        $this->db->select("purchase_date as data_compra, confirmation_purchase_date as data_confirmacao,
+		    cms_aff as comissao, prod_name as produto, postback_hotmart_id as id_plataforma,
+            'hotmart' as plataforma");
+        $this->db->from("postback_hotmart");
+        $this->db->like('src', $var_array['src'], 'both'); 
+        $this->db->where("ad_status != 'OK'");
+        $this->db->where("status = 'approved'");
+        $this->db->where("payment_type = 'billet'");
+        $result = $this->db->get();
+
+        if($result->num_rows() > 0) $ret = true;
+
+        $retorno['boleto_pago'] = $result->result();
+
+        if($ret)
+            return $retorno;
+        else
+            return false;
+    }
+
+    public function insert_ads_vendas($array_insert)
+    {
+        log_message('debug', 'insert_ads_vendas');
+
+        foreach($array_insert as $insert)
+        {
+            $insert->data = $insert->data_compra;
+            unset($insert->data_compra);
+            unset($insert->data_confirmacao);
+
+            $this->db->insert('ads_vendas', $insert);
+
+            log_message('debug', 'Last Query: ' . $this->db->last_query());
+        }
+    }
+
     public function deleteToNewSync($id)
     {
         log_message('debug', 'deleteToNewSync. Id:' . $id);

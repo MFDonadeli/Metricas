@@ -277,19 +277,25 @@ class App extends CI_Controller {
       {
         $insights = $detalhes['data'];
 
-        if(array_key_exists('next', $detalhes['paging']))
+        if(array_key_exists('paging', $detalhes))
         {
-          $next = $detalhes['paging']['next'];
-          while($next != '')
+          if(array_key_exists('next', $detalhes['paging']))
           {
-            $retorno = $this->process_pagination($next);
-            
-            if(array_key_exists('next', $retorno['paging']))
-              $next = $retorno['paging']['next'];
-            else
-              $next = '';
+            $next = $detalhes['paging']['next'];
+            while($next != '')
+            {
+              $retorno = $this->process_pagination($next);
+              
+              if(array_key_exists('paging', $retorno))
+              {
+                if(array_key_exists('next', $retorno['paging']))
+                  $next = $retorno['paging']['next'];
+                else
+                  $next = '';
 
-            $insights = array_merge($insights, $retorno['data']);
+                $insights = array_merge($insights, $retorno['data']);
+              }
+            }
           }
         }
 
@@ -327,6 +333,8 @@ class App extends CI_Controller {
     public function show_table($id, $tipo)
     {
       $resultado = $this->metricas->getTableData($id, $tipo);
+      $dados_vendas = $this->metricas->dados_vendas($id, $tipo);
+
       if($resultado)
       {
         $conversions = $this->metricas->getPossibleConversions($id, $tipo);
@@ -357,9 +365,24 @@ class App extends CI_Controller {
             $dados->conversao->{'Valor por ' . $action->action_type} = $action->cost;
           }
 
+          $date = substr($dados->date_start, 0, 10);
+
+          foreach($dados_vendas as $venda)
+          {
+            if($venda->dt == $date)
+            {
+              $dados->boletos_gerados = $venda->boletos_gerados;
+              $dados->boletos_pagos = $venda->boletos_pagos;
+              $dados->cartoes = $venda->cartoes;
+              $dados->faturamento_boleto = $venda->faturamento_boleto;
+              $dados->faturamento_cartao = $venda->faturamento_cartao;
+            }
+          }
+
           $retorno[] = $dados;
         }
 
+        
         $filename = generate_excel($retorno, $this->phpexcel);
         return $filename;
       }
@@ -504,6 +527,75 @@ class App extends CI_Controller {
 
         return $detalhes;
         //$contas = array_merge($contas, $accounts['data']);
+    }
+
+    public function dados_vendas_plataforma($ad_id)
+    {
+      $tags = $this->metricas->get_tags_from_ad($ad_id);
+
+      $tag_vars = explode("&", $tags->url_tags);
+
+      if($tags->url_tags == null)
+        die('Tag Vars vazio no banco');
+      
+      foreach($tag_vars as $var)
+      {
+        $var_explode = explode("=", $var);
+        $var_array[$var_explode[0]] = $var_explode[1];
+      }
+
+      $retorno = $this->metricas->busca_vendas_tag($ad_id,$var_array);
+
+      if($retorno)
+      {
+        $adset_id = $this->metricas->getAdSetFromAd($ad_id);
+        $campaign_id = $this->metricas->getCampaignFromAd($ad_id);
+
+        if(isset($retorno['boleto_impresso']))
+        {
+          foreach($retorno['boleto_impresso'] as $valor)
+          {
+            $valor->ad_id = $ad_id;
+            $valor->boletos_gerados = 1;
+            $valor->adset_id = $adset_id;
+            $valor->campaign_id = $campaign_id;
+            $array_insert[] = $valor;
+          }
+        }
+        if(isset($retorno['boleto_pago']))
+        {
+          foreach($retorno['boleto_pago'] as $valor)
+          {
+            $valor->ad_id = $ad_id;
+            $valor->boletos_pagos = 1;
+            $valor->adset_id = $adset_id;
+            $valor->campaign_id = $campaign_id;
+            $array_insert[] = $valor;
+          }
+        }
+        if(isset($retorno['cartao']))
+        {
+          foreach($retorno['cartao'] as $valor)
+          {
+            $valor->ad_id = $ad_id;
+            $valor->cartoes = 1;
+            $valor->adset_id = $adset_id;
+            $valor->campaign_id = $campaign_id;
+            $array_insert[] = $valor;
+          }
+        }
+
+        $this->metricas->insert_ads_vendas($array_insert);
+      }
+
+        die('Sem vendas a inserir');
+      
+      return;
+    }
+
+    public function processa_postback($plataforma, $id)
+    {
+
     }
 
 }
