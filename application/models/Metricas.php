@@ -559,13 +559,15 @@ class Metricas extends CI_Model{
 
     function getuserid($fb_id)
     {
-        log_message('debug', 'getuserid. Id:' . $ad_id);
+        log_message('debug', 'getuserid. Id:');
 
         $this->db->select("user_id");
         $this->db->from("profiles");
         $this->db->where("facebook_id", $fb_id);
 
         $result = $this->db->get();
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
 
         return $result->row()->user_id;
     }
