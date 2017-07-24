@@ -463,6 +463,9 @@ class App extends CI_Controller {
           foreach($tipos as $tipo)
           {
             $results_tipo = $this->metricas->getFromConta($result->account_id, $tipo);
+            if(!$results_tipo)
+              continue;
+              
             foreach($results_tipo as $res_tipo)
             {
               $this->sync_metricas($res_tipo->id, $tipo, false);
