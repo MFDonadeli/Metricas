@@ -465,7 +465,7 @@ class App extends CI_Controller {
             $results_tipo = $this->metricas->getFromConta($result->account_id, $tipo);
             if(!$results_tipo)
               continue;
-              
+
             foreach($results_tipo as $res_tipo)
             {
               $this->sync_metricas($res_tipo->id, $tipo, false);
@@ -481,7 +481,7 @@ class App extends CI_Controller {
     {
       log_message('debug', 'associa_postback.'); 
 
-      $id = $this->metricas->getuserid($this->fb_id);
+      $id = $this->metricas->getuserid($this->session->userdata('facebook_id'));
       $results = $this->metricas->busca_plataformas_vendas($id);
 
       $data['plataformas'] = $results;
@@ -500,7 +500,7 @@ class App extends CI_Controller {
         $plataforma = $this->input->post('plataforma');
 
         $resultado = $this->metricas->{'busca_' . strtolower($plataforma) . '_token'}($token);
-        $ads = $this->metricas->get_ads_ativos_30_dias($this->fb_id);
+        $ads = $this->metricas->get_ads_ativos_30_dias($this->session->set_userdata('facebook_id'));
 
         $data['compras'] = $resultado;
         $data['anuncios'] = $ads;
