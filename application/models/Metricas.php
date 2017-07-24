@@ -174,7 +174,7 @@ class Metricas extends CI_Model{
                 break;
         }
         $this->db->where($where,$id);
-        $this->db->where('status', 'ACTIVE');
+        $this->db->where('effective_status', 'ACTIVE');
 
         $result = $this->db->get();
 
@@ -483,7 +483,7 @@ class Metricas extends CI_Model{
         $this->db->select('date_start, cost_per_inline_link_click, inline_link_click_ctr, inline_link_clicks,impressions, cpm, relevance_score_score, spend, bydate, ' . $tipo . '_insights_id');
         $this->db->from($tipo.'_insights');
         $this->db->where($tipo.'_id', $id);
-        $this->db->order_by('bydate');
+        $this->db->order_by('bydate', 'DESC');
         $this->db->order_by('date_start');
         $result = $this->db->get();
 
@@ -557,6 +557,19 @@ class Metricas extends CI_Model{
       
     }
 
+    function getuserid($fb_id)
+    {
+        log_message('debug', 'getuserid. Id:' . $ad_id);
+
+        $this->db->select("user_id");
+        $this->db->from("profiles");
+        $this->db->where("facebook_id", $fb_id);
+
+        $result = $this->db->get();
+
+        return $result->row()->user_id;
+    }
+
     function getAdSetFromAd($ad_id)
     {
         log_message('debug', 'getAdSetFromAd. Id:' . $ad_id);
@@ -591,6 +604,25 @@ class Metricas extends CI_Model{
         log_message('debug', 'Last Query: ' . $this->db->last_query());
 
         return $result->result();
+    }
+
+    function dados_vendas_geral($id, $tipo)
+    {
+        log_message('debug', 'dados_vendas_geral');
+
+        $this->db->select("sum(boletos_gerados) as boletos_gerados, sum(boletos_pagos) as boletos_pagos, 
+            sum(cartoes) as cartoes, sum(boletos_pagos * comissao) as faturamento_boleto, 
+            sum(cartoes * comissao) as faturamento_cartao, produto, ad_id");
+
+        $this->db->from("ads_vendas");
+        $this->db->where("ad_id",$id);
+        $this->db->group_by(array("ad_id"));
+        
+        $result = $this->db->get();
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        return $result->row();
     }
 
     function getCampaignFromAd($ad_id)
@@ -754,6 +786,165 @@ class Metricas extends CI_Model{
             return false;
     }
 
+    function busca_plataformas_vendas($id)
+    {
+        log_message('debug', 'busca_plataformas_vendas.');  
+
+        $ret = false;
+
+        $this->db->select("postback_hotmart.hottok");
+        $this->db->from("postback_hotmart");
+        $this->db->join("platform_users", "postback_hotmart.hottok = platform_users.token ");
+        $this->db->join("platforms","platform_users.platform_id = platforms.platform_id"); 
+        $this->db->where("platforms.name = 'Hotmart'");
+        $this->db->where("platform_users.user_id", $id);
+        $this->db->where("postback_hotmart.ad_status != 'OK'");
+        $result = $this->db->get();
+
+        if($result->num_rows() > 0) $ret['Hotmart'] = $result->row()->hottok;
+
+        $this->db->select("postback_monetizze.chave_unica");
+        $this->db->from("postback_monetizze");
+        $this->db->join("platform_users", "postback_monetizze.chave_unica = platform_users.token ");
+        $this->db->join("platforms","platform_users.platform_id = platforms.platform_id"); 
+        $this->db->where("platforms.name = 'Monetizze'");
+        $this->db->where("platform_users.user_id", $id);
+        $this->db->where("postback_monetizze.ad_status != 'OK'");
+        $result = $this->db->get();
+
+        if($result->num_rows() > 0) $ret['Monetizze'] = $result->row()->chave_unica;
+
+        return $ret;
+    }
+
+    function busca_hotmart_token($token)
+    {
+        log_message('debug', 'busca_hotmart_token.');  
+
+        $ret = false;
+
+        $result = $this->db->query("SELECT purchase_date as data_compra, confirmation_purchase_date as data_confirmacao,
+		    cms_aff as comissao, prod_name as produto, postback_hotmart_id as id_plataforma,
+            'hotmart' as plataforma, src FROM postback_hotmart
+            WHERE status = 'billet_printed' AND ad_status != 'OK'
+            AND hottok = '" . $token . "'
+            AND transaction not in (SELECT transaction FROM postback_hotmart 
+							WHERE status = 'approved' AND payment_type = 'billet')");
+
+        if($result->num_rows() > 0) $ret = true;
+
+        $retorno['boleto_impresso'] = $result->result();
+
+        $this->db->select("purchase_date as data_compra, confirmation_purchase_date as data_confirmacao,
+		    cms_aff as comissao, prod_name as produto, postback_hotmart_id as id_plataforma,
+            'hotmart' as plataforma, src");
+        $this->db->from("postback_hotmart");
+        $this->db->where("ad_status != 'OK'");
+        $this->db->where("status = 'approved'");
+        $this->db->where("hottok", $token);
+        $this->db->where("payment_type != 'billet'");
+        $result = $this->db->get();
+
+        if($result->num_rows() > 0) $ret = true;
+
+        $retorno['cartao'] = $result->result();
+
+        $this->db->select("purchase_date as data_compra, confirmation_purchase_date as data_confirmacao,
+		    cms_aff as comissao, prod_name as produto, postback_hotmart_id as id_plataforma,
+            'hotmart' as plataforma, src");
+        $this->db->from("postback_hotmart");
+        $this->db->where("ad_status != 'OK'");
+        $this->db->where("status = 'approved'");
+        $this->db->where("hottok", $token);
+        $this->db->where("payment_type = 'billet'");
+        $result = $this->db->get();
+
+        if($result->num_rows() > 0) $ret = true;
+
+        $retorno['boleto_pago'] = $result->result();
+
+        if($ret)
+            return $retorno;
+        else
+            return false;
+    }
+
+    function busca_monetizze_token($token)
+    {
+        log_message('debug', 'busca_monetizze.');  
+
+        $ret = false;
+
+        $result = $this->db->query("SELECT venda_data_inicio as data_compra, venda_data_finalizada as data_confirmacao,
+		    venda_valor as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
+            'monetizze' as plataforma, venda_src as src
+FROM postback_monetizze WHERE venda_forma_pagamento = 'Boleto' and postback_monetizze.ad_status != 'OK' 
+and venda_status = 'Aguardando pagamento' and chave_unica = '" . $token . "'
+and venda_codigo not in (SELECT venda_codigo FROM postback_monetizze
+WHERE venda_status = 'Finalizada' and venda_forma_pagamento = 'Boleto')");
+
+        if($result->num_rows() > 0) $ret = true;
+
+        $retorno['boleto_impresso'] = $result->result();
+
+        $this->db->select("venda_data_inicio as data_compra, venda_data_finalizada as data_confirmacao,
+		    venda_valor as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
+            'monetizze' as plataforma, venda_src as src");
+        $this->db->from("postback_monetizze"); 
+        $this->db->where("ad_status != 'OK'");
+        $this->db->where("chave_unica", $token);
+        $this->db->where("venda_status = 'Finalizada'");
+        $this->db->where("venda_forma_pagamento != 'Boleto'");
+        $result = $this->db->get();
+
+        if($result->num_rows() > 0) $ret = true;
+
+        $retorno['cartao'] = $result->result();
+
+        $this->db->select("venda_data_inicio as data_compra, venda_data_finalizada as data_confirmacao,
+		    venda_valor as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
+            'monetizze' as plataforma, venda_src as src");
+        $this->db->from("postback_monetizze");
+        $this->db->where("ad_status != 'OK'");
+        $this->db->where("chave_unica", $token);
+        $this->db->where("venda_status = 'Finalizada'");
+        $this->db->where("venda_forma_pagamento = 'Boleto'");
+        $result = $this->db->get();
+
+        if($result->num_rows() > 0) $ret = true;
+
+        $retorno['boleto_pago'] = $result->result();
+
+        if($ret)
+            return $retorno;
+        else
+            return false;
+    }
+
+    public function get_ads_ativos_30_dias($id)
+    {
+        log_message('debug', 'get_ads_ativos_30_dias');
+
+        $today = date('Y-m-d', strtotime("-30 days"));
+
+        $this->db->select("ads.id, ads.name, ads.effective_status, ad_creatives.url_tags, adsets.name as conjunto, 
+campaigns.name as campanha, accounts.name as conta");
+        $this->db->from("ads"); 
+        $this->db->join("ad_creatives","ads.id = ad_creatives.ad_id");   
+        $this->db->join("adsets","ads.adset_id = adsets.id");   
+        $this->db->join("campaigns","ads.campaign_id = campaigns.id");  
+        $this->db->join("accounts","ads.account_id = accounts.id");  
+        $this->db->where("ads.effective_status != 'DISAPPROVED'");
+        $this->db->where("ads.updated_time > '" . $today . "'");
+        $this->db->where("accounts.facebook_id",$id);
+        $this->db->order_by("ads.effective_status");
+
+        $result = $this->db->get();
+
+        return $result->result();
+    }
+
+
     public function insert_ads_vendas($array_insert)
     {
         log_message('debug', 'insert_ads_vendas');
@@ -767,7 +958,36 @@ class Metricas extends CI_Model{
             $this->db->insert('ads_vendas', $insert);
 
             log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+            $this->db->set("ad_status","OK");
+            $this->db->where("postback_" . strtolower($insert['plataforma']) . "_id", $insert['id_plataforma']);
+            $this->db->update("postback_" . strtolower($insert['plataforma']));
+
+            log_message('debug', 'Last Query: ' . $this->db->last_query());
         }
+    }
+
+    public function getProdutoComissao($id_plataforma, $plataforma)
+    {
+        log_message('debug', 'getProdutoComissao');
+
+        switch($plataforma)
+        {
+            case 'Monetizze':
+                $this->db->select("venda_valor_recebido as comissao, produto_nome as produto, venda_data_inicio as data");
+                $this->db->from("postback_monetizze");
+                $this->db->where("postback_monetizze_id", $id_plataforma);
+                break;
+            case 'Hotmart':
+                $this->db->select("cms_aff as comissao, prod_name as produto, purchase_date as data");
+                $this->db->from("postback_hotmart");
+                $this->db->where("postback_hotmart_id", $id_plataforma);
+                break;
+        }
+
+        $result = $this->db->get();
+
+        return $result->row();
     }
 
     public function deleteToNewSync($id)
