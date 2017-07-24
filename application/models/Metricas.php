@@ -943,6 +943,8 @@ campaigns.name as campanha, accounts.name as conta");
 
         $result = $this->db->get();
 
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
         return $result->result();
     }
 
