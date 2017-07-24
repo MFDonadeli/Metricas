@@ -31,9 +31,11 @@ function generate_excel($dados, $excel)
         unset($dado->conversao);
 
         for($row = START_ROW; $row < $objPHPExcel->getActiveSheet()->getHighestRow(); $row++)
-        {
+        {       
             if(($row == START_ROW || $row == START_ROW+1) && $dado->bydate != 1)
+            {
                 $objPHPExcel->getActiveSheet()->getCellByColumnAndRow($column, $row)->setValue("Geral"); 
+            }
             else
             {
                 $value = $objPHPExcel->getActiveSheet()->getCellByColumnAndRow($column, $row)->getValue();

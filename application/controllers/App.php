@@ -334,6 +334,7 @@ class App extends CI_Controller {
     {
       $resultado = $this->metricas->getTableData($id, $tipo);
       $dados_vendas = $this->metricas->dados_vendas($id, $tipo);
+      $dados_vendas_geral = $this->metricas->dados_vendas_geral($id, $tipo);
 
       if($resultado)
       {
@@ -376,6 +377,48 @@ class App extends CI_Controller {
               $dados->cartoes = $venda->cartoes;
               $dados->faturamento_boleto = $venda->faturamento_boleto;
               $dados->faturamento_cartao = $venda->faturamento_cartao;
+            }
+          }
+
+          if($dados->bydate != 1)
+          {
+            $dados->boletos_gerados = $dados_vendas_geral->boletos_gerados;
+            $dados->boletos_pagos = $dados_vendas_geral->boletos_pagos;
+            $dados->cartoes = $dados_vendas_geral->cartoes;
+            $dados->faturamento_boleto = $dados_vendas_geral->faturamento_boleto;
+            $dados->faturamento_cartao = $dados_vendas_geral->faturamento_cartao;
+          }
+
+          if(isset($dados->conversao->{"offsite_conversion.fb_pixel_initiate_checkout"})
+              && isset($dados->conversao->{"offsite_conversion.fb_pixel_purchase"}))
+          {
+            if($dados->conversao->{"offsite_conversion.fb_pixel_initiate_checkout"} != "")
+            {
+              $dados->purchase_checkout = 
+                ($dados->conversao->{"offsite_conversion.fb_pixel_purchase"} /
+                $dados->conversao->{"offsite_conversion.fb_pixel_initiate_checkout"}) * 100;
+            }
+          }
+
+          if(isset($dados->conversao->{"offsite_conversion.fb_pixel_initiate_checkout"})
+              && isset($dados->conversao->{"offsite_conversion.fb_pixel_view_content"}))
+          {
+            if($dados->conversao->{"offsite_conversion.fb_pixel_view_content"} != "")
+            {
+              $dados->checkout_view = 
+                ($dados->conversao->{"offsite_conversion.fb_pixel_initiate_checkout"} /
+                $dados->conversao->{"offsite_conversion.fb_pixel_view_content"}) * 100;
+            }
+          }
+
+          if(isset($dados->conversao->{"offsite_conversion.fb_pixel_purchase"})
+              && isset($dados->conversao->{"offsite_conversion.fb_pixel_view_content"}))
+          {
+            if($dados->conversao->{"offsite_conversion.fb_pixel_view_content"} != "")
+            {
+              $dados->purchase_view = 
+                ($dados->conversao->{"offsite_conversion.fb_pixel_purchase"} /
+                $dados->conversao->{"offsite_conversion.fb_pixel_view_content"}) * 100;
             }
           }
 
@@ -429,6 +472,72 @@ class App extends CI_Controller {
       }
 
 
+    }
+
+    public function associa_postback()
+    {
+      log_message('debug', 'associa_postback.'); 
+
+      $id = $this->metricas->getuserid($this->fb_id);
+      $results = $this->metricas->busca_plataformas_vendas($id);
+
+      $data['plataformas'] = $results;
+
+      $this->load->view('associa_postback',$data);
+
+    }
+
+    public function get_postback_data_to_assoc()
+    {
+      log_message('debug', 'get_postback_data_to_assoc.'); 
+
+      if(isset($_POST['plataforma']))
+      {
+        $token = $this->input->post('id');
+        $plataforma = $this->input->post('plataforma');
+
+        $resultado = $this->metricas->{'busca_' . strtolower($plataforma) . '_token'}($token);
+        $ads = $this->metricas->get_ads_ativos_30_dias($this->fb_id);
+
+        $data['compras'] = $resultado;
+        $data['anuncios'] = $ads;
+
+        $html = $this->load->view('dados_assoc',$data,true);
+
+        echo $html;
+      }
+    }
+
+    public function grava_ad_venda()
+    {
+      log_message('debug', 'grava_ad_venda.');  
+
+      $pb = $this->input->post('dados');
+      $ad = $this->input->post('ad_id');
+      $tipo = $this->input->post('tipo');
+      $plataforma = $this->input->post('plataforma');
+
+      $adset_id = $this->metricas->getAdSetFromAd($ad);
+      $campaign_id = $this->metricas->getCampaignFromAd($ad);
+
+      foreach($pb as $id_plataforma)
+      {
+        $ret = $this->metricas->getProdutoComissao($id_plataforma, $plataforma);
+
+        $item['ad_id'] = $ad;
+        $item['plataforma'] = $plataforma;
+        $item['id_plataforma'] = $id_plataforma;
+        $item[$tipo] = 1;
+        $item['adset_id'] = $adset_id;
+        $item['campaign_id'] = $campaign_id;
+        $item['produto'] = $ret->produto;
+        $item['comissao'] = $ret->comissao;
+        $item['data'] = $ret->data;
+        
+        $array_insert[] = $item;
+      }
+
+      $this->metricas->insert_ads_vendas($array_insert);
     }
 
     public function home(){
