@@ -197,7 +197,7 @@ if(!empty($authUrl)) {
 
         $('#numeros').show();
 
-        $('#numeros').html("<iframe width='100%' height='500 px' src='https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>template/" + resp.trim() + "'>");
+        $('#numeros').html("<iframe width='90%' height='500 px' src='https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>template/" + resp.trim() + "'>");
 
     });
 
