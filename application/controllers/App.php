@@ -380,7 +380,7 @@ class App extends CI_Controller {
             }
           }
 
-          if($dados->bydate != 1)
+          if($dados->bydate != 1 && $dados_vendas_geral != null)
           {
             $dados->boletos_gerados = $dados_vendas_geral->boletos_gerados;
             $dados->boletos_pagos = $dados_vendas_geral->boletos_pagos;

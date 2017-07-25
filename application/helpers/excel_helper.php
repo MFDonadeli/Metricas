@@ -15,7 +15,12 @@ function generate_excel($dados, $excel)
 
     $column = 1;
 
-    inserirConversoes($dados[0]->conversao, $objPHPExcel->getActiveSheet());
+    if(isset($dados[0]->conversao))
+        $item_conversoes = $dados[0]->conversao;
+    else
+        $item_conversoes = null;
+
+    inserirConversoes($item_conversoes, $objPHPExcel->getActiveSheet());
 
     $qtde_colunas = count($dados);
 
@@ -24,11 +29,14 @@ function generate_excel($dados, $excel)
         if($column != $qtde_colunas)
             duplicate_column($column, $objPHPExcel->getActiveSheet());
 
-        foreach($dado->conversao as $key => $val)
+        if(isset($dado->conversao))
         {
-            $dado->{$key} = $val;
+            foreach($dado->conversao as $key => $val)
+            {
+                $dado->{$key} = $val;
+            }
+            unset($dado->conversao);
         }
-        unset($dado->conversao);
 
         for($row = START_ROW; $row < $objPHPExcel->getActiveSheet()->getHighestRow(); $row++)
         {       
@@ -102,11 +110,21 @@ function duplicate_column($col, $sheet)
 function inserirConversoes($conversion_array, $sheet)
 {
     $color = '';
-    $names = $conversion_array->name;
-    unset($conversion_array->name);
     $color_array=array("E4DFEC", "D9EAD3", "DDD9C4", "FCE9D9");
 
+
     $row = procura_valor('#TpConversao:', 0, $sheet);
+
+    if($conversion_array == null)
+    {
+        $sheet->removeRow($row-1, 3);
+        return;
+    }
+
+    $names = $conversion_array->name;
+    unset($conversion_array->name);
+    
+    
     $sheet->insertNewRowBefore($row+1, count(get_object_vars($conversion_array)) - 2);
 
     $row = procura_valor('#TpConversao:', 0, $sheet)-1;

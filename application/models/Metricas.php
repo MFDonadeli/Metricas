@@ -595,11 +595,11 @@ class Metricas extends CI_Model{
         $this->db->select("sum(boletos_gerados) as boletos_gerados, sum(boletos_pagos) as boletos_pagos, 
             sum(cartoes) as cartoes, sum(boletos_pagos * comissao) as faturamento_boleto, 
             sum(cartoes * comissao) as faturamento_cartao, produto,
-            substring(data,1,10) as dt, ad_id");
+            substring(data,1,10) as dt, " . $tipo . "_id");
 
         $this->db->from("ads_vendas");
-        $this->db->where("ad_id",$id);
-        $this->db->group_by(array("ad_id","dt"));
+        $this->db->where($tipo . "_id",$id);
+        $this->db->group_by(array($tipo."_id","dt"));
         
         $result = $this->db->get();
 
@@ -614,11 +614,11 @@ class Metricas extends CI_Model{
 
         $this->db->select("sum(boletos_gerados) as boletos_gerados, sum(boletos_pagos) as boletos_pagos, 
             sum(cartoes) as cartoes, sum(boletos_pagos * comissao) as faturamento_boleto, 
-            sum(cartoes * comissao) as faturamento_cartao, produto, ad_id");
+            sum(cartoes * comissao) as faturamento_cartao, produto, " . $tipo . "_id");
 
         $this->db->from("ads_vendas");
-        $this->db->where("ad_id",$id);
-        $this->db->group_by(array("ad_id"));
+        $this->db->where($tipo . "_id",$id);
+        $this->db->group_by(array($tipo . "_id"));
         
         $result = $this->db->get();
 
