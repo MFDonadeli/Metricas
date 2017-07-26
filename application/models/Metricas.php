@@ -104,24 +104,21 @@ class Metricas extends CI_Model{
 
         if($tipo == 'campaign')
         {
-            $this->db->select("name, id, status");
+            $this->db->select("name, id, effective_status");
             $this->db->from("campaigns");
             $this->db->where('account_id',$id);
-            $this->db->where("status = 'ACTIVE'");
         }
         elseif($tipo == 'adset')
         {
-            $this->db->select("adsets.name, adsets.id, adsets.status");
+            $this->db->select("adsets.name, adsets.id, adsets.effective_status");
             $this->db->from("adsets");
             $this->db->where("adsets.account_id", $id);
-            $this->db->where("adsets.effective_status = 'ACTIVE'");
         }
         elseif($tipo == 'ad')
         {
-            $this->db->select("ads.name, ads.id, ads.status");
+            $this->db->select("ads.name, ads.id, ads.effective_status");
             $this->db->from("ads");
             $this->db->where("ads.account_id", $id);
-            $this->db->where("ads.effective_status = 'ACTIVE'");
         }
         
 
@@ -220,7 +217,7 @@ class Metricas extends CI_Model{
                     if(!$this->db->insert('accounts_insights_actions', $action))
                         log_message('debug', 'Erro: ' . $this->db->error()->message);
 
-                    log_message('debug', 'Last Query: ' . $this->db->last_query());
+                    //log_message('debug', 'Last Query: ' . $this->db->last_query());
                 }
             }
         }
@@ -263,7 +260,7 @@ class Metricas extends CI_Model{
                         $action['campaign_insights_id'] = $insert_id;
                         if(!$this->db->insert('campaign_insights_actions', $action))
                             log_message('debug', 'Erro: ' . $this->db->error()->message);
-                        log_message('debug', 'Last Query: ' . $this->db->last_query());
+                        //log_message('debug', 'Last Query: ' . $this->db->last_query());
                     }
                     unset($arr_insights_action);
                 }
@@ -273,7 +270,7 @@ class Metricas extends CI_Model{
         
     }
 
-    public function insertInsights($arr_insights, $tipo)
+    public function insertInsights($arr_insights, $tipo, $bydate = false)
     {
         foreach($arr_insights as $array)
         {
@@ -283,7 +280,8 @@ class Metricas extends CI_Model{
                 unset($array['action']);
             }
             
-            $array['bydate'] = 1;
+            if($bydate)
+                $array['bydate'] = 1;
 
             if(!$this->db->insert($tipo.'_insights',$array))
                 log_message('debug', 'Erro: ' . $this->db->error()->message);
@@ -299,7 +297,7 @@ class Metricas extends CI_Model{
                     $action[$tipo.'_insights_id'] = $insert_id;
                     if(!$this->db->insert($tipo.'_insights_actions', $action))
                         log_message('debug', 'Erro: ' . $this->db->error()->message);
-                    log_message('debug', 'Last Query: ' . $this->db->last_query());
+                    //log_message('debug', 'Last Query: ' . $this->db->last_query());
                 }
             }
             
@@ -448,6 +446,42 @@ class Metricas extends CI_Model{
         $this->db->where('bydate = 1');
         $this->db->order_by($tipo.'_insights_id', 'desc');
         $this->db->limit(1);
+        $result = $this->db->get();
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        if($result->num_rows() > 0)
+        {
+            $row = $result->row();
+
+            $this->db->where($tipo.'_insights_id', $row->{$tipo.'_insights_id'});
+            $this->db->delete($tipo.'_insights_actions');
+
+            $this->db->where($tipo.'_insights_id', $row->{$tipo.'_insights_id'});
+            $this->db->delete($tipo.'_insights');
+
+            return explode(' ', $row->date_start)[0];    
+        }
+
+        //Validate
+        $this->db->where('id',$id);
+        $result = $this->db->get($tipo.'s');
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        $row = $result->row();
+
+        return explode('T', $row->created_time)[0];
+    }
+
+    public function getFirstDate($id, $tipo)
+    {
+        log_message('debug', 'getFirstDate');
+
+        $this->db->select('date_start, '.$tipo.'_insights_id');
+        $this->db->from($tipo.'_insights');
+        $this->db->where($tipo.'_id', $id);
+        $this->db->where('bydate is null');
         $result = $this->db->get();
 
         log_message('debug', 'Last Query: ' . $this->db->last_query());

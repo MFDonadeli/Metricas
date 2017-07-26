@@ -194,8 +194,7 @@ function get_param_contas()
 
 return '?fields=' . $accounts . ',campaigns{' . $campaigns . ',insights{' . $insights . '}},adsets{' . 
  $adsets . ',insights{' . $insights . '}},ads{' . $ads . ',insights{' . $insights . '},creative{' . $creative .
- '}},insights{' .
- $insights . '}';  
+ '}},insights{' . $insights . '}'; 
 } 
 
 function get_param_contas_data($dt_inicio)
@@ -206,6 +205,23 @@ function get_param_contas_data($dt_inicio)
  
 $aaa = "?fields=" . $insights . "&time_increment=1&time_range={'since':'" . $dt_inicio .
  "','until':'" . $dt . "'}";
+
+ log_message(debug, 'Params:'. $aaa);
+
+ return $aaa;
+
+}
+
+function get_param_contas_data_simples($dt_inicio)
+{
+    $insights = str_replace("\n","",INSIGHTS);
+
+    $dt = date('Y-m-d', time());
+ 
+$aaa = "?fields=" . $insights . "&time_range={'since':'" . $dt_inicio .
+ "','until':'" . $dt . "'}";
+
+ log_message(debug, 'Params:'. $aaa);
 
  return $aaa;
 

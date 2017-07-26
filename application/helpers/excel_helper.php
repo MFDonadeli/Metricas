@@ -3,8 +3,9 @@
 require_once APPPATH . '/libraries/PHPExcel/IOFactory.php';
 define('START_ROW',1);
 
-function generate_excel($dados, $excel)
+function generate_excel($dados, $excel, $sem_dado_venda, $comissao)
 {
+    $comissao = '10.09'; 
     $file_name_old = FCPATH."template/Template.xlsx";
     $raw_file_name = "Template".md5(mt_rand() . time()).".xlsx";
     $file_name = FCPATH."template/".$raw_file_name;
@@ -23,6 +24,8 @@ function generate_excel($dados, $excel)
     inserirConversoes($item_conversoes, $objPHPExcel->getActiveSheet());
 
     $qtde_colunas = count($dados);
+
+    $linha_faturamento = procura_valor("#faturamento_boleto", 1, $objPHPExcel->getActiveSheet());
 
     foreach($dados as $dado)
     {
@@ -47,9 +50,50 @@ function generate_excel($dados, $excel)
             else
             {
                 $value = $objPHPExcel->getActiveSheet()->getCellByColumnAndRow($column, $row)->getValue();
+
+                if($sem_dado_venda)
+                {
+                    if($row == $linha_faturamento)
+                    {
+                        $coluna_atual = PHPExcel_Cell::stringFromColumnIndex($column);
+                        if($dado->bydate != 1)
+                        {
+                            $coluna_anterior = PHPExcel_Cell::stringFromColumnIndex($column-1);
+                            $value = "=SUM(B" . $row . ":" . $coluna_anterior . $row . ")";    
+                        }
+                        elseif(isset($dado->{"offsite_conversion.fb_pixel_purchase"}))
+                        {
+                            $value = intval($dado->{"offsite_conversion.fb_pixel_purchase"}) * floatval($comissao);
+                        }
+                        else
+                            $value = 0;
+
+                        $objPHPExcel->getActiveSheet()->getCellByColumnAndRow($column, $row)->setValue($value);
+                    }
+                }
+
                 if($value[0] == '#')
                 {
-                    $campo = str_replace('#', '', $value);    
+                    $campo = str_replace('#', '', $value);  
+
+                    //PROCESSA GERAL: É PROVISÓRIO
+                    if($dado->bydate != 1)
+                    {
+                        $coluna_anterior = PHPExcel_Cell::stringFromColumnIndex($column-1);
+                        if($value == '#inline_link_click_ctr' || $value == '#cost_per_inline_link_click'
+                         || $value == '#cpm' || $value == '#relevance_score_score' || 
+                         strpos($value, "Valor por") !== false || $value == '#checkout_view' ||
+                         $value == '#purchase_view' || $value == '#purchase_checkout')
+                        {
+                            $dado->{$campo} = '=IFERROR(AVERAGE(B' . $row . ':' . $coluna_anterior . $row . '),"")';
+                        }
+                        else
+                        {
+                            $dado->{$campo} = "=SUM(B" . $row . ":" . $coluna_anterior . $row . ")";    
+                        }
+                    }
+                    /////
+                      
                     if(isset($dado->{$campo}))
                     {
                         $valor = $dado->{$campo};
@@ -70,7 +114,6 @@ function generate_excel($dados, $excel)
                         $objPHPExcel->getActiveSheet()->getCellByColumnAndRow($column, $row)->setValue('');                              
                 }     
             }
-
         }
 
         $objPHPExcel->getActiveSheet()->getCellByColumnAndRow($column, $row)->getValue(); 
@@ -78,10 +121,40 @@ function generate_excel($dados, $excel)
 
     }
 
+    formata_roi($qtde_colunas, $objPHPExcel->getActiveSheet());
+
     $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
     $objWriter->save($file_name);
 
     return $raw_file_name;
+}
+
+function formata_roi($colunas, $sheet)
+{
+    //Conditional Format
+    $objConditional1 = new PHPExcel_Style_Conditional();
+    $objConditional1->setConditionType(PHPExcel_Style_Conditional::CONDITION_CELLIS)
+                    ->setOperatorType(PHPExcel_Style_Conditional::OPERATOR_LESSTHAN)
+                    ->addCondition('0');
+    $objConditional1->getStyle()->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getEndColor()->setARGB(PHPExcel_Style_Color::COLOR_RED);   
+
+    $objConditional2 = new PHPExcel_Style_Conditional();
+    $objConditional2->setConditionType(PHPExcel_Style_Conditional::CONDITION_CELLIS)
+                    ->setOperatorType(PHPExcel_Style_Conditional::OPERATOR_GREATERTHANOREQUAL)
+                    ->addCondition('0');
+    $objConditional2->getStyle()->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getEndColor()->setARGB(PHPExcel_Style_Color::COLOR_GREEN);   
+
+    $linha_faturamento = procura_valor("%ROI:", 0, $sheet)-1;
+
+    for($col = 1; $col <= $colunas; $col++)
+    {
+        $celula = PHPExcel_Cell::stringFromColumnIndex($col).$linha_faturamento;
+        $conditionalStyles = $sheet->getStyle($celula)->getConditionalStyles();
+        array_push($conditionalStyles, $objConditional1);
+        array_push($conditionalStyles, $objConditional2);
+        $sheet->getStyle($celula)->setConditionalStyles($conditionalStyles);
+    }
+
 }
 
 function duplicate_column($col, $sheet)
@@ -90,6 +163,7 @@ function duplicate_column($col, $sheet)
     {
         $value = $sheet->getCellByColumnAndRow($col, $row)->getValue();
         $style = $sheet->getStyleByColumnAndRow($col, $row);
+        $conditional = $style->getConditionalStyles();
         $orgCellColumn = '$'.PHPExcel_Cell::stringFromColumnIndex($col);
         $dstCellColumn = '$'.PHPExcel_Cell::stringFromColumnIndex($col+1);
         $dstCell = PHPExcel_Cell::stringFromColumnIndex($col+1) . (string)($row);

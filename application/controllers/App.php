@@ -112,6 +112,11 @@ class App extends CI_Controller {
       $detalhes = $this->facebook->request('get',$conta.get_param_contas(),$this->usrtkn);
       log_message('debug',json_encode($detalhes));
 
+      if(array_key_exists('error',$detalhes))
+      {
+        die('Erro');
+      }
+
       $this->grava_bd($detalhes); 
 
       $detalhes = $this->facebook->request('get',$conta.'/customconversions?fields=id,name,custom_event_type,account_id',$this->usrtkn);
@@ -243,7 +248,7 @@ class App extends CI_Controller {
       $campaigns = processa_campaigns($campaigns);
       $adsets = processa_adsets($adsets);
       $ads = processa_ads($ads);
-
+      
       $this->metricas->insertAccount($detalhes);
       $this->metricas->insertCampaign($campaigns);
       $this->metricas->insertAdSet($adsets);
@@ -251,7 +256,7 @@ class App extends CI_Controller {
 
     }
 
-    public function sync_metricas($id = null, $tipo = null, $gera_planilha = true)
+    public function sync_metricas($id = null, $tipo = null, $sogeral = false, $gera_planilha = true)
     {
       log_message('debug', 'sync_metricas');
 
@@ -259,20 +264,52 @@ class App extends CI_Controller {
       {
         $id = $this->input->post('val');
         $tipo = $this->input->post('tipo');
+        $comissao = $this->input->post('comissao');
       }
       elseif($id == null && $tipo == null)
       {
         die('Erro. Sem acesso ao sistema');
       }
 
-      $dt_inicio = $this->metricas->getLastDateSync($id, $tipo);
+      if($sogeral == false)
+      {
+        $dt_inicio = $this->metricas->getLastDateSync($id, $tipo);
 
-      $url_params = get_param_contas_data($dt_inicio);
+        $url_params = get_param_contas_data($dt_inicio);
+
+        $detalhes = $this->facebook->request('get', $id.'/insights'.$url_params,$this->usrtkn);
+
+        log_message('debug',json_encode($detalhes));
+
+        $this->processa_resposta_insight($detalhes, $tipo, true);
+      }
+
+      //Geral
+      if($id == '23842591960620642')
+        $l = 0;
+
+      $dt_inicio = $this->metricas->getFirstDate($id, $tipo);
+
+      $url_params = get_param_contas_data_simples($dt_inicio);
 
       $detalhes = $this->facebook->request('get', $id.'/insights'.$url_params,$this->usrtkn);
 
       log_message('debug',json_encode($detalhes));
 
+      $this->processa_resposta_insight($detalhes, $tipo);
+      
+
+      if($gera_planilha)
+      {
+        $html = $this->show_table($id, $tipo, $comissao);
+
+        echo $html;
+      }
+      
+    }
+
+    private function processa_resposta_insight($detalhes, $tipo, $bydate = false)
+    {
       if(array_key_exists('data', $detalhes))
       {
         $insights = $detalhes['data'];
@@ -318,20 +355,13 @@ class App extends CI_Controller {
         }
 
         if(isset($insights_data))
-          $this->metricas->insertInsights($insights_data, $tipo);
+          $this->metricas->insertInsights($insights_data, $tipo, $bydate);
       }
-
-      if($gera_planilha)
-      {
-        $html = $this->show_table($id, $tipo);
-
-        echo $html;
-      }
-      
     }
 
-    public function show_table($id, $tipo)
+    public function show_table($id, $tipo, $comissao)
     {
+      $sem_dado_venda = true;
       $resultado = $this->metricas->getTableData($id, $tipo);
       $dados_vendas = $this->metricas->dados_vendas($id, $tipo);
       $dados_vendas_geral = $this->metricas->dados_vendas_geral($id, $tipo);
@@ -372,6 +402,7 @@ class App extends CI_Controller {
           {
             if($venda->dt == $date)
             {
+              $sem_dado_venda = false;
               $dados->boletos_gerados = $venda->boletos_gerados;
               $dados->boletos_pagos = $venda->boletos_pagos;
               $dados->cartoes = $venda->cartoes;
@@ -425,8 +456,7 @@ class App extends CI_Controller {
           $retorno[] = $dados;
         }
 
-        
-        $filename = generate_excel($retorno, $this->phpexcel);
+        $filename = generate_excel($retorno, $this->phpexcel, $sem_dado_venda, $comissao);
         return $filename;
       }
 
@@ -468,7 +498,12 @@ class App extends CI_Controller {
 
             foreach($results_tipo as $res_tipo)
             {
-              $this->sync_metricas($res_tipo->id, $tipo, false);
+              $sogeral = false;
+              if($res_tipo->effective_status != 'ACTIVE')
+                $sogeral = true; 
+
+              if($res_tipo->effective_status == 'ACTIVE') // SÓ FAZ OS ATIVOS
+                $this->sync_metricas($res_tipo->id, $tipo, $sogeral, false);
             }
           }
         }
