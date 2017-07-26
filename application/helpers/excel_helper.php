@@ -20,6 +20,8 @@ function generate_excel($dados, $excel, $sem_dado_venda, $comissao)
     else
         $item_conversoes = null;
 
+    $linha_faturamento = procura_valor("#faturamento_boleto", 1, $objPHPExcel->getActiveSheet());
+
     inserirConversoes($item_conversoes, $objPHPExcel->getActiveSheet());
 
     $qtde_colunas = count($dados);
@@ -40,7 +42,7 @@ function generate_excel($dados, $excel, $sem_dado_venda, $comissao)
             unset($dado->conversao);
         }
 
-        for($row = START_ROW; $row < $objPHPExcel->getActiveSheet()->getHighestRow(); $row++)
+        for($row = START_ROW; $row <= $objPHPExcel->getActiveSheet()->getHighestRow(); $row++)
         {       
             if(($row == START_ROW || $row == START_ROW+1) && $dado->bydate != 1)
             {
@@ -198,7 +200,8 @@ function inserirConversoes($conversion_array, $sheet)
     unset($conversion_array->name);
     
     
-    $sheet->insertNewRowBefore($row+1, count(get_object_vars($conversion_array)) - 2);
+    if(count(get_object_vars($conversion_array)) > 2)
+        $sheet->insertNewRowBefore($row+1, count(get_object_vars($conversion_array)) - 2);
 
     $row = procura_valor('#TpConversao:', 0, $sheet)-1;
 
