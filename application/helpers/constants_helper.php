@@ -206,8 +206,6 @@ function get_param_contas_data($dt_inicio)
 $aaa = "?fields=" . $insights . "&time_increment=1&time_range={'since':'" . $dt_inicio .
  "','until':'" . $dt . "'}";
 
- log_message(debug, 'Params:'. $aaa);
-
  return $aaa;
 
 }
@@ -220,8 +218,6 @@ function get_param_contas_data_simples($dt_inicio)
  
 $aaa = "?fields=" . $insights . "&time_range={'since':'" . $dt_inicio .
  "','until':'" . $dt . "'}";
-
- log_message(debug, 'Params:'. $aaa);
 
  return $aaa;
 
