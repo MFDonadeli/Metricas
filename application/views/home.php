@@ -116,6 +116,8 @@ if(!empty($authUrl)) {
         $('#numeros').hide();
 
         $('#cmbcampanhas').empty();
+        $('#cmbconjunto').empty();
+        $('#cmbanuncios').empty();
         $('#cmbcampanhas').append(retorno);
         $('#btnvernumeros').hide();
     });
@@ -131,6 +133,7 @@ if(!empty($authUrl)) {
             $('#numeros').hide();
 
             $('#cmbconjunto').empty();
+            $('#cmbanuncios').empty();
             $('#cmbconjunto').append(retorno);
             $('#btnvernumeros').show();
         }
