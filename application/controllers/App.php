@@ -358,7 +358,7 @@ class App extends CI_Controller {
     public function show_table($id, $tipo, $comissao)
     {
       if(!is_numeric($comissao)) $comissao = 0;
-      
+
       $sem_dado_venda = true;
       $resultado = $this->metricas->getTableData($id, $tipo);
       $dados_vendas = $this->metricas->dados_vendas($id, $tipo);
@@ -381,7 +381,7 @@ class App extends CI_Controller {
               if(!isset($dados->conversao->name)) $dados->conversao->name = new stdClass();
               $dados->conversao->name->{$conv->action_type} = $translate[$conv->action_type];
               $dados->conversao->{$conv->action_type} = '';
-              $dados->conversao->{'Valor por ' . $conv->action_type} = '';
+              $dados->conversao->{'Custo por ' . $conv->action_type} = '';
             }
           }
 
@@ -391,7 +391,7 @@ class App extends CI_Controller {
               continue;
 
             $dados->conversao->{$action->action_type} = $action->value;  
-            $dados->conversao->{'Valor por ' . $action->action_type} = $action->cost;
+            $dados->conversao->{'Custo por ' . $action->action_type} = $action->cost;
           }
 
           $date = substr($dados->date_start, 0, 10);

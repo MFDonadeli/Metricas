@@ -81,12 +81,13 @@ function generate_excel($dados, $excel, $sem_dado_venda, $comissao)
                     if($dado->bydate != 1)
                     {
                         $coluna_anterior = PHPExcel_Cell::stringFromColumnIndex($column-1);
+                        $coluna_atual = PHPExcel_Cell::stringFromColumnIndex($column);
                         if($value == '#inline_link_click_ctr' || $value == '#cost_per_inline_link_click'
                          || $value == '#cpm' || $value == '#relevance_score_score' || 
-                         strpos($value, "Valor por") !== false || $value == '#checkout_view' ||
+                         strpos($value, "Custo por") !== false || $value == '#checkout_view' ||
                          $value == '#purchase_view' || $value == '#purchase_checkout')
                         {
-                            $dado->{$campo} = '=IFERROR(AVERAGE(B' . $row . ':' . $coluna_anterior . $row . '),"")';
+                            $dado->{$campo} = '=IFERROR(ROUND(AVERAGE(B' . $row . ':' . $coluna_anterior . $row . '),2),"")';
                         }
                         else
                         {
@@ -209,10 +210,10 @@ function inserirConversoes($conversion_array, $sheet)
     {
         $valor_b = "#".$key;
         
-        if(strpos($key,'Valor por ') !== false)
+        if(strpos($key,'Custo por ') !== false)
         {
-            $valor = str_replace('Valor por ', '', $key); 
-            $valor = 'Valor por ' . $names->{$valor};
+            $valor = str_replace('Custo por ', '', $key); 
+            $valor = 'Custo por ' . $names->{$valor};
         }
         else
         {
