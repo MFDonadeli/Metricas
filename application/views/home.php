@@ -66,6 +66,7 @@ if(!empty($authUrl)) {
             <select name="anuncios" id="cmbanuncios">
             </select><br>
         </div>
+        Comissão Padrão:<input type="text" name="txtcomissao" id="txtcomissao">
         <button id="btnvernumeros">Ver Números</button>
         <div id="numeros"></div>
         <?php 
@@ -182,7 +183,8 @@ if(!empty($authUrl)) {
         }
         
         var form_data = { tipo: tipo,
-                          val: val };
+                          val: val,
+                          comissao: $('#txtcomissao').val() };
 
         var resp = $.ajax({
             url: '<?php echo base_url(); ?>app/sync_metricas',

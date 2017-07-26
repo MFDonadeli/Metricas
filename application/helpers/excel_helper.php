@@ -5,7 +5,6 @@ define('START_ROW',1);
 
 function generate_excel($dados, $excel, $sem_dado_venda, $comissao)
 {
-    $comissao = '10.09'; 
     $file_name_old = FCPATH."template/Template.xlsx";
     $raw_file_name = "Template".md5(mt_rand() . time()).".xlsx";
     $file_name = FCPATH."template/".$raw_file_name;

@@ -284,10 +284,6 @@ class App extends CI_Controller {
         $this->processa_resposta_insight($detalhes, $tipo, true);
       }
 
-      //Geral
-      if($id == '23842591960620642')
-        $l = 0;
-
       $dt_inicio = $this->metricas->getFirstDate($id, $tipo);
 
       $url_params = get_param_contas_data_simples($dt_inicio);
