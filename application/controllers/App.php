@@ -357,6 +357,8 @@ class App extends CI_Controller {
 
     public function show_table($id, $tipo, $comissao)
     {
+      if(!is_numeric($comissao)) $comissao = 0;
+      
       $sem_dado_venda = true;
       $resultado = $this->metricas->getTableData($id, $tipo);
       $dados_vendas = $this->metricas->dados_vendas($id, $tipo);
