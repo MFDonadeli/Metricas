@@ -8,7 +8,7 @@ $document_root = realpath($_SERVER['DOCUMENT_ROOT']);
 //    $_SERVER['HTTP_HOST'];
 $base_url = base_url() . "assets";
 if(strpos($directory, $document_root)===0) {
-    $base_url .= str_replace(DIRECTORY_SEPARATOR, '/', substr($directory, strlen($document_root)));
+    //$base_url .= str_replace(DIRECTORY_SEPARATOR, '/', substr($directory, strlen($document_root)));
 }
 
 defined("APP_URL") ? null : define("APP_URL", $base_url);
