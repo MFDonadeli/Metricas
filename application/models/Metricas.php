@@ -21,6 +21,7 @@ class Metricas extends CI_Model{
         if(isset($data['oauth_provider'])) unset($data['oauth_provider']);
         if(isset($data['oauth_uid'])) unset($data['oauth_uid']);
         if(isset($data['logged_in'])) unset($data['logged_in']);
+        if(isset($data['picture'])) unset($data['picture']);
 
         //Validate
         $this->db->where('facebook_id',$data['facebook_id']);

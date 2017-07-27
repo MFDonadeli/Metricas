@@ -580,7 +580,7 @@ class App extends CI_Controller {
         if($this->facebook->is_authenticated()){
             log_message('debug','TOKEN FB: ' . $this->facebook->is_authenticated() );
             // Get user facebook profile details
-            $userProfile = $this->facebook->request('get', '/me?fields=id,first_name,last_name,email,gender,locale',$this->usrtkn);
+            $userProfile = $this->facebook->request('get', '/me?fields=id,first_name,last_name,email,gender,locale,picture{url}',$this->usrtkn);
             log_message('debug',json_encode($userProfile));
 
             // Preparing data for database insertion
@@ -593,6 +593,7 @@ class App extends CI_Controller {
             $userData['gender'] = $userProfile['gender'];
             $userData['locale'] = $userProfile['locale'];
             $userData['logged_in'] = true;
+            $userData['picture'] = $userProfile['picture']['data']['url'];
             $userData['token'] = $this->session->userdata('fb_access_token');
             $userData['token_expiration'] = $this->session->userdata('fb_expire');
 
@@ -622,7 +623,7 @@ class App extends CI_Controller {
             $data['contas'] = $contas;
 
             // Load login & profile view
-            $this->load->view('home',$data);
+            $this->load->view('metricas/index',$data);
 
         }
     }
