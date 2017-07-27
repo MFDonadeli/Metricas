@@ -49,8 +49,10 @@ include("inc/nav.php");
     </div>
     <p id="msg"></p>
     <div id="progressbar"></div>
-    <div style="clear:both" id='contas'>
+    <div id='contas'>
     </div>
+
+	<div style="clear:both"></div>
 
     <?php
     if(!$contas): ?>

@@ -64,6 +64,9 @@ class App extends CI_Controller {
 
       log_message('debug', 'get_contas');
       
+      if(isset($accounts['error']))
+        die('Erro. Tente novamete');
+
       foreach($contas as $conta)
       {
         if(intval($conta['age']) > 0)
