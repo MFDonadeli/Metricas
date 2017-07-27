@@ -583,44 +583,51 @@ class App extends CI_Controller {
             $userProfile = $this->facebook->request('get', '/me?fields=id,first_name,last_name,email,gender,locale,picture{url}',$this->usrtkn);
             log_message('debug',json_encode($userProfile));
 
-            // Preparing data for database insertion
-            $userData['oauth_provider'] = 'facebook';
-            $userData['oauth_uid'] = $userProfile['id'];
-            $userData['facebook_id'] = $userProfile['id'];
-            $userData['first_name'] = $userProfile['first_name'];
-            $userData['last_name'] = $userProfile['last_name'];
-            $userData['email'] = $userProfile['email'];
-            $userData['gender'] = $userProfile['gender'];
-            $userData['locale'] = $userProfile['locale'];
-            $userData['logged_in'] = true;
-            $userData['picture'] = $userProfile['picture']['data']['url'];
-            $userData['token'] = $this->session->userdata('fb_access_token');
-            $userData['token_expiration'] = $this->session->userdata('fb_expire');
+            if(!isset($userProfile['error']))
+            {
+              // Preparing data for database insertion
+              $userData['oauth_provider'] = 'facebook';
+              $userData['oauth_uid'] = $userProfile['id'];
+              $userData['facebook_id'] = $userProfile['id'];
+              $userData['first_name'] = $userProfile['first_name'];
+              $userData['last_name'] = $userProfile['last_name'];
+              $userData['email'] = $userProfile['email'];
+              $userData['gender'] = $userProfile['gender'];
+              $userData['locale'] = $userProfile['locale'];
+              $userData['logged_in'] = true;
+              $userData['picture'] = $userProfile['picture']['data']['url'];
+              $userData['token'] = $this->session->userdata('fb_access_token');
+              $userData['token_expiration'] = $this->session->userdata('fb_expire');
 
-            $userID = $userProfile['id'];
-            $this->fb_id = $userID;
+              $userID = $userProfile['id'];
+              $this->fb_id = $userID;
 
-            // Insert or update user data
-            $this->metricas->checkUser($userData);
+              // Insert or update user data
+              $this->metricas->checkUser($userData);
 
-            unset($userData['token']);
-            unset($userData['token_expiration']);
+              unset($userData['token']);
+              unset($userData['token_expiration']);
 
-            // Check user data insert or update status
-            if($userID){
-                $data['userData'] = $userData;
-                $this->session->set_userdata('userData',$userData);
-                $this->session->set_userdata('facebook_id',$userID);
-            }else{
-               $data['userData'] = array();
+              // Check user data insert or update status
+              if($userID){
+                  $data['userData'] = $userData;
+                  $this->session->set_userdata('userData',$userData);
+                  $this->session->set_userdata('facebook_id',$userID);
+              }else{
+                $data['userData'] = array();
+              }
+
+              // Get logout URL
+              $data['logoutUrl'] = $this->facebook->logout_url();
+
+              //Lista Contas
+              $contas = $this->metricas->getContas($userID);
+              $data['contas'] = $contas;
             }
-
-            // Get logout URL
-            $data['logoutUrl'] = $this->facebook->logout_url();
-
-            //Lista Contas
-            $contas = $this->metricas->getContas($userID);
-            $data['contas'] = $contas;
+            else
+            {
+              $data['error'] = $userProfile['error'];
+            }
 
             // Load login & profile view
             $this->load->view('metricas/index',$data);

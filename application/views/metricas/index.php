@@ -34,6 +34,12 @@ include("inc/nav.php");
 
 	<!-- MAIN CONTENT -->
 	<div id="content">
+
+	<?php 
+	if(isset($error)):
+		echo "Erro! Tente novamente!";
+	else:
+	?>
 		
 		<div id='div_items'>
     <div id='botao_contas'>
@@ -90,7 +96,9 @@ include("inc/nav.php");
      ?>
 </div>
 
-
+<?php 
+endif;
+?>
 
 
 	</div>
