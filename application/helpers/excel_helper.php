@@ -125,6 +125,12 @@ function generate_excel($dados, $excel, $sem_dado_venda, $comissao)
 
     formata_roi($qtde_colunas, $objPHPExcel->getActiveSheet());
 
+    //$chart = build_chart($qtde_colunas, '%CTR', $objPHPExcel->getActiveSheet());
+
+    //$objPHPExcel->getActiveSheet()->addChart($chart);
+
+    $objPHPExcel->getActiveSheet()->setSelectedCell('A1'); 
+
     $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
     $objWriter->save($file_name);
 
@@ -251,5 +257,72 @@ function procura_valor($valor, $col, $sheet)
     }
 
     return -1;
+}
+
+function build_chart($qtde_colunas, $titulo, $sheet)
+{
+    $row = procura_valor($titulo, 0, $sheet);
+    $lastCol = PHPExcel_Cell::stringFromColumnIndex($qtde_colunas-1);
+    //	Set the Labels for each data series we want to plot
+    //		Datatype
+    //		Cell reference for data
+    //		Format Code
+    //		Number of datapoints in series
+    //		Data values
+    //		Data Marker
+    $dataSeriesLabels = array(
+        new PHPExcel_Chart_DataSeriesValues('String', 'Métricas!$B$1:$'.$lastCol.'$1', NULL, 1)
+    );
+    //	Set the Data values for each data series we want to plot
+    //		Datatype
+    //		Cell reference for data
+    //		Format Code
+    //		Number of datapoints in series
+    //		Data values
+    //		Data Marker
+    $dataSeriesValues = array(
+        new PHPExcel_Chart_DataSeriesValues('Number', 'Métricas!$B$'.$row.':$'.$lastCol.'$'.$row, NULL, 4)
+    );
+
+    //	Build the dataseries
+    $series = new PHPExcel_Chart_DataSeries(
+        PHPExcel_Chart_DataSeries::TYPE_SCATTERCHART,	// plotType
+        NULL,											// plotGrouping (Scatter charts don't have any grouping)
+        range(0, count($dataSeriesValues)-1),			// plotOrder
+        $dataSeriesLabels,								// plotLabel
+        NULL,           								// plotCategory
+        $dataSeriesValues,								// plotValues
+        NULL,                                           // plotDirection
+        NULL,											// smooth line
+        PHPExcel_Chart_DataSeries::STYLE_LINEMARKER		// plotStyle
+    );
+
+    //	Set the series in the plot area
+    $plotArea = new PHPExcel_Chart_PlotArea(NULL, array($series));
+    //	Set the chart legend
+    $legend = new PHPExcel_Chart_Legend(PHPExcel_Chart_Legend::POSITION_TOPRIGHT, NULL, false);
+
+    $title = new PHPExcel_Chart_Title($titulo);
+
+
+    //	Create the chart
+    $chart = new PHPExcel_Chart(
+        'chart1',		// name
+        $title,			// title
+        $legend,		// legend
+        $plotArea,		// plotArea
+        true,			// plotVisibleOnly
+        0,				// displayBlanksAs
+        NULL,			// xAxisLabel
+        NULL	    	// yAxisLabel
+    );
+
+    //	Set the position where the chart should appear in the worksheet
+    $chart->setTopLeftPosition('C30');
+    $chart->setBottomRightPosition('H40');
+
+    //	Add the chart to the worksheet
+    return $chart;
+
 }
 ?>

@@ -59,13 +59,14 @@ class App extends CI_Controller {
       $accounts = $this->facebook->request('get', 'me/adaccounts?fields=name,account_status,age&limit=1200',$this->usrtkn);
 
       log_message('debug',json_encode($accounts));
+
+      if(isset($accounts['error']))
+        die('Erro. Tente novamete');
+        
       $contas = $accounts['data'];
       $ret = '';
 
       log_message('debug', 'get_contas');
-      
-      if(isset($accounts['error']))
-        die('Erro. Tente novamete');
 
       foreach($contas as $conta)
       {
@@ -282,6 +283,9 @@ class App extends CI_Controller {
 
         $detalhes = $this->facebook->request('get', $id.'/insights'.$url_params,$this->usrtkn);
 
+        if(isset($datalhes['error']))
+          die('Erro. Tente novamente');
+
         log_message('debug',json_encode($detalhes));
 
         $this->processa_resposta_insight($detalhes, $tipo, true);
@@ -292,6 +296,9 @@ class App extends CI_Controller {
       $url_params = get_param_contas_data_simples($dt_inicio);
 
       $detalhes = $this->facebook->request('get', $id.'/insights'.$url_params,$this->usrtkn);
+
+      if(isset($detalhes['error']))
+        die('Error');
 
       log_message('debug',json_encode($detalhes));
 
@@ -636,13 +643,20 @@ class App extends CI_Controller {
             $this->load->view('metricas/index',$data);
 
         }
+        else
+        {
+          redirect("index");
+        }
     }
 
     public function exec_fb_conn($id)
     {
       $result = $this->facebook->request('get', $id,$this->usrtkn);
       log_message('debug',json_encode($accounts));
-      
+
+      if(isset($result['error']))
+        die('Erro. Tente novamente');
+
       echo json_encode($result);
       
     }
@@ -680,6 +694,9 @@ class App extends CI_Controller {
         $str = "https://graph.facebook.com/v2.9/";
         $next = str_replace($str, '', $url);
         $detalhes = $this->facebook->request('get', $next, $this->usrtkn);
+
+        if(isset($detalhes['error']))
+          return false;
 
         return $detalhes;
         //$contas = array_merge($contas, $accounts['data']);
