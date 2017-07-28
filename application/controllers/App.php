@@ -645,7 +645,7 @@ class App extends CI_Controller {
         }
         else
         {
-          redirect("index");
+          redirect("app/");
         }
     }
 
