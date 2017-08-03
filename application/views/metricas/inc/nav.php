@@ -7,9 +7,9 @@
 				<span> <!-- User image size is adjusted inside CSS, it should stay as is -->
 
 					<a href="javascript:void(0);" id="show-shortcut" data-action="toggleShortcut">
-						<img src="<?php if(isset($userData['picture'])) echo $userData['picture']; ?>" alt="me" class="online" />
+						<img src="<?php if(isset($userData)) echo $userData['picture']; ?>" alt="me" class="online" />
 						<span>
-							<?php if(isset($userData['first_name'])) echo $userData['first_name']; ?>
+							<?php if(isset($userData)) echo $userData['first_name']; ?>
 						</span>
 						<i class="fa fa-angle-down"></i>
 					</a>

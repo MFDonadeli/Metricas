@@ -10,25 +10,26 @@ class Metricas extends CI_Model{
     *
     * Insere ou atualiza dados do usuário do Facebook
     *
-    * @param	string
-    * @param	string 
-    * @return	boolean
+    * @param	$data: Array com os campos a serem inseridos no banco
+    * @return	- 
     */
     public function checkUser($data)
     {   
         log_message('debug', 'checkUser');
 
+        //Tira campos que não existem no banco
         if(isset($data['oauth_provider'])) unset($data['oauth_provider']);
         if(isset($data['oauth_uid'])) unset($data['oauth_uid']);
         if(isset($data['logged_in'])) unset($data['logged_in']);
         if(isset($data['picture'])) unset($data['picture']);
 
-        //Validate
+        //Verifica se existe este perfil no banco
         $this->db->where('facebook_id',$data['facebook_id']);
         $result = $this->db->get('profiles');
 
         log_message('debug', 'Last Query: ' . $this->db->last_query());
 
+        //Se existir atualiza, senão insere
         if($result->num_rows() > 0)
         {
             $data['updated_time'] = date("Y-m-d H:i:s");
@@ -48,13 +49,14 @@ class Metricas extends CI_Model{
     }
 
     /**
-    * getContas
+    * getContasDetalhes
     *
-    * Trás contas de anúncio do usuário do Facebook
+    * Traz em detalhes, os anúncios ativos de um perfil no Facebook
     *
-    * @param	id
-    * @param	string 
-    * @return	boolean
+    * @param	id: Id do Facebook
+    * @return	
+    *    false se não encontrar nenhum anúncio
+    *    lista de anúncios
     */
     public function getContasDetalhes($id){
         log_message('debug', 'getContas');
@@ -67,9 +69,8 @@ class Metricas extends CI_Model{
         $this->db->join("accounts","ads.account_id = accounts.id");
         $this->db->join("ad_creatives","ad_creatives.ad_id = ads.id");
         
-        $this->db->where("ads.status = 'ACTIVE'");
-        $this->db->where("adsets.status = 'ACTIVE'");
-        $this->db->where("campaigns.status = 'ACTIVE'");
+        //Traz somente os anúncios realmente ativos
+        $this->db->where("ads.effective_status = 'ACTIVE'");
         $this->db->where("accounts.account_status = 1");
 
         $this->db->where('accounts.facebook_id',$id);
@@ -83,6 +84,16 @@ class Metricas extends CI_Model{
             return false;   
     }
 
+    /**
+    * getContas
+    *
+    * Traz nome e id das contas sincronizadas de um perfil do Facebook cadastrado no sistema
+    *
+    * @param	id: Id do Facebook
+    * @return	
+    *    false se não encontrar nenhum anúncio
+    *    lista de anúncios
+    */
     public function getContas($id){
         log_message('debug', 'getContas');
 
@@ -100,6 +111,17 @@ class Metricas extends CI_Model{
             return false;   
     }
 
+    /**
+    * getFromConta
+    *
+    * Traz nome, id e status do (ad, conjunto e campanha) a partir de uma conta cadastrada
+    *
+    * @param	id: Id da conta
+    * @param    tipo(string): ad, adset, campaign
+    * @return	
+    *    false se não encontrar nenhuma informação
+    *    lista com o nome, id e status do tipo
+    */
     public function getFromConta($id, $tipo){
         log_message('debug', 'getFromConta');
 
@@ -133,6 +155,16 @@ class Metricas extends CI_Model{
             return false;   
     }
 
+    /**
+    * getProfileToken
+    *
+    * Traz o token de um perfil de um usuário do sistema
+    *
+    * @param	id: Id do usuário
+    * @return	
+    *    false se não encontrar nenhuma informação
+    *    array com token e facebook id
+    */
     public function getProfileToken($id){
         log_message('debug', 'getProfileToken');
 
@@ -150,7 +182,21 @@ class Metricas extends CI_Model{
             return false;   
     }
 
-
+    /**
+    * get_from_tipo
+    *
+    * Lista tipos ativos a partir de um outro tipo. Serve para preencher os combos na tela de seleção
+    * para mostra da planilha
+    *   - Se $tipo for campaigns usa account_id para buscar as campanhas 
+    *   - Se $tipo for adsets usa campaign_id para buscar conjunto
+    *   - Se $tipo for ads usa adset_id para buscar anúncios
+    *
+    * @param	id: Id do tipo
+    * @param    tipo(string): campaigns, adsets, ads
+    * @return	
+    *    "Nenhum ativo" se não encontrar nenhum tipo ativo
+    *    lista de um determinado tipo
+    */
     public function get_from_tipo($id, $tipo)
     {
         log_message('debug', 'get_from_tipo');
@@ -172,6 +218,7 @@ class Metricas extends CI_Model{
                 break;
         }
         $this->db->where($where,$id);
+        //Traz somente os ativos
         $this->db->where('effective_status', 'ACTIVE');
 
         $result = $this->db->get();
@@ -186,9 +233,18 @@ class Metricas extends CI_Model{
     
     }
 
-
+    /**
+    * insertAccount
+    *
+    * Insere no banco de dados os dados de uma conta após ser processado dos dados obtidos
+    * do Facebook
+    *
+    * @param	arr_account(array): As contas a serem inseridas no banco
+    * @return	-
+    */
     public function insertAccount($arr_account)
     {
+        //Se tiver insights dentro da conta, separa do array recebido.
         if(array_key_exists('insights',$arr_account))
         {
             $arr_insights = $arr_account['insights'];
@@ -200,11 +256,13 @@ class Metricas extends CI_Model{
             unset($arr_account['insights']);
         }
 
+        //Insere na conta
         if(!$this->db->insert('accounts', $arr_account))
             log_message('debug', 'Erro: ' . $this->db->error()->message);
 
         log_message('debug', 'Last Query: ' . $this->db->last_query());
 
+        //Se tiver insights e actions, insere no banco
         if(isset($arr_insights))
         {
             if(!$this->db->insert('accounts_insights',$arr_insights))
@@ -225,10 +283,21 @@ class Metricas extends CI_Model{
         
     }
 
+    /**
+    * insertCampaign
+    *
+    * Insere no banco de dados os dados das campanhas após serem processado dos dados obtidos
+    * do Facebook
+    *
+    * @param	arr_campaign(array): As campanhas a serem inseridas no banco
+    * @return	-
+    */
     public function insertCampaign($arr_campaign)
     {
+        //Para cada campanha no array
         foreach($arr_campaign as $array)
         {
+            //Verifica se tem insights e separa do array
             if(array_key_exists('insights',$array))
             {
                 $arr_insights = $array['insights'];
@@ -240,11 +309,13 @@ class Metricas extends CI_Model{
                 unset($array['insights']);
             }
 
+            //Insere no banco
             if(!$this->db->insert('campaigns', $array))
                 log_message('debug', 'Erro: ' . $this->db->error()->message);
             
             log_message('debug', 'Last Query: ' . $this->db->last_query());
 
+            //Se tiver insights e actions insere no banco
             if(isset($arr_insights))
             {
                 if(!$this->db->insert('campaign_insights',$arr_insights))
@@ -252,6 +323,7 @@ class Metricas extends CI_Model{
                 
                 log_message('debug', 'Last Query: ' . $this->db->last_query());
 
+                //Busca última id inserido para relacionar com actions
                 $insert_id = $this->db->insert_id();
 
                 if(isset($arr_insights_action))
@@ -271,6 +343,17 @@ class Metricas extends CI_Model{
         
     }
 
+    /**
+    * insertInsights
+    *
+    * Insere no banco de dados os dados do insights após ser processado dos dados obtidos
+    * do Facebook
+    *
+    * @param	arr_insights(array): Os insights a serem inseridos no banco
+    * @param    tipo(string): ad, adset ou campaign. Tipo do insight
+    * @param    bydate(boolean): padrão false. Se o insight é geral(false) ou por dia(true)
+    * @return	-
+    */
     public function insertInsights($arr_insights, $tipo, $bydate = false)
     {
         foreach($arr_insights as $array)
@@ -306,16 +389,28 @@ class Metricas extends CI_Model{
         
     }
 
+    /**
+    * insertAdSet
+    *
+    * Insere no banco de dados os dados de um conjunto após ser processado dos dados obtidos
+    * do Facebook
+    *
+    * @param	arr_adset(array): Os conjuntos a serem inseridos no banco
+    * @return   -
+    */
     public function insertAdSet($arr_adset)
     {
+        //Para cada conjunto
         foreach($arr_adset as $array)
         {
+            //Se tiver targeting no array, separa
             if(array_key_exists('targeting',$array))
             {
                 $arr_targeting = $array['targeting'];
                 unset($array['targeting']);
             }
 
+            //Se tiver insights, separa
             if(array_key_exists('insights',$array))
             {
                 $arr_insights = $array['insights'];
@@ -327,11 +422,13 @@ class Metricas extends CI_Model{
                 unset($array['insights']);
             }
 
+            //Insere no banco
             if(!$this->db->insert('adsets', $array))
                 log_message('debug', 'Erro: ' . $this->db->error()->message);
 
             log_message('debug', 'Last Query: ' . $this->db->last_query());
 
+            //Se tiver targeting. Insere
             if(isset($arr_targeting))
             {
                 if(!$this->db->insert('adset_targeting',$arr_targeting))
@@ -341,6 +438,7 @@ class Metricas extends CI_Model{
                 unset($arr_targeting);  
             }
 
+            //Se tiver insights e actions. Insere
             if(isset($arr_insights))
             {
                 if(!$this->db->insert('adset_insights',$arr_insights))
@@ -366,10 +464,21 @@ class Metricas extends CI_Model{
         }
     }
 
+    /**
+    * insertAd
+    *
+    * Insere no banco de dados os dados das contas após ser processadas dos dados obtidos
+    * do Facebook
+    *
+    * @param	arr_ad(array): Os anúncios a serem inseridos no banco
+    * @return	-
+    */
     public function insertAd($arr_ad)
     {
+        //Para cada anúncio do array
         foreach($arr_ad as $array)
         {
+            //Se tiver insights. Separa.
             if(array_key_exists('insights',$array))
             {
                 $arr_insights = $array['insights'];
@@ -381,17 +490,20 @@ class Metricas extends CI_Model{
                 unset($array['insights']);
             }
 
+            //Se tiver dados do crative. Separa
             if(array_key_exists('creative',$array))
             {
                 $arr_creative = $array['creative'];
                 unset($array['creative']);
             }
 
+            //Insere no banco
             if(!$this->db->insert('ads', $array))
                 log_message('debug', 'Erro: ' . $this->db->error()->message);
 
             log_message('debug', 'Last Query: ' . $this->db->last_query());
 
+            //Se tiver insights e actions. Insere.
             if(isset($arr_insights))
             {
                 if(!$this->db->insert('ad_insights',$arr_insights))
@@ -416,6 +528,7 @@ class Metricas extends CI_Model{
                 unset($arr_insights);
             }
 
+            //Se tiver creative. Insere.
             if(isset($arr_creative))
             {
                 if(!$this->db->insert('ad_creatives',$arr_creative))
@@ -427,6 +540,15 @@ class Metricas extends CI_Model{
         }
     }
 
+    /**
+    * grava_custom_conversions
+    *
+    * Insere no banco de dados os dados das conversões personalizadas após
+    * serem processados dos dados do Facebook
+    *
+    * @param	arr_custom_conversions(array): As conversões personalizadas a serem inseridas no banco
+    * @return	-
+    */
     public function grava_custom_conversions($arr_custom_conversions)
     {
         foreach($arr_custom_conversions as $array)
@@ -437,10 +559,26 @@ class Metricas extends CI_Model{
         }
     }
 
+    /**
+    * getLastDateSync
+    *
+    * Pega no banco de dados o último dia que já está no banco. 
+    *   - Se não tiver nenhuma quebra por data, pega no banco a data de criação do ad/adset/campanha
+    *   - Caso exista, pega a última data, apaga do banco e retorna esta data para sincronizar
+    *     a partir dela
+    *
+    * @param	id: Id do tipo a ser pesquisado no banco
+    * @param    tipo: Tipo a ser pesquisado no banco: ad, adset ou campaign
+    *
+    * @return	
+    *    string: data da criação do anúncio se não tiver nenhuma quebra por data
+    *            última data sincronizada no banco
+    */
     public function getLastDateSync($id, $tipo)
     {
         log_message('debug', 'getLastDateSync');
 
+        //Busca da tabela <tipo>_insight a última data quebrada já sincronizada
         $this->db->select('date_start, '.$tipo.'_insights_id');
         $this->db->from($tipo.'_insights');
         $this->db->where($tipo.'_id', $id);
@@ -451,6 +589,7 @@ class Metricas extends CI_Model{
 
         log_message('debug', 'Last Query: ' . $this->db->last_query());
 
+        //Se achou, apaga esta data de insights e actions
         if($result->num_rows() > 0)
         {
             $row = $result->row();
@@ -464,17 +603,30 @@ class Metricas extends CI_Model{
             return explode(' ', $row->date_start)[0];    
         }
 
-        //Validate
+        //Pega do tipo buscado 
         $this->db->where('id',$id);
-        $result = $this->db->get($tipo.'s');
+        $result = $this->db->get($tipo.'s'); //O s serve para deixar genérico.
 
         log_message('debug', 'Last Query: ' . $this->db->last_query());
 
         $row = $result->row();
 
+        //Retorna data de criação
         return explode('T', $row->created_time)[0];
     }
 
+    /**
+    * getFirstDate
+    *
+    * Pega a data geral de um anúncio/conjunto/campanha
+    * - Se não tive nenhum insight desse tipo pega da data de criação do tipo
+    * - Se tive ele apaga para atualizar
+    *
+    * @param	id: O Id do tipo que será pesquisado
+    * @param    tipo(string): Qual tipo será pego: ad, adset, campaign
+    * @return	
+    *    data de criação do tipo ou data do insight 
+    */
     public function getFirstDate($id, $tipo)
     {
         log_message('debug', 'getFirstDate');
@@ -487,6 +639,7 @@ class Metricas extends CI_Model{
 
         log_message('debug', 'Last Query: ' . $this->db->last_query());
 
+        //Se há insight. Apaga da tabela insight e seus actions.
         if($result->num_rows() > 0)
         {
             $row = $result->row();
@@ -502,15 +655,26 @@ class Metricas extends CI_Model{
 
         //Validate
         $this->db->where('id',$id);
-        $result = $this->db->get($tipo.'s');
+        $result = $this->db->get($tipo.'s'); //o s é para deixar genérico
 
         log_message('debug', 'Last Query: ' . $this->db->last_query());
 
         $row = $result->row();
 
+        //Retorna a data de criação do tipo
         return explode('T', $row->created_time)[0];
     }
 
+    /**
+    * getTableData
+    *
+    * Pega os dados necessários que serão exibidos na planilha
+    *
+    * @param	id: O Id do tipo que será pesquisado
+    * @param    tipo(string): Qual tipo será pego: ad, adset, campaign
+    * @return	
+    *    lista de dados (geral e por dia) do id do tipo pesquisado
+    */
     public function getTableData($id, $tipo)
     {
         log_message('debug', 'getTableData. Id:' . $id);
@@ -528,6 +692,17 @@ class Metricas extends CI_Model{
 
     }
 
+    /**
+    * getTableData
+    *
+    * Pega pega todas as conversões a serem mostradas na planilha
+    *   - As conversões sempre começam com 'offsite_conversion.'
+    *
+    * @param	id: O Id do tipo que será pesquisado
+    * @param    tipo(string): Qual tipo será pego: ad, adset, campaign
+    * @return	
+    *    lista de conversões (geral e por dia) do id do tipo pesquisado
+    */
     public function getTableDataActions($id, $tipo)
     {
         log_message('debug', 'getTableDataActions. Id:' . $id);
@@ -544,6 +719,18 @@ class Metricas extends CI_Model{
         return $result->result();
     }
 
+    /**
+    * getPossibleConversions
+    *
+    * Pega todas as conversões possíveis de um tipo
+    *   - As vezes em um dia pode não ter todas as conversões, isso serve para 
+    *     não faltar alguma conversão em algum dia na planilha
+    *
+    * @param	id: O Id do tipo que será pesquisado
+    * @param    tipo(string): Qual tipo será pego: ad, adset, campaign
+    * @return	
+    *    lista de todas as conversões possíveis para este id
+    */
     public function getPossibleConversions($id, $tipo)
     {
         log_message('debug', 'getPossibleConversions. Id:' . $id);
@@ -561,6 +748,15 @@ class Metricas extends CI_Model{
         return $result->result();
     }
 
+    /**
+    * get_custom_conversion_name
+    *
+    * Traz o nome da conversão personalizada através do id
+    *
+    * @param	id: id da conversão personalizada
+    * @return	
+    *    (string): Nome da conversão personalizada
+    */
     public function get_custom_conversion_name($id)
     {
         log_message('debug', 'get_custom_conversion_name. Id:' . $id);
@@ -576,6 +772,14 @@ class Metricas extends CI_Model{
         return $result->row()->name;    
     }
 
+    /**
+    * get_tags_from_ad
+    *
+    * Pega o url_tag configurado no anúncio
+    *
+    * @param	id: O Id do anúncio
+    * @return   (string): Nome da conversão personalizada
+    */
     function get_tags_from_ad($ad_id)
     {
         log_message('debug', 'get_tags_from_ad. Id:' . $ad_id);
@@ -592,6 +796,14 @@ class Metricas extends CI_Model{
       
     }
 
+    /**
+    * getuserid
+    *
+    * Traz o id do usuário através do id do Facebook
+    *
+    * @param	fb_id: Id do Facebook
+    * @return	(string): Id do usuário
+    */
     function getuserid($fb_id)
     {
         log_message('debug', 'getuserid. Id:');
@@ -607,6 +819,14 @@ class Metricas extends CI_Model{
         return $result->row()->user_id;
     }
 
+    /**
+    * getAdSetFromAd
+    *
+    * Traz o AdSet do Ad
+    *
+    * @param	ad_id: Id do anúncio
+    * @return	id do adset do anúncio
+    */
     function getAdSetFromAd($ad_id)
     {
         log_message('debug', 'getAdSetFromAd. Id:' . $ad_id);
@@ -623,6 +843,17 @@ class Metricas extends CI_Model{
       
     }
 
+    /**
+    * dados_vendas
+    *
+    * Traz os dados já somados dos postbacks ligados ao anúncio, conjunto ou campanha
+    *  agrupados por dia e id
+    *
+    * @param	id: O Id do tipo que será pesquisado
+    * @param    tipo(string): Qual tipo será pego: ad, adset, campaign
+    * @return	
+    *    lista de dados dos boletos gerados, pagos, cartões e seus valores agrupados por data e id
+    */
     function dados_vendas($id, $tipo)
     {
         log_message('debug', 'dados_vendas');
@@ -643,6 +874,17 @@ class Metricas extends CI_Model{
         return $result->result();
     }
 
+     /**
+    * dados_vendas_geral
+    *
+    * Traz os dados já somados dos postbacks ligados ao anúncio, conjunto ou campanha
+    *   agrupados somente por id (Serve para trazer o resultado geral do tipo)
+    *
+    * @param	id: O Id do tipo que será pesquisado
+    * @param    tipo(string): Qual tipo será pego: ad, adset, campaign
+    * @return	
+    *    lista de dados dos boletos gerados, pagos, cartões e seus valores agrupados por id
+    */
     function dados_vendas_geral($id, $tipo)
     {
         log_message('debug', 'dados_vendas_geral');
@@ -662,6 +904,14 @@ class Metricas extends CI_Model{
         return $result->row();
     }
 
+    /**
+    * getCampaignFromAd
+    *
+    * Traz a Campanha do Ad
+    *
+    * @param	ad_id: Id do anúncio
+    * @return	id da campanha do anúncio
+    */
     function getCampaignFromAd($ad_id)
     {
         log_message('debug', 'getCampaignFromAd. Id:' . $ad_id);
@@ -678,6 +928,15 @@ class Metricas extends CI_Model{
       
     }
 
+    /**
+    * busca_vendas_tag
+    *
+    * Função tenta ligar a venda pelo url_tag
+    *
+    * @param	ad_id: Id do anúncio
+    * @param    var_array: array da url_tag (src, utms...)
+    * @return	lista de cartões, boletos pagos e gerados para o ad identificado
+    */
     function busca_vendas_tag($ad_id,$var_array)
     {
         log_message('debug', 'busca_vendas_tag.'); 
@@ -716,6 +975,13 @@ class Metricas extends CI_Model{
         return $retorno;
     }
 
+    /**
+    * busca_monetizze
+    *
+    * Busca da tabela de postback monetizze, a venda através dos tags
+    * @param    var_array: array da url_tag (src, utms...)
+    * @return	lista de cartões, boletos pagos e gerados para o ad identificado
+    */
     function busca_monetizze($var_array)
     {
         log_message('debug', 'busca_monetizze.');  
@@ -770,6 +1036,13 @@ class Metricas extends CI_Model{
             return false;
     }
 
+    /**
+    * busca_hotmart
+    *
+    * Busca da tabela de postback hotmart, a venda através dos tags
+    * @param    var_array: array da url_tag (src, utms...)
+    * @return	lista de cartões, boletos pagos e gerados para o ad identificado
+    */
     function busca_hotmart($var_array)
     {
         log_message('debug', 'busca_hotmart.');  
@@ -823,6 +1096,13 @@ class Metricas extends CI_Model{
             return false;
     }
 
+    /**
+    * busca_plataformas_vendas
+    *
+    * Traz os tokens do usuário em cada plataforma que este tem cadastro
+    * @param    id: Id do usuário
+    * @return	lista de tokens em cada plataforma
+    */
     function busca_plataformas_vendas($id)
     {
         log_message('debug', 'busca_plataformas_vendas.');  
@@ -854,12 +1134,21 @@ class Metricas extends CI_Model{
         return $ret;
     }
 
+    /**
+    * busca_hotmart_token
+    *
+    * Busca através do token, uma lista de vendas na plataforma hotmart
+    * @param    token: token da hotmart
+    * @return	array do boletos pagos, gerados e cartões na hotmart
+    *           false se não achar nenhuma venda
+    */
     function busca_hotmart_token($token)
     {
         log_message('debug', 'busca_hotmart_token.');  
 
         $ret = false;
 
+        //Busca somente os boleto impresso e que não estão na lista de pagos
         $result = $this->db->query("SELECT purchase_date as data_compra, confirmation_purchase_date as data_confirmacao,
 		    cms_aff as comissao, prod_name as produto, postback_hotmart_id as id_plataforma,
             'hotmart' as plataforma, src FROM postback_hotmart
@@ -906,12 +1195,21 @@ class Metricas extends CI_Model{
             return false;
     }
 
+    /**
+    * busca_monetizze_token
+    *
+    * Busca através do token, uma lista de vendas na plataforma monetizze
+    * @param    token: token da hotmart
+    * @return	array do boletos pagos, gerados e cartões na monetizze
+    *           false se não achar nenhuma venda
+    */
     function busca_monetizze_token($token)
     {
         log_message('debug', 'busca_monetizze.');  
 
         $ret = false;
 
+        //Busca somente os boleto impresso e que não estão na lista de pagos
         $result = $this->db->query("SELECT venda_data_inicio as data_compra, venda_data_finalizada as data_confirmacao,
 		    venda_valor as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
             'monetizze' as plataforma, venda_src as src
@@ -958,6 +1256,13 @@ WHERE venda_status = 'Finalizada' and venda_forma_pagamento = 'Boleto')");
             return false;
     }
 
+    /**
+    * get_ads_ativos_30_dias
+    *
+    * Traz uma lista de anúncios ativos nos últimos 30 dias do usuário logado
+    * @param    id: Id do Facebook do usuário logado
+    * @return	array com o nome do anúncio, conjunto, campanha e conta, status do anúnico e tags
+    */
     public function get_ads_ativos_30_dias($id)
     {
         log_message('debug', 'get_ads_ativos_30_dias');
@@ -983,7 +1288,13 @@ campaigns.name as campanha, accounts.name as conta");
         return $result->result();
     }
 
-
+    /**
+    * insert_ads_vendas
+    *
+    * Associa o ad com o postback inserindo na tabela ads_vendas
+    * @param    array: Dados a serem inseridos
+    * @return	-
+    */
     public function insert_ads_vendas($array_insert)
     {
         log_message('debug', 'insert_ads_vendas');
@@ -1006,6 +1317,14 @@ campaigns.name as campanha, accounts.name as conta");
         }
     }
 
+    /**
+    * getProdutoComissao
+    *
+    * Traz comissão, nome e data da venda do postback
+    * @param    id_plataforma: id que será buscado a venda
+    * @param    plataforma: nome da plataforma
+    * @return	array com a comissao, nome e data da venda
+    */
     public function getProdutoComissao($id_plataforma, $plataforma)
     {
         log_message('debug', 'getProdutoComissao');
@@ -1029,62 +1348,82 @@ campaigns.name as campanha, accounts.name as conta");
         return $result->row();
     }
 
+    /**
+    * deleteToNewSync
+    *
+    * Apaga os dados do usuário para nova sincronização
+    *   - A cada sincronização todos os dados relacionados a uma conta são apagados
+    *     menos os insights por data
+    * @param    id: Id da Conta cujos dados serão apagados
+    * @return	-
+    */
     public function deleteToNewSync($id)
     {
         log_message('debug', 'deleteToNewSync. Id:' . $id);
         
+        //Apaga do ad_creatives
         $this->db->where('account_id', $id);
         $this->db->delete('ad_creatives');
         
+        //Apaga os insights do anúncio (geral) e seus actions
         $this->db->query("DELETE ad_insights_actions, ad_insights FROM ad_insights_actions
 	                        JOIN ad_insights ON ad_insights_actions.ad_insights_id = ad_insights.ad_insights_id
                             WHERE ad_insights.bydate is NULL AND ad_insights.account_id = '" . $id . "';");
 
         log_message('debug', 'Last Query: ' . $this->db->last_query()); 
         
+        //Apaga os anúncios
         $this->db->where('account_id', $id);
         $this->db->delete('ads');
 
         log_message('debug', 'Last Query: ' . $this->db->last_query()); 
 
+        //Apaga os insights do conjunto (geral) e seus actions
         $this->db->query("DELETE adset_insights_actions, adset_insights FROM adset_insights_actions
 	                        JOIN adset_insights ON adset_insights_actions.adset_insights_id = adset_insights.adset_insights_id
                             WHERE adset_insights.bydate is NULL AND adset_insights.account_id = '" . $id . "';");
 
         log_message('debug', 'Last Query: ' . $this->db->last_query()); 
 
+        //Apaga o targeting do conjunto
         $this->db->query("DELETE adsets, adset_targeting FROM adsets
 	                        JOIN adset_targeting ON adsets.id = adset_targeting.adset_id
                             WHERE adsets.account_id = '" . $id . "';");
 
         log_message('debug', 'Last Query: ' . $this->db->last_query()); 
 
+        //Apaga os insights da campanha (geral) e seus actions
         $this->db->query("DELETE campaign_insights_actions, campaign_insights FROM campaign_insights_actions
 	                        JOIN campaign_insights ON campaign_insights_actions.campaign_insights_id = campaign_insights.campaign_insights_id
                             WHERE campaign_insights.bydate is NULL AND campaign_insights.account_id = '" . $id . "';");
 
         log_message('debug', 'Last Query: ' . $this->db->last_query());  
 
+        //Apaga as campanhas
         $this->db->where('account_id', $id);
         $this->db->delete('campaigns');
 
         log_message('debug', 'Last Query: ' . $this->db->last_query()); 
 
+        //Apaga os actions dos insights da conta
         $this->db->where('account_id', $id);
         $this->db->delete('account_insights_actions');
 
         log_message('debug', 'Last Query: ' . $this->db->last_query()); 
 
+        //Apaga os insights da conta
         $this->db->where('account_id', $id);
         $this->db->delete('account_insights');
 
         log_message('debug', 'Last Query: ' . $this->db->last_query()); 
 
+        //Apaga as conversões personalizadas
         $this->db->where('account_id', $id);
         $this->db->delete('account_custom_conversion');
 
         log_message('debug', 'Last Query: ' . $this->db->last_query());   
 
+        //Apaga a conta
         $this->db->where('id', $id);
         $this->db->delete('accounts');
 

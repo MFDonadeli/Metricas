@@ -22,7 +22,14 @@ class App extends CI_Controller {
         
     }
 
-	//Página Principal do Sistema de Métricas
+	/**
+  * index
+  *
+  * Página principal do Sistema Métricas, chamado quando se inicia o sistema em 
+  *  superadsmetrics.com/metricas:
+  *   - Se estiver logado no Facebook redireciona para a função home desta classe
+  *   - Se estiver deslogado no Facebook chama a View main.
+  */
   public function index()
     {
         // Check if user is logged in
@@ -43,6 +50,11 @@ class App extends CI_Controller {
             
     }
 
+    /**
+    * logout
+    *
+    * Desloga do Facebook
+    */
     public function logout() {
         // Remove local Facebook session
         $this->facebook->destroy_session();
@@ -54,6 +66,11 @@ class App extends CI_Controller {
         redirect('App');
     }
 
+    /**
+    * get_contas
+    *
+    * Função chamada pelo Ajax para trazer a lista de contas a serem sincronizadas
+    */
     public function get_contas()
     {
       $accounts = $this->facebook->request('get', 'me/adaccounts?fields=name,account_status,age&limit=1200',$this->usrtkn);
@@ -75,29 +92,29 @@ class App extends CI_Controller {
           $data['id'] = $conta['id'];
           $data['name'] = $conta['name'];
           $data['status'] = $conta['account_status'];
+          //Monta o html a ser enviado
           $msg = $this->load->view('caixa_div', $data, true);
           $ret .= $msg;
         }
       }
 
+      //Mostra o html na tela
       echo $ret;
     }
 
+    /**
+    * sync_contas
+    *
+    * Chamada pelo ajax, quando clica no botão Sincronizar Conta na View home,
+    *   esta função faz a chamada do Facebook e inicia o tratamento dos dados a serem
+    *   incluídos no banco de dados
+    * @param  conta: Parâmetro opcional para caso de testes via barra de endereço
+    */
     public function sync_contas($conta = null)
     {
       log_message('debug', $this->input->raw_input_stream);
 
-      /*$handle = fopen(APPPATH."jsons2.txt", "r");
-      if ($handle) {
-          while (($line = fgets($handle)) !== false) {
-              $aaa[] = $line;
-          }
-
-          fclose($handle);
-      } else {
-          // error opening the file.
-      } */
-
+      //Se o parâmetro conta vier do post (do ajax)
       if(isset($_POST['conta']))
       {
         $conta = $this->input->post('conta');
@@ -112,7 +129,7 @@ class App extends CI_Controller {
         $conta = 'act_'.$conta;
       }
       
-
+      //Busca os dados a serem sincronizados no Facebook
       $detalhes = $this->facebook->request('get',$conta.get_param_contas(),$this->usrtkn);
       log_message('debug',json_encode($detalhes));
 
@@ -123,6 +140,7 @@ class App extends CI_Controller {
 
       $this->grava_bd($detalhes); 
 
+      //Busca as conversões personalizadas
       $detalhes = $this->facebook->request('get',$conta.'/customconversions?fields=id,name,custom_event_type,account_id',$this->usrtkn);
       log_message('debug',json_encode($detalhes));
 
@@ -130,6 +148,12 @@ class App extends CI_Controller {
         $this->metricas->grava_custom_conversions($detalhes['data']);
     }
 
+    /**
+    * sync_contas_from_file
+    *
+    * Faz o mesmo processamento da função sync_contas, porém busca o json de
+    * retorno do Facebook de um arquivo texto
+    */
     public function sync_contas_from_file()
     {
       log_message('debug', 'sync_contas_from_file');
@@ -167,6 +191,13 @@ class App extends CI_Controller {
       
     }
 
+    /**
+    * grava_bd
+    *
+    * Faz o processamento dos dados da conta vindo do Facebook. E grava no banco.
+    * @param  detalhes: O array de resultados vindo do Facebook
+    * @param  fb_id: Opcional. Id do Facebook do dono da conta
+    */
     public function grava_bd($detalhes, $fb_id = '0')
     {
       if($fb_id == 0)
@@ -177,12 +208,15 @@ class App extends CI_Controller {
         $fb_id = $this->session->userdata('facebook_id');
       }
       
+      //Apaga os dados antes de inserir novamente
       $this->metricas->deleteToNewSync(str_replace('act_','',$detalhes['id']));
 
+      //Separa os arrays
       $campaigns = $detalhes['campaigns']['data'];
       $ads = $detalhes['ads']['data'];
       $adsets = $detalhes['adsets']['data'];
 
+      //Se existir paginamento de campanhas, processa para incluir no array
       if(array_key_exists('next', $detalhes['campaigns']['paging']))
       {
         $next = $detalhes['campaigns']['paging']['next'];
@@ -199,6 +233,7 @@ class App extends CI_Controller {
         }
       }
 
+      //Se existir paginamento de conjuntos de anúncios, processa para incluir no array
       if(array_key_exists('next', $detalhes['adsets']['paging']))
       {
         $next = $detalhes['adsets']['paging']['next'];
@@ -215,6 +250,7 @@ class App extends CI_Controller {
         }
       }
 
+      //Se existir paginamento de anúncios, processa para incluir no array
       if(array_key_exists('next', $detalhes['ads']['paging']))
       {
         $next = $detalhes['ads']['paging']['next'];
@@ -234,25 +270,32 @@ class App extends CI_Controller {
         }
       }
       
+      //Se existir insights de contas, separa
       if(array_key_exists('insights',$detalhes))
       {
         $accounts_insights = $detalhes['insights'];
         unset($detalhes['insights']);
       }
 
+      //Apaga do array principal, os arrays individuais já separados
       unset($detalhes['campaigns']);
       unset($detalhes['ads']);
       unset($detalhes['adsets']);
 
+      //Informações adicionais a serem incluídos para a conta
       $detalhes['facebook_id'] = $fb_id;
       $detalhes['updated_time'] = date("Y-m-d H:i:s");
       $detalhes['sync_interval_minutes'] = 12; //De x horas
       $detalhes['id'] = str_replace('act_','',$detalhes['id']);
 
+      //Processa array de campanhas
       $campaigns = processa_campaigns($campaigns);
+      //Processa array de conjunto de anúncios
       $adsets = processa_adsets($adsets);
+      //Processa array de anúncios
       $ads = processa_ads($ads);
       
+      //Insere no banco de dados após processamento dos dados
       $this->metricas->insertAccount($detalhes);
       $this->metricas->insertCampaign($campaigns);
       $this->metricas->insertAdSet($adsets);
@@ -260,10 +303,22 @@ class App extends CI_Controller {
 
     }
 
+    /**
+    * sync_metricas
+    *
+    * Inicia o processamento detalhado da conta. Isto irá trazer os dados detalhados por dia.
+    *   - Esta função é chamada tanto pela resincronização
+    *   - Esta função é chamada também pelo clique do botão Ver Número da View home
+    * @param  id. Opcional: Id do tipo a ser processado
+    * @param  tipo. Opctional: Tipo a ser processado: ad, adset ou campaign
+    * @param  sogeral. Opcional: Se true, só processa os dados gerais, sem nenhuma quebra por data
+    * @param  gera_planilha. Opcional: Se true, faz a geração da planilha
+    */
     public function sync_metricas($id = null, $tipo = null, $sogeral = false, $gera_planilha = true)
     {
       log_message('debug', 'sync_metricas');
 
+      //Checa se todos os parâmetros veio por post
       if(isset($_POST['val']) && isset($_POST['tipo']))
       {
         $id = $this->input->post('val');
@@ -275,12 +330,14 @@ class App extends CI_Controller {
         die('Erro. Sem acesso ao sistema');
       }
 
+      //Se não for só geral, processa os dados por dia
       if($sogeral == false)
       {
         $dt_inicio = $this->metricas->getLastDateSync($id, $tipo);
 
         $url_params = get_param_contas_data($dt_inicio);
 
+        //Faz a chamada no Facebook
         $detalhes = $this->facebook->request('get', $id.'/insights'.$url_params,$this->usrtkn);
 
         if(isset($datalhes['error']))
@@ -288,6 +345,7 @@ class App extends CI_Controller {
 
         log_message('debug',json_encode($detalhes));
 
+        //Chama a função para processamento do insight
         $this->processa_resposta_insight($detalhes, $tipo, true);
       }
 
@@ -295,6 +353,7 @@ class App extends CI_Controller {
 
       $url_params = get_param_contas_data_simples($dt_inicio);
 
+      //Faz a chamada no Facebook
       $detalhes = $this->facebook->request('get', $id.'/insights'.$url_params,$this->usrtkn);
 
       if(isset($detalhes['error']))
@@ -302,9 +361,10 @@ class App extends CI_Controller {
 
       log_message('debug',json_encode($detalhes));
 
+      //Chama a função para processamento do insight
       $this->processa_resposta_insight($detalhes, $tipo);
       
-
+      //Se true, chama a função para iniciar a criação da planilha em Excel
       if($gera_planilha)
       {
         $html = $this->show_table($id, $tipo, $comissao);
@@ -314,14 +374,25 @@ class App extends CI_Controller {
       
     }
 
+    /**
+    * processa_resposta_insight
+    *
+    * Faz o processamento da resposta dos insights
+    * @param  detalhes: Array com os dados da resposta do Faceboo
+    * @param  tipo: Tipo a ser processado: ad, adset ou campaign
+    * @param  bydate. Opcional: Se true, indica que vai processar insights quebrados por data
+    */
     private function processa_resposta_insight($detalhes, $tipo, $bydate = false)
     {
+      //Se existir insight a ser processado
       if(array_key_exists('data', $detalhes))
       {
         $insights = $detalhes['data'];
 
+        //Se tiver dados de paginação
         if(array_key_exists('paging', $detalhes))
         {
+          //Se existir mais dados de paginação a serem incorporados no array
           if(array_key_exists('next', $detalhes['paging']))
           {
             $next = $detalhes['paging']['next'];
@@ -342,6 +413,7 @@ class App extends CI_Controller {
           }
         }
 
+        //Para cada insight, processa
         foreach($insights as $insight_data)
         {
           $data['data'] = null;
@@ -360,29 +432,49 @@ class App extends CI_Controller {
             $insights_data[$dt_start.$dt_end] = $ret_insights;
         }
 
+        //Se tiver dados processados, insere no banco
         if(isset($insights_data))
           $this->metricas->insertInsights($insights_data, $tipo, $bydate);
       }
     }
 
+    /**
+    * show_table
+    *
+    * Inicia a busca de dados e chama a função para gerar planilha
+    * @param  id: Id do tipo a ser mostrado na planilha
+    * @param  tipo: Tipo a ser processado: ad, adset ou campaign
+    * @param  comissao. Comissão do produto a ser mostrada na planilha
+    * @return false em caso de erro
+    *         (string): nome do arquivo gerado
+    */
     public function show_table($id, $tipo, $comissao)
     {
+      //Comissão tem que ser número
       if(!is_numeric($comissao)) $comissao = 0;
 
+      //Caso não haja dados de postback sincronizado para o id
       $sem_dado_venda = true;
+      //Traz os dados a serem mostrados na planilha
       $resultado = $this->metricas->getTableData($id, $tipo);
+      //Traz os dados de postback sincronizado, por dia
       $dados_vendas = $this->metricas->dados_vendas($id, $tipo);
+      //Traz os dados de postback sincronizado, geral
       $dados_vendas_geral = $this->metricas->dados_vendas_geral($id, $tipo);
 
+      //Se houver resultados a serem mostrados
       if($resultado)
       {
+        //Traz todas as conversões possíveis
         $conversions = $this->metricas->getPossibleConversions($id, $tipo);
+        //Substitui o nome das conversões por nomes fáceis de ler
         $translate = translate_conversions($conversions, $this->metricas);
 
         foreach($resultado as $dados)
         {
           $result_actions = $this->metricas->getTableDataActions($dados->{$tipo.'_insights_id'}, $tipo);
 
+          //Insere as conversões na posição do array
           foreach($conversions as $conv)
           {
             if(isset($translate[$conv->action_type]))
@@ -395,6 +487,7 @@ class App extends CI_Controller {
             }
           }
 
+          //Insere os valores nas conversões inseridas
           foreach($result_actions as $action)
           {
             if($action->action_type == 'offsite_conversion.fb_pixel_custom')
@@ -406,6 +499,7 @@ class App extends CI_Controller {
 
           $date = substr($dados->date_start, 0, 10);
 
+          //Se tiver dados de postback sincronizados
           foreach($dados_vendas as $venda)
           {
             if($venda->dt == $date)
@@ -419,6 +513,7 @@ class App extends CI_Controller {
             }
           }
 
+          //Se tiver dados de postback (geral) sincronizados
           if($dados->bydate != 1 && $dados_vendas_geral != null)
           {
             $dados->boletos_gerados = $dados_vendas_geral->boletos_gerados;
@@ -428,6 +523,7 @@ class App extends CI_Controller {
             $dados->faturamento_cartao = $dados_vendas_geral->faturamento_cartao;
           }
 
+          //Faz o cálculo de %PurchaseCheckout
           if(isset($dados->conversao->{"offsite_conversion.fb_pixel_initiate_checkout"})
               && isset($dados->conversao->{"offsite_conversion.fb_pixel_purchase"}))
           {
@@ -439,6 +535,7 @@ class App extends CI_Controller {
             }
           }
 
+          //Faz o cálculo de %CheckoutViewContent
           if(isset($dados->conversao->{"offsite_conversion.fb_pixel_initiate_checkout"})
               && isset($dados->conversao->{"offsite_conversion.fb_pixel_view_content"}))
           {
@@ -450,6 +547,7 @@ class App extends CI_Controller {
             }
           }
 
+          //Faz o cálculo de %PurchaseViewContent
           if(isset($dados->conversao->{"offsite_conversion.fb_pixel_purchase"})
               && isset($dados->conversao->{"offsite_conversion.fb_pixel_view_content"}))
           {
@@ -464,6 +562,7 @@ class App extends CI_Controller {
           $retorno[] = $dados;
         }
 
+        //Chama a função de gerar planilha
         $filename = generate_excel($retorno, $this->phpexcel, $sem_dado_venda, $comissao);
         return $filename;
       }
@@ -473,6 +572,12 @@ class App extends CI_Controller {
 
     }
 
+    /**
+    * resync
+    *
+    * Faz a atualização dos dados já sincronizados (resincronização)
+    * @param id: Id do Facebook para ser feita a resincronização
+    */
     public function resync($id = 'all')
     {
       if($id == 'all')
@@ -490,13 +595,16 @@ class App extends CI_Controller {
       {
         $tipos = array("campaign", "adset", "ad");
 
+        //Get token de acesso ao Facebook
         $usr = $this->metricas->getProfileToken($profile->id);
         $this->usrtkn = $usr->token;
         $this->fb_id =  $usr->facebook_id;
 
+        //Para cada conta deste Facebook
         $results = $this->metricas->getContas($profile->id);
         foreach($results as $result)
         {
+          //Sincroniza as contas
           $this->sync_contas($result->account_id);
           foreach($tipos as $tipo)
           {
@@ -504,6 +612,7 @@ class App extends CI_Controller {
             if(!$results_tipo)
               continue;
 
+            //Faz a sincronização dos insights somente dos tipos ativos
             foreach($results_tipo as $res_tipo)
             {
               $sogeral = false;
@@ -520,6 +629,12 @@ class App extends CI_Controller {
 
     }
 
+    /**
+    * associa_postback
+    *
+    * Mostra a tela de associação dos postbacks com os anúncios, mostrando os 
+    * botões das plataformas que possuem os anúncios
+    */
     public function associa_postback()
     {
       log_message('debug', 'associa_postback.'); 
@@ -533,6 +648,12 @@ class App extends CI_Controller {
 
     }
 
+    /**
+    * get_postback_data_to_assoc
+    *
+    * Traz os dados dos boletos gerados, pagos e cartões da plataforma
+    *   - Esta função é chamada após o clique no botão com o nome da plataforma
+    */
     public function get_postback_data_to_assoc()
     {
       log_message('debug', 'get_postback_data_to_assoc.'); 
@@ -554,6 +675,11 @@ class App extends CI_Controller {
       }
     }
 
+    /**
+    * grava_ad_venda
+    *
+    * grava no banco os dados de postback selecionado
+    */
     public function grava_ad_venda()
     {
       log_message('debug', 'grava_ad_venda.');  
@@ -566,6 +692,7 @@ class App extends CI_Controller {
       $adset_id = $this->metricas->getAdSetFromAd($ad);
       $campaign_id = $this->metricas->getCampaignFromAd($ad);
 
+      //Para cada item selecionado na lista
       foreach($pb as $id_plataforma)
       {
         $ret = $this->metricas->getProdutoComissao($id_plataforma, $plataforma);
@@ -586,6 +713,32 @@ class App extends CI_Controller {
       $this->metricas->insert_ads_vendas($array_insert);
     }
 
+    /**
+    * home
+    *
+    * Tela principal do Sistema.
+    *   - Em caso de já ter autenticado, mostra a dashboard do sistema
+    *   - Caso não estar autenticado, mostra a tela de login no Facebook
+    */
+    public function main()
+    {
+      $userID = $this->session->userdata('facebook_id');
+      $data['userData'] = $this->session->userdata('userData');
+      //Lista Contas
+      $contas = $this->metricas->getContas($userID);
+      $data['contas'] = $contas;
+
+      // Load login & profile view
+      $this->load->view('metricas/main',$data);
+    }
+
+    /**
+    * home
+    *
+    * Tela principal do Sistema.
+    *   - Em caso de já ter autenticado, mostra a dashboard do sistema
+    *   - Caso não estar autenticado, mostra a tela de login no Facebook
+    */
     public function home(){
         if($this->facebook->is_authenticated()){
             log_message('debug','TOKEN FB: ' . $this->facebook->is_authenticated() );
@@ -629,10 +782,6 @@ class App extends CI_Controller {
 
               // Get logout URL
               $data['logoutUrl'] = $this->facebook->logout_url();
-
-              //Lista Contas
-              $contas = $this->metricas->getContas($userID);
-              $data['contas'] = $contas;
             }
             else
             {
@@ -649,6 +798,12 @@ class App extends CI_Controller {
         }
     }
 
+    /**
+    * exec_fb_conn
+    * 
+    * Função para testar as conexões e respostas do Facebook
+    * @param  id: Id do Facebook
+    */
     public function exec_fb_conn($id)
     {
       $result = $this->facebook->request('get', $id,$this->usrtkn);
@@ -661,6 +816,11 @@ class App extends CI_Controller {
       
     }
 
+    /**
+    * fill_combo
+    *
+    * Função para preencher os combos de anúncios, conjuntos e campanhas para mostrar planilha
+    */
     public function fill_combo()
     {
       log_message('debug', 'fill_combo');
@@ -688,6 +848,14 @@ class App extends CI_Controller {
       echo $ret;
     }
 
+    /**
+    * process_pagination
+    *
+    * Chama a url de paginação
+    * @param url: Url que contém mais dados de paginação
+    * @return false: se ocorrer algum erro
+    *         array: os dados da paginação
+    */
     public function process_pagination($url)
     {
       
@@ -702,6 +870,12 @@ class App extends CI_Controller {
         //$contas = array_merge($contas, $accounts['data']);
     }
 
+    /**
+    * dados_vendas_plataforma
+    *
+    * Tenta associar o postback com o anúncio automaticamente
+    * @param ad_id: Id do anúncio
+    */
     public function dados_vendas_plataforma($ad_id)
     {
       $tags = $this->metricas->get_tags_from_ad($ad_id);

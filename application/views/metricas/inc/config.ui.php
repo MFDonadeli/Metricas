@@ -22,10 +22,15 @@ ex:
 
 */
 $page_nav = array(
-	"blank" => array(
-		"title" => "Blank",
+	"inicio" => array(
+		"title" => "Início",
 		"icon" => "fa-home",
-		"url" => "ajax/dashboard.php"
+		"url" => "main"
+	),
+	"vendas" => array(
+		"title" => "Vendas na Plataforma",
+		"icon" => "fa-list-alt",
+		"url" => "vendas"
 	)
 );
 

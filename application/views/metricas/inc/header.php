@@ -17,6 +17,7 @@
 		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo ASSETS_URL; ?>/css/font-awesome.min.css">
 
 		<!-- SmartAdmin Styles : Caution! DO NOT change the order -->
+		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo ASSETS_URL; ?>/css/smartadmin-production-plugins.min.css">
 		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo ASSETS_URL; ?>/css/smartadmin-production.min.css">
 		<link rel="stylesheet" type="text/css" media="screen" href="<?php echo ASSETS_URL; ?>/css/smartadmin-skins.min.css">
 
@@ -219,6 +220,26 @@
 						</div>
 						<!-- end fullscreen button -->
 
+						<!-- #Voice Command: Start Speech -->
+						<div id="speech-btn" class="btn-header transparent pull-right hidden-sm hidden-xs">
+							<div> 
+								<a href="javascript:void(0)" title="Voice Command" data-action="voiceCommand"><i class="fa fa-microphone"></i></a> 
+								<div class="popover bottom"><div class="arrow"></div>
+									<div class="popover-content">
+										<h4 class="vc-title">Voice command activated <br><small>Please speak clearly into the mic</small></h4>
+										<h4 class="vc-title-error text-center">
+											<i class="fa fa-microphone-slash"></i> Voice command failed
+											<br><small class="txt-color-red">Must <strong>"Allow"</strong> Microphone</small>
+											<br><small class="txt-color-red">Must have <strong>Internet Connection</strong></small>
+										</h4>
+										<a href="javascript:void(0);" class="btn btn-success" onclick="commands.help()">See Commands</a> 
+										<a href="javascript:void(0);" class="btn bg-color-purple txt-color-white" onclick="$('#speech-btn .popover').fadeOut(50);">Close Popup</a> 
+									</div>
+								</div>
+							</div>
+						</div>
+						<!-- end voice command -->
+
 						<!-- multiple lang dropdown : find all flags in the flags page -->
 											
 						<ul class="header-dropdown-list hidden-xs">
@@ -275,7 +296,22 @@
 				<div id="shortcut">
 					<ul>
 						<li>
-							<a href="#ajax/dashboard.php" class="jarvismetro-tile big-cubes bg-color-blue"> <span class="iconbox"> <i class="fa fa-envelope fa-4x"></i> <span>Mail <span class="label pull-right bg-color-darken">14</span></span> </span> </a>
+							<a href="#ajax/inbox.php" class="jarvismetro-tile big-cubes bg-color-blue"> <span class="iconbox"> <i class="fa fa-envelope fa-4x"></i> <span>Mail <span class="label pull-right bg-color-darken">14</span></span> </span> </a>
+						</li>
+						<li>
+							<a href="#ajax/calendar.php" class="jarvismetro-tile big-cubes bg-color-orangeDark"> <span class="iconbox"> <i class="fa fa-calendar fa-4x"></i> <span>Calendar</span> </span> </a>
+						</li>
+						<li>
+							<a href="#ajax/gmap-xml.php" class="jarvismetro-tile big-cubes bg-color-purple"> <span class="iconbox"> <i class="fa fa-map-marker fa-4x"></i> <span>Maps</span> </span> </a>
+						</li>
+						<li>
+							<a href="#ajax/invoice.php" class="jarvismetro-tile big-cubes bg-color-blueDark"> <span class="iconbox"> <i class="fa fa-book fa-4x"></i> <span>Invoice <span class="label pull-right bg-color-darken">99</span></span> </span> </a>
+						</li>
+						<li>
+							<a href="#ajax/gallery.php" class="jarvismetro-tile big-cubes bg-color-greenLight"> <span class="iconbox"> <i class="fa fa-picture-o fa-4x"></i> <span>Gallery </span> </span> </a>
+						</li>
+						<li>
+							<a href="#ajax/profile.php" class="jarvismetro-tile big-cubes selected bg-color-pinkDark"> <span class="iconbox"> <i class="fa fa-user fa-4x"></i> <span>My Profile </span> </span> </a>
 						</li>
 					</ul>
 				</div>
