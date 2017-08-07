@@ -42,7 +42,23 @@ class Metricas extends CI_Model{
             $data['updated_time'] = date("Y-m-d H:i:s");
             $data['created_time'] = date("Y-m-d H:i:s");
 
+            $data_user = $data;
+
+            unset($data_user['token']);
+            unset($data_user['token_expiration']);
+            unset($data_user['gender']);
+            unset($data_user['locale']);
+            unset($data_user['facebook_id']);
+
+            $this->db->insert('users', $data_user);
+
+            $insert_id = $this->db->insert_id();
+            $data['user_id'] = $insert_id;
+
             $this->db->insert('profiles', $data);
+
+            $this->saveConfig('12', '1', $data['facebook_id']);
+            
         }
 
         log_message('debug', 'Last Query: ' . $this->db->last_query());
@@ -51,29 +67,27 @@ class Metricas extends CI_Model{
     /**
     * getContasDetalhes
     *
-    * Traz em detalhes, os anúncios ativos de um perfil no Facebook
+    * Traz em detalhes, as contas ativas de um perfil no Facebook
     *
     * @param	id: Id do Facebook
     * @return	
-    *    false se não encontrar nenhum anúncio
+    *    false se não encontrar nenhuma informação
     *    lista de anúncios
     */
     public function getContasDetalhes($id){
         log_message('debug', 'getContas');
 
-        $this->db->select("ads.id, ads.name as ad_name, adsets.name as ad_sets_name, campaigns.name as campaigns_name,
-                accounts.name as account_name, ad_creatives.effective_object_story_id, ad_creatives.url_tags");
-        $this->db->from("ads");
-        $this->db->join("adsets","ads.adset_id = adsets.id");
-        $this->db->join("campaigns","ads.campaign_id = campaigns.id");
-        $this->db->join("accounts","ads.account_id = accounts.id");
-        $this->db->join("ad_creatives","ad_creatives.ad_id = ads.id");
+        $this->db->select("accounts.id, accounts.name, accounts.updated_time, 
+                sum(if(ads.effective_status = 'ACTIVE', 1, 0)) as anuncios_ativos");
+        $this->db->from("accounts");
+        $this->db->join("ads","accounts.id = ads.account_id");
         
         //Traz somente os anúncios realmente ativos
-        $this->db->where("ads.effective_status = 'ACTIVE'");
         $this->db->where("accounts.account_status = 1");
 
         $this->db->where('accounts.facebook_id',$id);
+
+        $this->db->group_by("accounts.name");
         $result = $this->db->get();
 
         log_message('debug', 'Last Query: ' . $this->db->last_query());
@@ -110,6 +124,7 @@ class Metricas extends CI_Model{
         else
             return false;   
     }
+    
 
     /**
     * getFromConta
@@ -160,7 +175,7 @@ class Metricas extends CI_Model{
     *
     * Traz o token de um perfil de um usuário do sistema
     *
-    * @param	id: Id do usuário
+    * @param	id: Id do facebook logado
     * @return	
     *    false se não encontrar nenhuma informação
     *    array com token e facebook id
@@ -1428,5 +1443,166 @@ campaigns.name as campanha, accounts.name as conta");
         $this->db->delete('accounts');
 
         log_message('debug', 'Last Query: ' . $this->db->last_query());    
+    }
+
+    /**
+    * getPlataformas
+    *
+    * Traz lista de plataformas cadastradas
+    *
+    * @return	
+    *    false se não encontrar nenhuma plataforma
+    *    lista de plataformas
+    */
+    public function getPlataformas(){
+        log_message('debug', 'getPlataformas');
+
+        $this->db->select("platform_id, name, postback_url");
+        $this->db->from("platforms");
+
+        $result = $this->db->get();
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        if($result->num_rows() > 0)
+            return $result->result();  
+        else
+            return false;   
+    }
+
+    /**
+    * getUserTokens
+    *
+    * Traz lista de tokens do usuario
+    *
+    * @param $id: id do facebook logado
+    * @return	
+    *    false se não encontrar nenhum token
+    *    lista de tokens
+    */
+    public function getUserTokens($id){
+        log_message('debug', 'getUserTokens');
+
+        $this->db->select("platform_users.platform_user_id, platform_users.token, platform_users.created_time, platforms.name as plataforma");
+        $this->db->from("platform_users");
+        $this->db->join("platforms","platform_users.platform_id = platforms.platform_id");
+        $this->db->join("users","platform_users.user_id = users.user_id");
+        $this->db->join("profiles","profiles.user_id = users.user_id");
+        $this->db->where("profiles.facebook_id",$id);
+
+        $result = $this->db->get();
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        if($result->num_rows() > 0)
+            return $result->result();  
+        else
+            return false;   
+    }
+
+    /**
+    * insertToken
+    *
+    * Insere novo token do usuário
+    *
+    * @param $plataforma: id da plataforma
+    * @param $token: token
+    * @param $id: Facebook id logado
+    * @return -
+    */
+    public function insertToken($plataforma, $token, $id){
+        log_message('debug', 'insertToken');
+
+        $user_id = $this->getuserid($id);
+
+        $arr_insert = array("token" => $token,
+                            "platform_id" => $plataforma,
+                            "created_time" => date("Y-m-d H:i:s"),
+                            "status" => 1,
+                            "user_id" => $user_id);
+
+        $this->db->insert("platform_users", $arr_insert);
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query()); 
+    }
+
+    /**
+    * deleteToken
+    *
+    * Apaga tokens do usuario
+    * @param    array: Dados a serem apagados
+    * @return	-
+    */
+    public function deleteToken($array_delete)
+    {
+        log_message('debug', 'deleteToken');
+
+        foreach($array_delete as $delete)
+        {   
+            $this->db->where("platform_user_id", $delete);
+            $this->db->delete('platform_users');
+
+            log_message('debug', 'Last Query: ' . $this->db->last_query());
+        }
+    }
+
+    /**
+    * getConfig
+    *
+    * Traz configurações do usuário
+    * @param    $id: id da plataforma
+    * @return	Configurações
+    */
+    public function getConfig($id)
+    {
+        log_message('debug', 'getConfig');
+
+        $user_id = $this->getuserid($id);
+
+        $this->db->where("user_id", $user_id);
+        $result = $this->db->get("config");
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        return $result->row();
+    }
+
+    /**
+    * saveConfig
+    *
+    * Salva configurações do usuário
+    * @param    $sync_time: sincronização feita a cada quantidade de horas
+    * @param    $postback_enabled: true or false para habilitar ou desabilitar postback
+    * @param    $id: facebook_id do usuario logado
+    * @return	-
+    */
+    public function saveConfig($sync_time, $postback_enabled, $id)
+    {
+        log_message('debug', 'saveConfig');
+
+        $user_id = $this->getuserid($id);    
+
+        //Verifica se existe este perfil no banco
+        $this->db->where('user_id',$user_id);
+        $result = $this->db->get('config');
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        $arr_data = array("sync_time" => $sync_time,
+                        "postback_enabled" => $postback_enabled,
+                        "user_id" => $user_id);
+
+        //Se existir atualiza, senão insere
+        if($result->num_rows() > 0)
+        {
+            $this->db->where('user_id', $user_id); 
+            $this->db->update('config', $arr_data);
+        } 
+        else
+        {
+            $this->db->insert('profiles', $arr_data);   
+        }
+
+
     }
 }

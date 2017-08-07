@@ -85,18 +85,8 @@ class App extends CI_Controller {
 
       log_message('debug', 'get_contas');
 
-      foreach($contas as $conta)
-      {
-        if(intval($conta['age']) > 0)
-        {
-          $data['id'] = $conta['id'];
-          $data['name'] = $conta['name'];
-          $data['status'] = $conta['account_status'];
-          //Monta o html a ser enviado
-          $msg = $this->load->view('caixa_div', $data, true);
-          $ret .= $msg;
-        }
-      }
+      $data['contas'] = $contas;
+      $ret = $this->load->view('caixa_div', $data, true);
 
       //Mostra o html na tela
       echo $ret;
@@ -118,7 +108,7 @@ class App extends CI_Controller {
       if(isset($_POST['conta']))
       {
         $conta = $this->input->post('conta');
-        $conta = str_replace('div_','',$conta);
+        //$conta = str_replace('div_','',$conta);
       }
       elseif($conta == null)
       {
@@ -644,7 +634,7 @@ class App extends CI_Controller {
 
       $data['plataformas'] = $results;
 
-      $this->load->view('associa_postback',$data);
+      $this->load->view('metricas/vendas',$data);
 
     }
 
@@ -664,7 +654,7 @@ class App extends CI_Controller {
         $plataforma = $this->input->post('plataforma');
 
         $resultado = $this->metricas->{'busca_' . strtolower($plataforma) . '_token'}($token);
-        $ads = $this->metricas->get_ads_ativos_30_dias($this->session->set_userdata('facebook_id'));
+        $ads = $this->metricas->get_ads_ativos_30_dias($this->session->userdata('facebook_id'));
 
         $data['compras'] = $resultado;
         $data['anuncios'] = $ads;
@@ -940,9 +930,127 @@ class App extends CI_Controller {
       return;
     }
 
-    public function processa_postback($plataforma, $id)
+    /**
+    * ger_contas
+    *
+    * Página de gerenciamento de contas
+    * @param ad_id: Id do anúncio
+    */
+    public function ger_contas()
     {
+      $id = $this->session->userdata('facebook_id');
+      $results = $this->metricas->getContasDetalhes($id);
 
+      $data['contas'] = $results;
+
+      $this->load->view('metricas/ger_contas',$data);
+
+    }
+
+    /**
+    * postback
+    *
+    * Chama tela de cadastro de tokens para postback
+    */
+    public function postback()
+    {
+      $results = $this->metricas->getPlataformas();
+
+      $data['plataformas'] = $results;
+
+      $this->load->view('metricas/postback',$data);  
+    }
+
+    /**
+    * config
+    *
+    * Chama tela de configurações gerais do sistema
+    */
+    public function config()
+    {
+      $id = $this->session->userdata('facebook_id');
+      $results = $this->metricas->getConfig($id);
+      
+      $data['config'] = $results;
+
+      $this->load->view('metricas/config',$data);  
+    }
+
+    /**
+    * config
+    *
+    * Salva configurações no banco. Chamado através de ajax do view config
+    */
+    public function save_config()
+    {
+      if(isset($_POST['sync_time']))
+      {
+        $sync_time = $this->input->post('sync_time');  
+        $postback_enabled = $this->input->post('postback_enabled');
+
+        $id = $this->session->userdata('facebook_id');
+
+        $this->metricas->saveConfig($sync_time, $postback_enabled, $id);
+      }
+    }
+
+    /**
+    * cadastra_token
+    *
+    * Insere token no banco de dados, chamado por ajax a partir da view postback
+    */
+    public function cadastra_token()
+    {
+      if(isset($_POST['plataforma']))
+      {
+        $plataforma = $this->input->post('plataforma');  
+        $token = $this->input->post('token');
+
+        $id = $this->session->userdata('facebook_id');
+
+        $this->metricas->insertToken($plataforma, $token, $id);
+      }
+    }
+
+    /**
+    * apaga_token
+    *
+    * Insere token no banco de dados, chamado por ajax a partir da view postback
+    */
+    public function apaga_token()
+    {
+      if(isset($_POST['id_token']))
+      {
+        $tokens = $this->input->post('id_token');  
+
+        $this->metricas->deleteToken($tokens);
+      }
+    }
+
+    /**
+    * get_user_tokens
+    *
+    * Traz os tokens para o usuario logado
+    */
+    public function get_user_tokens()
+    {
+      $id = $this->session->userdata('facebook_id');
+
+      $results = $this->metricas->getUserTokens($id);
+
+      $ret = "";
+
+      foreach($results as $row)
+      {
+        $ret .= "<tr>";
+        $ret .= "<td><input type='checkbox' name='checkbox-inline' class='chkToken' id='" . $row->platform_user_id . "'></td>";
+        $ret .= "<td>" . $row->plataforma . "</td>";
+        $ret .= "<td>" . $row->token . "</td>";
+        $ret .= "<td>" . $row->created_time . "</td>";
+        $ret .= "</tr>";
+      }
+
+      echo $ret; 
     }
 
 }

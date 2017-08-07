@@ -27,10 +27,31 @@ $page_nav = array(
 		"icon" => "fa-home",
 		"url" => "main"
 	),
+	"contas" => array(
+		"title" => "Gerenciar Contas",
+		"icon" => "fa-pencil-square-o",
+		"url" => "ger_contas"
+	),
 	"vendas" => array(
 		"title" => "Vendas na Plataforma",
 		"icon" => "fa-list-alt",
-		"url" => "vendas"
+		"url" => "associa_postback"
+	),
+	"config" => array(
+		"title" => "Configurações",
+		"icon" => "fa-gear",
+		"sub" => array(
+			"geral" => array(
+				"title" => "Geral",
+				"icon" => "fa-list-alt",
+				"url" => "config"
+			),
+			"postback" => array(
+				"title" => "Gerenciar Postback",
+				"icon" => "fa-globe",
+				"url" => "postback"
+			)
+		)
 	)
 );
 

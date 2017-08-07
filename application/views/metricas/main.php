@@ -18,24 +18,19 @@
                 echo "Erro! Tente novamente!";
             else:
             ?>
-                <div id='div_items'>
-                    <div id='botao_contas'>
-                        <button class='buscar_contas' id='btn_adicionar'>Adicionar Mais Contas</button>
-                        <button id='btn_todas'>Adicionar Todas</button>
-                        <button id='btn_sincronizar'>Sincronizar</button>
-                    </div> <!-- botao_contas -->
-                </div> <!-- div_items -->
+            <form class='form-horizontal'>
                 <?php
                 if(!$contas): ?>
                     <div id='sem_contas'>
-                        <h2>Sem Contas Sincronizadas</h2>
-                        <button class='buscar_contas' id='btn_buscar_contas'>Buscar Contas</button>
+                        <h2>Sem Contas Sincronizadas.</h2>
+                        <h4>Clique em Gerenciar Contas no menu para iniciar.</h4>
                     </div>
                 <?php
                 else: ?>
-                    <div id="div_select_contas">
-                        <label for="contas">Conta:</label>
-                        <select name="contas" id="cmbcontas">
+                    <fieldset>
+                    <div class="form-group" id="div_select_contas">
+                        <label class='col-md-2 control-label' for="contas">Conta:</label>
+                        <div class='col-sm-5'><select class='form-control' name="contas" id="cmbcontas">
                             <option value="-1">Selecione</option>
                             <?php 
                                 foreach($contas as $conta):
@@ -44,25 +39,35 @@
                             <?php
                                 endforeach;
                             ?>
-                        </select><br>
+                        </select></div>
                     </div> <!-- div_select_contas -->
-                    <div id="div_select_campanhas">
-                        <label for="campanhas">Campanha:</label>
-                        <select name="campanhas" id="cmbcampanhas">
-                        </select><br>
+                    <div class='form-group' id="div_select_campanhas">
+                        <label class='col-md-2 control-label' for="campanhas">Campanha:</label>
+                        <div class='col-sm-5'>
+                            <select class='form-control' name="campanhas" id="cmbcampanhas">
+                            </select>
+                        </div>
                     </div>
-                    <div id="div_select_conjuntos">
-                        <label for="conjunto">Conjunto:</label>
-                        <select name="conjunto" id="cmbconjunto">
-                        </select><br>
+                    <div class='form-group' id="div_select_conjuntos">
+                        <label class='col-md-2 control-label' for="conjunto">Conjunto:</label>
+                        <div class='col-sm-5'>
+                            <select class='form-control' name="conjunto" id="cmbconjunto">
+                            </select>
+                        </div>
                     </div>
-                    <div id="div_select_anuncios">
-                        <label for="anuncios">Anúncio:</label>
-                        <select name="anuncios" id="cmbanuncios">
-                        </select><br>
+                    <div class='form-group' id="div_select_anuncios">
+                        <label class='col-md-2 control-label' for="anuncios">Anúncio:</label>
+                        <div class='col-sm-5'>
+                            <select class='form-control' name="anuncios" id="cmbanuncios">
+                            </select>
+                        </div>
                     </div>
-                    Comissão Padrão:<input type="text" name="txtcomissao" id="txtcomissao">
-                    <button id="btnvernumeros">Ver Números</button>
+                    <div class='form-group'>
+                        <label class='col-md-2 control-label' for='txtcomissao'>Comissão Padrão:</label>
+                        <div class='col-sm-5'><input class='form-control' type="text" name="txtcomissao" id="txtcomissao"></div>
+                    </div>
+                    <button class='btn btn-default' id="btnvernumeros">Ver Números</button>
+                    </fieldset>
             
                 <?php 
                 endif;    
@@ -374,23 +379,7 @@
         sync_contas();
     });
 
-    $('.buscar_contas').click(function(){
-        var resp = $.ajax({
-            url: '<?php echo base_url(); ?>app/get_contas',
-            type: 'GET',
-            data: '',
-            global: false,
-            async:false,
-            success: function(msg) { 
-                resp = msg; 
-            }
-        }).responseText;
-
-        $('#contas').show();
-        $('#contas-content').html(resp);
-        $('#sem_contas').hide();
-        $('#botao_contas').show();
-    });
+    
 
     $(document).on('click', '.div_caixa', function(e)  {
         $(this).toggleClass('selected_container');
