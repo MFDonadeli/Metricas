@@ -73,12 +73,12 @@
                                     {
                                 ?>
                                         <tr>
-                                            <td><input type="checkbox" name='chkCartao' class="chkCartao" id='<?php echo $compra->id_plataforma ?>' data-tipo='<?php echo $compra->tipo; ?>'></td>
-                                            <td><?php echo $compra->data_compra; ?></td>
-                                            <td><?php echo $compra->data_confirmacao; ?></td>
-                                            <td><?php echo $compra->produto; ?></td>
-                                            <td><?php echo $compra->src; ?></td>
-											<td><?php echo $compra->tipo; ?></td>
+                                            <td><input type="checkbox" name='chkCartao' class="chkCartao" id="<?php echo $compra['id_plataforma'] ?>" data-tipo="<?php echo $compra['tipo']; ?>"></td>
+                                            <td><?php echo $compra['data_compra']; ?></td>
+                                            <td><?php echo $compra['data_confirmacao']; ?></td>
+                                            <td><?php echo $compra['produto']; ?></td>
+                                            <td><?php echo $compra['src']; ?></td>
+											<td><?php echo $compra['tipo']; ?></td>
                                         </tr>
                                 <?php
                                     }

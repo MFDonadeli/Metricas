@@ -1295,7 +1295,6 @@ WHERE venda_status = 'Finalizada' and venda_forma_pagamento = 'Boleto')";
 
         log_message('debug', 'Num_rows: ' . $result->num_rows() . ' Last Query: ' . $this->db->last_query());
 
-
         if($result->num_rows() > 0)
             return $result;
         else
