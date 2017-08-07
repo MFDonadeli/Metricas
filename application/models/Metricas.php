@@ -1153,27 +1153,29 @@ class Metricas extends CI_Model{
     * busca_hotmart_token
     *
     * Busca através do token, uma lista de vendas na plataforma hotmart
-    * @param    token: token da hotmart
+    * @param    id: id do Facebook logado
     * @return	array do boletos pagos, gerados e cartões na hotmart
     *           false se não achar nenhuma venda
     */
-    function busca_hotmart_token($token)
+    function busca_hotmart_token($id)
     {
         log_message('debug', 'busca_hotmart_token.');  
 
         $ret = false;
+
+        $user_id = $this->getuserid($id);
 
         //Busca somente os boleto impresso e que não estão na lista de pagos
         //$result = $this->db->query(
         $query1 = "SELECT purchase_date as data_compra, confirmation_purchase_date as data_confirmacao,
 		    cms_aff as comissao, prod_name as produto, postback_hotmart_id as id_plataforma,
             'hotmart' as plataforma, src, 'Boleto Impresso' as tipo FROM postback_hotmart
+            join platform_users on postback_hotmart.hottok = platform_users.token
             WHERE status = 'billet_printed' AND ad_status != 'OK'
-            AND hottok = '" . $token . "'
+            AND platform_users.user_id = '" . $user_id . "'
             AND transaction not in (SELECT transaction FROM postback_hotmart 
 							WHERE status = 'approved' AND payment_type = 'billet')";
 
-        
 
         //if($result->num_rows() > 0) $ret = true;
 
@@ -1183,9 +1185,10 @@ class Metricas extends CI_Model{
 		    cms_aff as comissao, prod_name as produto, postback_hotmart_id as id_plataforma,
             'hotmart' as plataforma, src, 'Cartão' as tipo");
         $this->db->from("postback_hotmart");
+        $this->db->join("platform_users","postback_hotmart.hottok = platform_users.token");
         $this->db->where("ad_status != 'OK'");
         $this->db->where("status = 'approved'");
-        $this->db->where("hottok", $token);
+        $this->db->where("platform_users.user_id", $user_id);
         $this->db->where("payment_type != 'billet'");
         //$result = $this->db->get();
 
@@ -1199,9 +1202,10 @@ class Metricas extends CI_Model{
 		    cms_aff as comissao, prod_name as produto, postback_hotmart_id as id_plataforma,
             'hotmart' as plataforma, src, 'Boleto Pago' as tipo");
         $this->db->from("postback_hotmart");
+        $this->db->join("platform_users","postback_hotmart.hottok = platform_users.token");
         $this->db->where("ad_status != 'OK'");
         $this->db->where("status = 'approved'");
-        $this->db->where("hottok", $token);
+        $this->db->where("platform_users.user_id", $user_id);
         $this->db->where("payment_type = 'billet'");
         //$result = $this->db->get();
         $query3 = $this->db->get_compiled_select();
@@ -1214,6 +1218,8 @@ class Metricas extends CI_Model{
 
         $result = $this->db->query($sql);
 
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
         if($result->num_rows() > 0)
             return $result;
         else
@@ -1224,13 +1230,15 @@ class Metricas extends CI_Model{
     * busca_monetizze_token
     *
     * Busca através do token, uma lista de vendas na plataforma monetizze
-    * @param    token: token da hotmart
+    * @param    id: id do facebook logado
     * @return	array do boletos pagos, gerados e cartões na monetizze
     *           false se não achar nenhuma venda
     */
-    function busca_monetizze_token($token)
+    function busca_monetizze_token($id)
     {
-        log_message('debug', 'busca_monetizze.');  
+        log_message('debug', 'busca_monetizze.'); 
+
+        $user_id = $this->getuserid($id);
 
         $ret = false;
 
@@ -1239,8 +1247,9 @@ class Metricas extends CI_Model{
         $query1 =  "SELECT venda_data_inicio as data_compra, venda_data_finalizada as data_confirmacao,
 		    venda_valor as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
             'monetizze' as plataforma, venda_src as src, 'Boleto Impresso' as tipo
-FROM postback_monetizze WHERE venda_forma_pagamento = 'Boleto' and postback_monetizze.ad_status != 'OK' 
-and venda_status = 'Aguardando pagamento' and chave_unica = '" . $token . "'
+FROM postback_monetizze join platform_users on postback_monetizze.chave_unica = platform_users.token
+WHERE venda_forma_pagamento = 'Boleto' and postback_monetizze.ad_status != 'OK' 
+and venda_status = 'Aguardando pagamento' and platform_users.user_id = '" . $user_id . "'
 and venda_codigo not in (SELECT venda_codigo FROM postback_monetizze
 WHERE venda_status = 'Finalizada' and venda_forma_pagamento = 'Boleto')";
 
@@ -1252,8 +1261,9 @@ WHERE venda_status = 'Finalizada' and venda_forma_pagamento = 'Boleto')";
 		    venda_valor as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
             'monetizze' as plataforma, venda_src as src, 'Cartão' as tipo");
         $this->db->from("postback_monetizze"); 
+        $this->db->join("platform_users","postback_monetizze.chave_unica = platform_users.token");
         $this->db->where("ad_status != 'OK'");
-        $this->db->where("chave_unica", $token);
+        $this->db->where("platform_users.user_id", $user_id);
         $this->db->where("venda_status = 'Finalizada'");
         $this->db->where("venda_forma_pagamento != 'Boleto'");
         //$result = $this->db->get();
@@ -1267,8 +1277,9 @@ WHERE venda_status = 'Finalizada' and venda_forma_pagamento = 'Boleto')";
 		    venda_valor as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
             'monetizze' as plataforma, venda_src as src, 'Boleto Pago' as tipo");
         $this->db->from("postback_monetizze");
+        $this->db->join("platform_users","postback_monetizze.chave_unica = platform_users.token");
         $this->db->where("ad_status != 'OK'");
-        $this->db->where("chave_unica", $token);
+        $this->db->where("platform_users.user_id", $user_id);
         $this->db->where("venda_status = 'Finalizada'");
         $this->db->where("venda_forma_pagamento = 'Boleto'");
         //$result = $this->db->get();
@@ -1281,6 +1292,8 @@ WHERE venda_status = 'Finalizada' and venda_forma_pagamento = 'Boleto')";
         $sql = "SELECT * FROM (" . $query1 . " union " . $query2 . " union " . $query3 . ") a order by data_compra";
 
         $result = $this->db->query($sql);
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
 
         if($result->num_rows() > 0)
             return $result;

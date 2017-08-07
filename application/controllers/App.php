@@ -653,7 +653,7 @@ class App extends CI_Controller {
         $token = $this->input->post('id');
         $plataforma = $this->input->post('plataforma');
 
-        $resultado = $this->metricas->{'busca_' . strtolower($plataforma) . '_token'}($token);
+        $resultado = $this->metricas->{'busca_' . strtolower($plataforma) . '_token'}($this->session->userdata('facebook_id'));
         $ads = $this->metricas->get_ads_ativos_30_dias($this->session->userdata('facebook_id'));
 
         $data['compras'] = $resultado;
