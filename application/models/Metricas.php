@@ -1210,7 +1210,7 @@ class Metricas extends CI_Model{
 
         //$retorno['boleto_pago'] = $result->result();
 
-        $sql = "SELECT * FROM (" . $query1 . " union " . $query2 . " union " . $query3 . ") order by data_compra";
+        $sql = "SELECT * FROM (" . $query1 . " union " . $query2 . " union " . $query3 . ") a order by data_compra";
 
         $result = $this->db->query($sql);
 
@@ -1278,7 +1278,7 @@ WHERE venda_status = 'Finalizada' and venda_forma_pagamento = 'Boleto')";
 
         //$retorno['boleto_pago'] = $result->result();
 
-        $sql = "SELECT * FROM (" . $query1 . " union " . $query2 . " union " . $query3 . ") order by data_compra";
+        $sql = "SELECT * FROM (" . $query1 . " union " . $query2 . " union " . $query3 . ") a order by data_compra";
 
         $result = $this->db->query($sql);
 
