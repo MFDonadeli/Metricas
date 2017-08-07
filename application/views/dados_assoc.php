@@ -42,6 +42,21 @@
 							<table id="dt_cartao" class="table table-bordered table-striped table-condensed table-fixed table-hover smart-form">
                                 <thead>
 									<tr>
+										<th></th>
+										<th></th>
+										<th></th>
+										<th></th>
+										<th></th>
+										<th class="hasinput" style="width:17%">
+											<select class="form-control"/>
+												<option></option>
+												<option>Cartão</option>
+												<option>Boleto Impresso</option>
+												<option>Boleto Pago</option>
+											</select>
+										</th>
+									</tr>
+									<tr>
 										<th>
                                             <input type="checkbox" name="checkbox-inline">
 										</th>

@@ -139,6 +139,15 @@
 				}
 			});
 
+			// Apply the filter
+			$("#dt_cartao thead th select").on( 'change', function () {
+				table_cartao
+					.column( $(this).parent().index()+':visible' )
+					.search( this.value )
+					.draw();
+					
+			} );
+
 		/* END CARTOES ;*/
     }
 </script>
