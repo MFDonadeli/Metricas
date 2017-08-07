@@ -1218,7 +1218,7 @@ class Metricas extends CI_Model{
 
         $result = $this->db->query($sql);
 
-        log_message('debug', 'Last Query: ' . $this->db->last_query());
+        log_message('debug', 'Num_rows: ' . $result->num_rows() . ' Last Query: ' . $this->db->last_query());
 
         if($result->num_rows() > 0)
             return $result;
@@ -1293,7 +1293,8 @@ WHERE venda_status = 'Finalizada' and venda_forma_pagamento = 'Boleto')";
 
         $result = $this->db->query($sql);
 
-        log_message('debug', 'Last Query: ' . $this->db->last_query());
+        log_message('debug', 'Num_rows: ' . $result->num_rows() . ' Last Query: ' . $this->db->last_query());
+
 
         if($result->num_rows() > 0)
             return $result;
