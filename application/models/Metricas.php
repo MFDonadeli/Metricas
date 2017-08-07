@@ -1212,7 +1212,7 @@ class Metricas extends CI_Model{
 
         $sql = "SELECT * FROM (" . $query1 . " union " . $query2 . " union " . $query3 . ") order by data_compra";
 
-        $result = $this->db->get($sql);
+        $result = $this->db->query($sql);
 
         if($result->num_rows() > 0)
             return $result;
@@ -1280,7 +1280,7 @@ WHERE venda_status = 'Finalizada' and venda_forma_pagamento = 'Boleto')";
 
         $sql = "SELECT * FROM (" . $query1 . " union " . $query2 . " union " . $query3 . ") order by data_compra";
 
-        $result = $this->db->get($sql);
+        $result = $this->db->query($sql);
 
         if($result->num_rows() > 0)
             return $result;
