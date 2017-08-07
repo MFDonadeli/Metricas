@@ -683,14 +683,15 @@ class App extends CI_Controller {
       $campaign_id = $this->metricas->getCampaignFromAd($ad);
 
       //Para cada item selecionado na lista
-      foreach($pb as $id_plataforma)
+      //foreach($pb as $id_plataforma)
+      for($i=0; $i<count($pb); $i++)
       {
-        $ret = $this->metricas->getProdutoComissao($id_plataforma, $plataforma);
+        $ret = $this->metricas->getProdutoComissao($pb[$i], $plataforma);
 
         $item['ad_id'] = $ad;
         $item['plataforma'] = $plataforma;
         $item['id_plataforma'] = $id_plataforma;
-        $item[$tipo] = 1;
+        $item[$tipo[$i]] = 1;
         $item['adset_id'] = $adset_id;
         $item['campaign_id'] = $campaign_id;
         $item['produto'] = $ret->produto;

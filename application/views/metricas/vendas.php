@@ -90,32 +90,16 @@
 
     $(document).on('click', '#btnCartoes', function(e)  {
         var dados = [];
+        var tipos = [];
         $('.chkCartao').each(function(){
             if($(this).is(':checked'))
+            {
                 dados.push($(this).attr('id'));
+                tipos.push($(this).data('tipo'));
+            }
         });
 
-        enviar_dado(dados, $('#cmbCartao').val(), 'cartoes');
-    });
-
-    $(document).on('click', '#btnBoletosPagos', function(e)  {
-        var dados = [];
-        $('.chkBoletoPago').each(function(){
-            if($(this).is(':checked'))
-                dados.push($(this).attr('id'));
-        });
-
-        enviar_dado(dados, $('#cmbBoletoPago').val(), 'boletos_pagos');
-    });
-
-    $(document).on('click', '#btnBoletosGerados', function(e)  {
-        var dados = [];
-        $('.chkBoletoGerado').each(function(){
-            if($(this).is(':checked'))
-                dados.push($(this).attr('id'));
-        });
-
-        enviar_dado(dados, $('#cmbBoletoGerado').val(), 'boletos_gerados');
+        enviar_dado(dados, $('#cmbCartao').val(), tipos);
     });
 
     function setUpGrids()
@@ -156,80 +140,6 @@
 			});
 
 		/* END CARTOES ;*/
-
-        /* BOLETO GERADO ;*/
-			var responsiveHelper_dt_boleto_gerado = undefined;
-			var responsiveHelper_datatable_fixed_column = undefined;
-			var responsiveHelper_datatable_col_reorder = undefined;
-			var responsiveHelper_datatable_tabletools = undefined;
-			
-			var breakpointDefinition = {
-				tablet : 1024,
-				phone : 480
-			};
-
-            if ( $.fn.dataTable.isDataTable( '#dt_boleto_gerado' ) ) {
-                table_boleto_gerado = $('#dt_boleto_gerado').DataTable();
-                table_boleto_gerado.destroy();
-            }
-
-			table_boleto_gerado = $('#dt_boleto_gerado').dataTable({
-				"sDom": "<'dt-toolbar'<'col-xs-12 col-sm-6'f><'col-sm-6 col-xs-12 hidden-xs'l>r>"+
-					"t"+
-					"<'dt-toolbar-footer'<'col-sm-6 col-xs-12 hidden-xs'i><'col-xs-12 col-sm-6'p>>",
-				"autoWidth" : true,
-				"preDrawCallback" : function() {
-					// Initialize the responsive datatables helper once.
-					if (!responsiveHelper_dt_boleto_gerado) {
-						responsiveHelper_dt_boleto_gerado = new ResponsiveDatatablesHelper($('#dt_boleto_gerado'), breakpointDefinition);
-					}
-				},
-				"rowCallback" : function(nRow) {
-					responsiveHelper_dt_boleto_gerado.createExpandIcon(nRow);
-				},
-				"drawCallback" : function(oSettings) {
-					responsiveHelper_dt_boleto_gerado.respond();
-				}
-			});
-
-		/* END BOLETO GERADO ;*/
-
-        /* BOLETO PAGO ;*/
-			var responsiveHelper_dt_boleto_pago = undefined;
-			var responsiveHelper_datatable_fixed_column = undefined;
-			var responsiveHelper_datatable_col_reorder = undefined;
-			var responsiveHelper_datatable_tabletools = undefined;
-			
-			var breakpointDefinition = {
-				tablet : 1024,
-				phone : 480
-			};
-
-            if ( $.fn.dataTable.isDataTable( '#dt_boleto_pago' ) ) {
-                table_boleto_pago = $('#dt_boleto_pago').DataTable();
-                table_boleto_pago.destroy();
-            }
-
-			table_boleto_pago = $('#dt_boleto_pago').dataTable({
-				"sDom": "<'dt-toolbar'<'col-xs-12 col-sm-6'f><'col-sm-6 col-xs-12 hidden-xs'l>r>"+
-					"t"+
-					"<'dt-toolbar-footer'<'col-sm-6 col-xs-12 hidden-xs'i><'col-xs-12 col-sm-6'p>>",
-				"autoWidth" : true,
-				"preDrawCallback" : function() {
-					// Initialize the responsive datatables helper once.
-					if (!responsiveHelper_dt_boleto_pago) {
-						responsiveHelper_dt_boleto_pago = new ResponsiveDatatablesHelper($('#dt_boleto_pago'), breakpointDefinition);
-					}
-				},
-				"rowCallback" : function(nRow) {
-					responsiveHelper_dt_boleto_pago.createExpandIcon(nRow);
-				},
-				"drawCallback" : function(oSettings) {
-					responsiveHelper_dt_boleto_pago.respond();
-				}
-			});
-
-		/* END BOLETO PAGO ;*/
     }
 </script>
 

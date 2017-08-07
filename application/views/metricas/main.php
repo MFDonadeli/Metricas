@@ -285,8 +285,8 @@
         
     });
 
-    $('#btnvernumeros').click(function(){
-        //id = $(this).attr('id'); 
+    $('#btnvernumeros').click(function(e){
+        e.preventDefault();
 
         var val;
         var tipo;

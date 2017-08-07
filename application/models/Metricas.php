@@ -1164,48 +1164,58 @@ class Metricas extends CI_Model{
         $ret = false;
 
         //Busca somente os boleto impresso e que não estão na lista de pagos
-        $result = $this->db->query("SELECT purchase_date as data_compra, confirmation_purchase_date as data_confirmacao,
+        //$result = $this->db->query(
+        $query1 = "SELECT purchase_date as data_compra, confirmation_purchase_date as data_confirmacao,
 		    cms_aff as comissao, prod_name as produto, postback_hotmart_id as id_plataforma,
-            'hotmart' as plataforma, src FROM postback_hotmart
+            'hotmart' as plataforma, src, 'Boleto Impresso' as tipo FROM postback_hotmart
             WHERE status = 'billet_printed' AND ad_status != 'OK'
             AND hottok = '" . $token . "'
             AND transaction not in (SELECT transaction FROM postback_hotmart 
-							WHERE status = 'approved' AND payment_type = 'billet')");
+							WHERE status = 'approved' AND payment_type = 'billet')";
 
-        if($result->num_rows() > 0) $ret = true;
+        
 
-        $retorno['boleto_impresso'] = $result->result();
+        //if($result->num_rows() > 0) $ret = true;
+
+        //$retorno['boleto_impresso'] = $result->result();
 
         $this->db->select("purchase_date as data_compra, confirmation_purchase_date as data_confirmacao,
 		    cms_aff as comissao, prod_name as produto, postback_hotmart_id as id_plataforma,
-            'hotmart' as plataforma, src");
+            'hotmart' as plataforma, src, 'Cartão' as tipo");
         $this->db->from("postback_hotmart");
         $this->db->where("ad_status != 'OK'");
         $this->db->where("status = 'approved'");
         $this->db->where("hottok", $token);
         $this->db->where("payment_type != 'billet'");
-        $result = $this->db->get();
+        //$result = $this->db->get();
 
-        if($result->num_rows() > 0) $ret = true;
+        $query2 = $this->db->get_compiled_select();
 
-        $retorno['cartao'] = $result->result();
+        //if($result->num_rows() > 0) $ret = true;
+
+        //$retorno['cartao'] = $result->result();
 
         $this->db->select("purchase_date as data_compra, confirmation_purchase_date as data_confirmacao,
 		    cms_aff as comissao, prod_name as produto, postback_hotmart_id as id_plataforma,
-            'hotmart' as plataforma, src");
+            'hotmart' as plataforma, src, 'Boleto Pago' as tipo");
         $this->db->from("postback_hotmart");
         $this->db->where("ad_status != 'OK'");
         $this->db->where("status = 'approved'");
         $this->db->where("hottok", $token);
         $this->db->where("payment_type = 'billet'");
-        $result = $this->db->get();
+        //$result = $this->db->get();
+        $query3 = $this->db->get_compiled_select();
 
-        if($result->num_rows() > 0) $ret = true;
+        //if($result->num_rows() > 0) $ret = true;
 
-        $retorno['boleto_pago'] = $result->result();
+        //$retorno['boleto_pago'] = $result->result();
 
-        if($ret)
-            return $retorno;
+        $sql = "SELECT * FROM (" . $query1 . " union " . $query2 . " union " . $query3 . ") order by data_compra";
+
+        $result = $this->db->get($sql);
+
+        if($result->num_rows() > 0)
+            return $result;
         else
             return false;
     }
@@ -1225,48 +1235,55 @@ class Metricas extends CI_Model{
         $ret = false;
 
         //Busca somente os boleto impresso e que não estão na lista de pagos
-        $result = $this->db->query("SELECT venda_data_inicio as data_compra, venda_data_finalizada as data_confirmacao,
+        //$result = $this->db->query(
+        $query1 =  "SELECT venda_data_inicio as data_compra, venda_data_finalizada as data_confirmacao,
 		    venda_valor as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
-            'monetizze' as plataforma, venda_src as src
+            'monetizze' as plataforma, venda_src as src, 'Boleto Impresso' as tipo
 FROM postback_monetizze WHERE venda_forma_pagamento = 'Boleto' and postback_monetizze.ad_status != 'OK' 
 and venda_status = 'Aguardando pagamento' and chave_unica = '" . $token . "'
 and venda_codigo not in (SELECT venda_codigo FROM postback_monetizze
-WHERE venda_status = 'Finalizada' and venda_forma_pagamento = 'Boleto')");
+WHERE venda_status = 'Finalizada' and venda_forma_pagamento = 'Boleto')";
 
-        if($result->num_rows() > 0) $ret = true;
+        //if($result->num_rows() > 0) $ret = true;
 
-        $retorno['boleto_impresso'] = $result->result();
+        //$retorno['boleto_impresso'] = $result->result();
 
         $this->db->select("venda_data_inicio as data_compra, venda_data_finalizada as data_confirmacao,
 		    venda_valor as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
-            'monetizze' as plataforma, venda_src as src");
+            'monetizze' as plataforma, venda_src as src, 'Cartão' as tipo");
         $this->db->from("postback_monetizze"); 
         $this->db->where("ad_status != 'OK'");
         $this->db->where("chave_unica", $token);
         $this->db->where("venda_status = 'Finalizada'");
         $this->db->where("venda_forma_pagamento != 'Boleto'");
-        $result = $this->db->get();
+        //$result = $this->db->get();
+        $query2 = $this->db->get_compiled_select();
 
-        if($result->num_rows() > 0) $ret = true;
+        //if($result->num_rows() > 0) $ret = true;
 
-        $retorno['cartao'] = $result->result();
+        //$retorno['cartao'] = $result->result();
 
         $this->db->select("venda_data_inicio as data_compra, venda_data_finalizada as data_confirmacao,
 		    venda_valor as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
-            'monetizze' as plataforma, venda_src as src");
+            'monetizze' as plataforma, venda_src as src, 'Boleto Pago' as tipo");
         $this->db->from("postback_monetizze");
         $this->db->where("ad_status != 'OK'");
         $this->db->where("chave_unica", $token);
         $this->db->where("venda_status = 'Finalizada'");
         $this->db->where("venda_forma_pagamento = 'Boleto'");
-        $result = $this->db->get();
+        //$result = $this->db->get();
+        $query3 = $this->db->get_compiled_select();
 
-        if($result->num_rows() > 0) $ret = true;
+        //if($result->num_rows() > 0) $ret = true;
 
-        $retorno['boleto_pago'] = $result->result();
+        //$retorno['boleto_pago'] = $result->result();
 
-        if($ret)
-            return $retorno;
+        $sql = "SELECT * FROM (" . $query1 . " union " . $query2 . " union " . $query3 . ") order by data_compra";
+
+        $result = $this->db->get($sql);
+
+        if($result->num_rows() > 0)
+            return $result;
         else
             return false;
     }
