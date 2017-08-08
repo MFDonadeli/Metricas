@@ -1171,9 +1171,9 @@ class Metricas extends CI_Model{
 		    cms_aff as comissao, prod_name as produto, postback_hotmart_id as id_plataforma,
             'hotmart' as plataforma, src, 'Boleto Impresso' as tipo FROM postback_hotmart
             join platform_users on postback_hotmart.hottok = platform_users.token
-            WHERE status = 'billet_printed' AND ad_status != 'OK'
+            WHERE postback_hotmart.status = 'billet_printed' AND postback_hotmart.ad_status != 'OK'
             AND platform_users.user_id = '" . $user_id . "'
-            AND transaction not in (SELECT transaction FROM postback_hotmart 
+            AND postback_hotmart.transaction not in (SELECT transaction FROM postback_hotmart 
 							WHERE status = 'approved' AND payment_type = 'billet')";
 
 
@@ -1186,10 +1186,10 @@ class Metricas extends CI_Model{
             'hotmart' as plataforma, src, 'Cartão' as tipo");
         $this->db->from("postback_hotmart");
         $this->db->join("platform_users","postback_hotmart.hottok = platform_users.token");
-        $this->db->where("ad_status != 'OK'");
-        $this->db->where("status = 'approved'");
+        $this->db->where("postback_hotmart.ad_status != 'OK'");
+        $this->db->where("postback_hotmart.status = 'approved'");
         $this->db->where("platform_users.user_id", $user_id);
-        $this->db->where("payment_type != 'billet'");
+        $this->db->where("postback_hotmart.payment_type != 'billet'");
         //$result = $this->db->get();
 
         $query2 = $this->db->get_compiled_select();
@@ -1203,10 +1203,10 @@ class Metricas extends CI_Model{
             'hotmart' as plataforma, src, 'Boleto Pago' as tipo");
         $this->db->from("postback_hotmart");
         $this->db->join("platform_users","postback_hotmart.hottok = platform_users.token");
-        $this->db->where("ad_status != 'OK'");
-        $this->db->where("status = 'approved'");
+        $this->db->where("postback_hotmart.ad_status != 'OK'");
+        $this->db->where("postback_hotmart.status = 'approved'");
         $this->db->where("platform_users.user_id", $user_id);
-        $this->db->where("payment_type = 'billet'");
+        $this->db->where("postback_hotmart.payment_type = 'billet'");
         //$result = $this->db->get();
         $query3 = $this->db->get_compiled_select();
 
