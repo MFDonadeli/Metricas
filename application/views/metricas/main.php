@@ -319,20 +319,20 @@
                           val: val,
                           comissao: $('#txtcomissao').val() };
 
-        var resp = $.ajax({
+        $.ajax({
             url: '<?php echo base_url(); ?>app/sync_metricas',
             type: 'POST',
             data: form_data,
             global: false,
-            async:false,
+            async: true,
+            beforeSend: function (){
+                $('#numeros').show();
+                $('#numeros-content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
+            },
             success: function(msg) { 
-                resp = msg; 
+                $('#numeros-content').html("<iframe width='100%' height='500 px' src='https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>template/" + msg.trim() + "'>");
             }
-        }).responseText;
-
-        $('#numeros').show();
-
-        $('#numeros-content').html("<iframe width='100%' height='500 px' src='https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>template/" + resp.trim() + "'>");
+        });
 
     });
 

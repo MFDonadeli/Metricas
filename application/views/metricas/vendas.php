@@ -106,9 +106,7 @@
     {
         /* CARTOES ;*/
 			var responsiveHelper_dt_cartao = undefined;
-			var responsiveHelper_datatable_fixed_column = undefined;
-			var responsiveHelper_datatable_col_reorder = undefined;
-			var responsiveHelper_datatable_tabletools = undefined;
+			var table_cartao = undefined;
 			
 			var breakpointDefinition = {
 				tablet : 1024,
@@ -120,27 +118,12 @@
                 table_cartao.destroy();
             }
 
-			table_cartao = $('#dt_cartao').dataTable({
-				"sDom": "<'dt-toolbar'<'col-xs-12 col-sm-6'f><'col-sm-6 col-xs-12 hidden-xs'l>r>"+
-					"t"+
-					"<'dt-toolbar-footer'<'col-sm-6 col-xs-12 hidden-xs'i><'col-xs-12 col-sm-6'p>>",
-				"autoWidth" : true,
-				"preDrawCallback" : function() {
-					// Initialize the responsive datatables helper once.
-					if (!responsiveHelper_dt_cartao) {
-						responsiveHelper_dt_cartao = new ResponsiveDatatablesHelper($('#dt_cartao'), breakpointDefinition);
-					}
-				},
-				"rowCallback" : function(nRow) {
-					responsiveHelper_dt_cartao.createExpandIcon(nRow);
-				},
-				"drawCallback" : function(oSettings) {
-					responsiveHelper_dt_cartao.respond();
-				}
-			});
+			table_cartao = $('#dt_cartao').dataTable();
+			console.log(table_cartao);
 
 			// Apply the filter
 			$("#dt_cartao thead th select").on( 'change', function () {
+
 				table_cartao
 					.column( $(this).parent().index()+':visible' )
 					.search( this.value )

@@ -1,7 +1,11 @@
+
 <!-- widget grid -->
-<section id="widget-grid" class="">    
-    <div class="row">
-    <!-- NEW WIDGET START -->
+<section id="widget-grid" class="">
+
+	<!-- row -->
+	<div class="row">
+
+		<!-- NEW WIDGET START -->
 		<article class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
 
 			<!-- Widget ID (each widget will need unique ID)-->
@@ -22,6 +26,7 @@
 				<header>
 					<span class="widget-icon"> <i class="fa fa-table"></i> </span>
 					<h2>Vendas na Plataforma</h2>
+
 				</header>
 
 				<!-- widget div-->
@@ -35,12 +40,9 @@
 					<!-- end widget edit box -->
 
 					<!-- widget content -->
-					<div class="widget-body">
-		
-						<div class="table-responsive">
-						
-							<table id="dt_cartao" class="table table-bordered table-striped table-condensed table-fixed table-hover smart-form">
-                                <thead>
+					<div class="widget-body no-padding">
+						<table id="dt_cartao" class="table table-striped table-bordered table-hover" width="100%">
+							<thead>
 									<tr>
 										<th></th>
 										<th></th>
@@ -48,7 +50,7 @@
 										<th></th>
 										<th></th>
 										<th class="hasinput" style="width:17%">
-											<select class="form-control"/>
+											<select class="form-control">
 												<option></option>
 												<option>Cartão</option>
 												<option>Boleto Impresso</option>
@@ -73,41 +75,19 @@
                                     {
                                 ?>
                                         <tr>
-                                            <td><input type="checkbox" name='chkCartao' class="chkCartao" id="<?php echo $compra['id_plataforma'] ?>" data-tipo="<?php echo $compra['tipo']; ?>"></td>
-                                            <td><?php echo $compra['data_compra']; ?></td>
-                                            <td><?php echo $compra['data_confirmacao']; ?></td>
-                                            <td><?php echo $compra['produto']; ?></td>
-                                            <td><?php echo $compra['src']; ?></td>
-											<td><?php echo $compra['tipo']; ?></td>
+                                            <td><input type="checkbox" name='chkCartao' class="chkCartao" id="<?php echo $compra->id_plataforma ?>" data-tipo='<?php echo $compra->tipo; ?>'></td>
+                                            <td><?php echo $compra->data_compra; ?></td>
+                                            <td><?php echo $compra->data_confirmacao; ?></td>
+                                            <td><?php echo $compra->produto; ?></td>
+                                            <td><?php echo $compra->src; ?></td>
+											<td><?php echo $compra->tipo; ?></td>
                                         </tr>
                                 <?php
                                     }
                                 ?>
                                 </tbody>
-							</table>
-							
-						</div>
+						</table>
 
-                        <div class='form-group'>
-                            <label class='col-md-2 control-label' for="cmbCartao">Associar a:</label>
-                            <select class='form-control' id="cmbCartao">
-                                <option value="-1">Selecione</option>
-                                <?php
-                                    foreach($anuncios as $anuncio)
-                                    {
-                                ?>
-                                        <option value='<?php echo $anuncio->id ?>'>
-                                            Anuncio: <?php echo $anuncio->name; ?> - Tag: <?php echo $anuncio->url_tags; ?> -
-                                            Status: <?php echo $anuncio->effective_status; ?> - Conjunto: <?php echo $anuncio->conjunto; ?> - 
-                                            Campanha: <?php echo $anuncio->campanha; ?> - Conta: <?php echo $anuncio->conta; ?>
-                                        </option>
-                                <?php        
-                                    }
-                                ?>
-                            </select>
-                        </div>
-                        <button id='btnCartoes' class='btnAssociar btn btn-primary'>Salvar</button>
-						
 					</div>
 					<!-- end widget content -->
 
@@ -116,11 +96,14 @@
 
 			</div>
 			<!-- end widget -->
-
-		</article>
+        </article>
 		<!-- WIDGET END -->
-    </div> <!-- row -->
 
+	</div>
+
+	<!-- end row -->
+
+	<!-- end row -->
 
 </section>
 <!-- end widget grid -->

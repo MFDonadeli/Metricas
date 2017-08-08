@@ -92,7 +92,7 @@
 		<article class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
 
 			<!-- Widget ID (each widget will need unique ID)-->
-			<div class="jarviswidget jarviswidget-color-darken" id="wid-id-0" data-widget-editbutton="false">
+			<div class="jarviswidget jarviswidget-color-darken" id="wid-id-1" data-widget-editbutton="false">
 				<!-- widget options:
 				usage: <div class="jarviswidget" id="wid-id-0" data-widget-editbutton="false">
 
@@ -163,6 +163,24 @@
 
 </section>
 <!-- end widget grid -->
+<!-- Modal -->
+<div class="modal fade" id="modal_contas" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  data-keyboard="false" data-backdrop="static">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="myModalLabel">Sincronizando Contas</h4>
+      </div>
+      <div class="modal-body">
+		<div id="modal-text"></div>
+		<div class="progress progress-sm progress-striped active">
+			<div class="progress-bar bg-color-darken" id="progress_contas" role="progressbar" style="width: 0%"></div>
+		</div>
+      </div>
+      <div class="modal-footer">
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 
 <script type="text/javascript">
 
@@ -236,21 +254,21 @@
         });
 
         $('#btn_adicionar').click(function(){
-            var resp = $.ajax({
+            $.ajax({
                 url: '<?php echo base_url(); ?>app/get_contas',
                 type: 'GET',
                 data: '',
                 global: false,
-                async:false,
+				async: true,
+				beforeSend: function (){
+					$('#div_novas_contas').show();
+					$('#dt-novas-contas tbody').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
+				},
                 success: function(msg) { 
-                    resp = msg; 
+					$('#dt-novas-contas tbody').html(msg); 
+					setUpContasNovas();
                 }
-            }).responseText;
-
-            $('#div_novas_contas').show();
-            $('#dt-novas-contas tbody').html(resp);
-
-            setUpContasNovas();
+            });
         });
 
 		/* BASIC ;*/
@@ -285,40 +303,51 @@
 
 		/* END BASIC */
 
-        function sync_contas()
-        {
-            var id_conta;
-            var count_divs = $('.selected_container').length;
-            var i = 0;
+		var contas = [];
+		var i = 0;
+
+        function sync_conta(i)
+		{
+			console.log('sync_conta ' + i);
+			id_conta = contas[i];
+
+			var form_data = { conta: id_conta };
+			$.ajax({
+				url: '<?php echo base_url(); ?>app/sync_contas',
+				type: 'POST',
+				data: form_data,
+				global: false,
+				async: true,
+				beforeSend: function (){
+					$('#modal_contas').modal('show');
+					$('#modal-text').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Sincronizando ' + id_conta +  '</h1>');
+				},
+				success: function(msg) { 
+					if(i == contas.length - 1)
+					{
+						$('#modal_contas').modal('hide');
+						location.reload();
+					}
+					else
+					{
+						i++;
+						$('#progress_contas').css("width", ((i / contas.length) * 100) + "%");
+						sync_conta(i);
+					}		 
+				}
+			});
+		}
+        $('#btn_sincronizar').click(function(){
+			var count_divs = $('.selected_container').length;
 
             $('.chkContaNova').each(function(){
-                i++;
-                if($(this).is(':checked'))
-                {
-                    id_conta = $(this).attr('id');
+				if($(this).is(':checked'))
+				{
+					contas.push($(this).attr('id'));
+				}
+			});
 
-                    $('#msg').html('Sincronizando: ' + id_conta);
-                    $( "#progressbar" ).progressbar({
-                        value: i/count_divs
-                    });
-
-                    var form_data = { conta: id_conta };
-                    var resp = $.ajax({
-                        url: '<?php echo base_url(); ?>app/sync_contas',
-                        type: 'POST',
-                        data: form_data,
-                        global: false,
-                        async:false,
-                        success: function(msg) { 
-                            resp = msg; 
-                        }
-                    }).responseText;
-                }
-            });
-        }
-
-        $('#btn_sincronizar').click(function(){
-            sync_contas();
+			sync_conta(i);
         });
 
         var table_contas_novas;

@@ -37,8 +37,12 @@
 
 
 $('#btnsalvar').click(function(){
+	var postback = 0;
+	if($('#start_interval').prop('checked'))
+		postback = 1;
+
     var form_data = { sync_time: $("#txtsinc").val(),
-                          postback_enabled: $("input[name=start_interval]").prop('checked') };
+                          postback_enabled: postback };
 
     var resp = $.ajax({
         url: '<?php echo base_url(); ?>app/save_config',
