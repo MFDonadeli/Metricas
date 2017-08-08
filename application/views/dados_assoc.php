@@ -88,6 +88,26 @@
                                 </tbody>
 						</table>
 
+						<div class='form-group'>
+                            <label class='col-md-2 control-label' for="cmbCartao">Associar a:</label>
+                            <select class='form-control' id="cmbCartao">
+                                <option value="-1">Selecione</option>
+                                <?php
+                                    foreach($anuncios as $anuncio)
+                                    {
+                                ?>
+                                        <option value='<?php echo $anuncio->id ?>'>
+                                            Anuncio: <?php echo $anuncio->name; ?> - Tag: <?php echo $anuncio->url_tags; ?> -
+                                            Status: <?php echo $anuncio->effective_status; ?> - Conjunto: <?php echo $anuncio->conjunto; ?> - 
+                                            Campanha: <?php echo $anuncio->campanha; ?> - Conta: <?php echo $anuncio->conta; ?>
+                                        </option>
+                                <?php        
+                                    }
+                                ?>
+                            </select>
+                        </div>
+                        <button id='btnCartoes' class='btnAssociar btn btn-primary'>Salvar</button>
+
 					</div>
 					<!-- end widget content -->
 
