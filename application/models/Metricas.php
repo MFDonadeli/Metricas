@@ -1221,7 +1221,7 @@ class Metricas extends CI_Model{
         log_message('debug', 'Num_rows: ' . $result->num_rows() . ' Last Query: ' . $this->db->last_query());
 
         if($result->num_rows() > 0)
-            return $result;
+            return $result->result();
         else
             return false;
     }
