@@ -1670,11 +1670,13 @@ campaigns.name as campanha, accounts.name as conta");
     {
         log_message('debug', 'get_resync_to_do');
 
-        $result = $this->db->query("SELECT profiles.facebook_id
+        $result = $this->db->query("SELECT profiles.facebook_id as id
         FROM config
         JOIN profiles ON config.user_id = profiles.user_id
         WHERE NOW() > DATE_ADD(config.last_update, INTERVAL config.sync_time HOUR)");
  
         return $result->result();
     }
+
+    
 }
