@@ -1,3 +1,4 @@
+
 <?php require_once("inc/init.php"); ?>
 
 <div class="row">
@@ -104,34 +105,49 @@
 
     function setUpGrids()
     {
-        /* CARTOES ;*/
-			var responsiveHelper_dt_cartao = undefined;
-			var table_cartao = undefined;
-			
-			var breakpointDefinition = {
-				tablet : 1024,
-				phone : 480
-			};
-
-            if ( $.fn.dataTable.isDataTable( '#dt_cartao' ) ) {
-                table_cartao = $('#dt_cartao').DataTable();
-                table_cartao.destroy();
-            }
-
-			table_cartao = $('#dt_cartao').dataTable();
-			console.log(table_cartao);
-
-			// Apply the filter
-			$("#dt_cartao thead th select").on( 'change', function () {
-
-				table_cartao
-					.column( $(this).parent().index()+':visible' )
-					.search( this.value )
-					.draw();
-					
-			} );
-
-		/* END CARTOES ;*/
+        var responsiveHelper_dt_cartao = undefined;
+         var table_cartao = undefined;
+         
+         var breakpointDefinition = {
+             tablet : 1024,
+             phone : 480
+         };
+         
+         if ( $.fn.dataTable.isDataTable( '#dt_cartao' ) ) {
+             table_cartao = $('#dt_cartao').DataTable();
+             table_cartao.destroy();
+         }
+         
+         table_cartao = $('#dt_cartao').DataTable({
+         "sDom": "<'dt-toolbar'<'col-xs-12 col-sm-6 hidden-xs'f><'col-sm-6 col-xs-12 hidden-xs'<'toolbar'>>r>"+
+         	"t"+
+         	"<'dt-toolbar-footer'<'col-sm-6 col-xs-12 hidden-xs'i><'col-xs-12 col-sm-6'p>>",
+         "autoWidth" : true,
+         "preDrawCallback" : function() {
+         	// Initialize the responsive datatables helper once.
+         	if (!responsiveHelper_dt_cartao) {
+         		responsiveHelper_dt_cartao = new ResponsiveDatatablesHelper($('#dt_cartao'), breakpointDefinition);
+         	}
+         },
+         "rowCallback" : function(nRow) {
+         	responsiveHelper_dt_cartao.createExpandIcon(nRow);
+         },
+         "drawCallback" : function(oSettings) {
+         	responsiveHelper_dt_cartao.respond();
+         }
+         });
+                 console.log(table_cartao);
+                 console.log(responsiveHelper_dt_cartao);
+         
+         // Apply the filter
+         $("#dt_cartao thead th select").on( 'change', function () {
+                     console.log(table_cartao);
+         table_cartao
+         	.column( $(this).parent().index()+':visible' )
+         	.search( this.value )
+         	.draw();
+         	
+         } );
     }
 </script>
 
