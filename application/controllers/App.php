@@ -572,7 +572,7 @@ class App extends CI_Controller {
     {
       if($id == 'all')
       {
-        //pega todos
+        $profiles = $this->metricas->get_resync_to_do();
       }  
       else
       {
@@ -614,8 +614,10 @@ class App extends CI_Controller {
             }
           }
         }
-      }
 
+        $this->metricas->salva_data_resync($profile->id);
+
+      }
 
     }
 

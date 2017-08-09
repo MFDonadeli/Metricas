@@ -1636,4 +1636,45 @@ campaigns.name as campanha, accounts.name as conta");
 
 
     }
+
+    /**
+    * salva_data_resync
+    *
+    * Salva data da última resincronização
+    * @param    $id: id do Facebook que fez a sincronização
+    * @return	-
+    */
+    public function salva_data_resync($id)
+    {
+        log_message('debug', 'salva_data_resync');
+
+        $user_id = $this->getuserid($id);  
+
+        $data['last_update'] = date("Y-m-d H:i:s");
+
+        $this->db->where('user_id', $user_id);
+        $this->db->update('config', $data);
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+    }
+
+    /**
+    * get_resync_to_do
+    *
+    * Traz os usuarios que já podem fazer sincronização
+    * @param    $id: id do Facebook que fez a sincronização
+    * @return	-
+    */
+    public function get_resync_to_do()
+    {
+        log_message('debug', 'get_resync_to_do');
+
+        $result = $this->db->query("SELECT profiles.facebook_id
+        FROM config
+        JOIN profiles ON config.user_id = profiles.user_id
+        WHERE NOW() > DATE_ADD(config.last_update, INTERVAL config.sync_time HOUR)");
+ 
+        return $result->result();
+    }
 }
