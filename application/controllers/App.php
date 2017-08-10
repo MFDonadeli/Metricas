@@ -740,7 +740,7 @@ class App extends CI_Controller {
       }
 
       $data['retorno'] = $retorno;
-      $this->load->view('app/laou',$data);
+      $this->load->view('laou',$data);
     }
 
     /**
