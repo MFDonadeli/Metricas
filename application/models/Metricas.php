@@ -1322,8 +1322,8 @@ campaigns.name as campanha, accounts.name as conta");
         $this->db->join("campaigns","ads.campaign_id = campaigns.id");  
         $this->db->join("accounts","ads.account_id = accounts.id");  
         $this->db->where("ads.effective_status != 'DISAPPROVED'");
-        $this->db->where("ads.effective_status = 'ACTIVE' or (ads.effective_status != 'ACTIVE' and
-                ads.updated_time > '" . $today . "')");
+        $this->db->where("(ads.effective_status = 'ACTIVE' or (ads.effective_status != 'ACTIVE' and
+                ads.updated_time > '" . $today . "'))");
         $this->db->where("accounts.facebook_id",$id);
         $this->db->order_by("ads.effective_status");
 
