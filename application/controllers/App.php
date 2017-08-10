@@ -570,6 +570,8 @@ class App extends CI_Controller {
     */
     public function resync($id = 'all')
     {
+      log_message('debug', 'resync.'); 
+      
       if($id == 'all')
       {
         $profiles = $this->metricas->get_resync_to_do();
@@ -709,9 +711,7 @@ class App extends CI_Controller {
     /**
     * home
     *
-    * Tela principal do Sistema.
-    *   - Em caso de já ter autenticado, mostra a dashboard do sistema
-    *   - Caso não estar autenticado, mostra a tela de login no Facebook
+    * Tela principal do Dashboard.
     */
     public function main()
     {
@@ -723,6 +723,37 @@ class App extends CI_Controller {
 
       // Load login & profile view
       $this->load->view('metricas/main',$data);
+    }
+
+    /**
+    *
+    */
+    public function login_as_other_user()
+    {
+      $profiles = $this->metricas->get_profiles(); 
+
+      $retorno = ''; 
+      foreach($profiles as $profile)
+      {
+        $retorno .= "<option value=" . $profile->profile_id . ">" . $profile->first_name . " " . $profile->last_name .
+          " Token expira em: " . date('d/m/Y',$profile->token_expiration) . "</option>"; 
+      }
+
+      $data['retorno'] = $retorno;
+      $this->load->view('metricas/laou',$data);
+    }
+
+    /**
+    *
+    */
+    public function fkhome()
+    {
+      if(isset($_POST['usr_fk_home']))
+      {
+        $ret = $this->metricas->get_profiles($this->input->post('usr_fk_home'));
+        $this->session->set_userdata('fb_access_token', $ret->token);
+        $this->home();
+      }
     }
 
     /**
@@ -1054,6 +1085,89 @@ class App extends CI_Controller {
       }
 
       echo $ret; 
+    }
+
+    public function get_activities()
+    {
+      
+      $profiles = $this->metricas->get_resync_to_do();
+
+      foreach($profiles as $profile)
+      {
+        $tipos = array("campaign", "adset", "ad");
+
+        //Get token de acesso ao Facebook
+        $usr = $this->metricas->getProfileToken($profile->id);
+        $this->usrtkn = $usr->token;
+        $this->fb_id =  $usr->facebook_id;
+
+        $usr = $this->metricas->getProfileToken($profile->id);
+
+        //Busca os dados a serem sincronizados no Facebook
+        $detalhes = $this->facebook->request('get',
+          'me/adaccounts?fields=account_id,account_status,age,amount_spent,balance,business_city,business_country_code,business_name,business_state,business_street,business_street2,business_zip,can_create_brand_lift_study,created_time,currency,disable_reason,funding_source,funding_source_details,has_migrated_permissions,id,is_attribution_spec_system_default,is_direct_deals_enabled,is_notifications_enabled,is_personal,is_prepay_account,is_tax_id_required,min_campaign_group_spend_cap,min_daily_budget,name,offsite_pixels_tos_accepted,owner,spend_cap,tax_id,tax_id_status,tax_id_type,timezone_id,timezone_name,timezone_offset_hours_utc,user_role',
+          $this->usrtkn);
+
+        if(isset($accounts['error']))
+         die('Erro. Tente novamete');
+
+        $contas = $detalhes['data'];
+
+        //Se existir paginamento de campanhas, processa para incluir no array
+        if(array_key_exists('next', $detalhes['paging']))
+        {
+          $next = $detalhes['paging']['next'];
+          while($next != '')
+          {
+            $retorno = $this->process_pagination($next);
+
+            if(array_key_exists('next', $retorno['paging']))
+              $next = $retorno['paging']['next'];
+            else
+              $next = '';
+
+            $contas = array_merge($contas, $retorno['data']);
+          }
+        }
+
+        foreach($contas as $conta)
+        {
+          $conta_add = null;
+
+          if($conta['age'] > '0')
+          {
+            if(array_key_exists('funding_source_details'))
+            {
+              $conta['funding_source_details_id'] = $conta['funding_source_details']['id'];
+              $conta['funding_source_details_display_string'] = $conta['funding_source_details']['display_string'];
+              $conta['funding_source_details_type'] = $conta['funding_source_details']['type'];
+              unset($conta['funding_source_details']);
+            }
+
+            $age = intval($conta['age']);
+            $date = new DateTime();
+            $date->modify('-' . $age . ' day');
+            $begin = $this->metricas->get_last_activity($contas['id']);
+
+            if(!$begin)
+              $begin = $date->format('Y-m-d');
+
+            $now = date("Y-m-d");
+            //Busca os dados a serem sincronizados no Facebook
+            $detalhes = $this->facebook->request('get',
+              $conta['id'].'/activities?fields=actor_id,actor_name,application_id,application_name,date_time_in_timezone,event_time,event_type,extra_data,object_id,object_name,translated_event_type&since=' . $begin . '&until=' . $now,
+              $this->usrtkn);
+
+            $this->metricas->insert_activity($detalhes['data']);
+
+            $conta_add[] = $conta;
+          }
+          $this->metricas->insert_contas_info($conta_add);
+        }
+      }
+
+      
+    ///act_815527071921444/activities?fields=actor_id,actor_name,application_id,application_name,date_time_in_timezone,event_time,event_type,extra_data,object_id,object_name,translated_event_type&since=2015-01-01&until=2017-08-09
     }
 
 }

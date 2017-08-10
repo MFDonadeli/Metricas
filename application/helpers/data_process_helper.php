@@ -357,7 +357,7 @@ function processa_insights($insights, $tipo)
                 {
                   $col = 'object_story_spec_video_data_call_to_action_value_'.$key2;
                   if(strlen($col) <= 64)
-                    $ad['creative'][] = $val2; 
+                    $ad['creative'][$col] = $val2; 
                 }
 
                 unset($ad['creative']['object_story_spec']['video_data']['call_to_action']);

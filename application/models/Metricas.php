@@ -1678,5 +1678,42 @@ campaigns.name as campanha, accounts.name as conta");
         return $result->result();
     }
 
+    public function get_last_activity($id)
+    {
+        $this->db->select('max(event_time)');
+        $this->db->from('accounts_activities');
+        $this->db->where('account_id',$id);
+        $result = $this->db->get();
+
+        if($result->num_rows() > 0)
+        {
+            $row = $result->row();
+            $data = explode('T',$row->event_time);
+
+            return $data;
+        }
+        else
+            return false;
+    }
+
+    public function get_profiles($id=0)
+    {
+        log_message('debug', 'get_profiles');  
+
+        if($id==0)
+        {
+            $ret = $this->db->get('profiles');
+            return $ret->result();
+        }
+        else
+        {
+            $this->db->where('profile_id', $id);
+            $ret = $this->db->get('profiles');
+            return $ret->row();
+        }
+
+        
+    }
+
     
 }
