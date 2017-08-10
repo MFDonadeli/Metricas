@@ -79,7 +79,7 @@
                                             <td><?php echo $compra->data_compra; ?></td>
                                             <td><?php echo $compra->data_confirmacao; ?></td>
                                             <td><?php echo $compra->produto; ?></td>
-                                            <td><?php echo $compra->src; ?></td>
+                                            <td style="word-break: break-all;"><?php echo $compra->src; ?></td>
 											<td><?php echo $compra->tipo; ?></td>
                                         </tr>
                                 <?php
