@@ -1,6 +1,6 @@
 <html>
     <body>
-        <form action='app/fkhome' method='post'>
+        <form action='fkhome' method='post'>
         <select name="cmbprofiles" id="cmbprofiles">
             <?php echo $retorno; ?>
         </select>
