@@ -571,7 +571,7 @@ class App extends CI_Controller {
     public function resync($id = 'all')
     {
       log_message('debug', 'resync.'); 
-      
+
       if($id == 'all')
       {
         $profiles = $this->metricas->get_resync_to_do();
@@ -740,7 +740,7 @@ class App extends CI_Controller {
       }
 
       $data['retorno'] = $retorno;
-      $this->load->view('metricas/laou',$data);
+      $this->load->view('app/laou',$data);
     }
 
     /**
