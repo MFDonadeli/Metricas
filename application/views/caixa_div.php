@@ -11,6 +11,9 @@ $arr_status = array(
 "201" => "ATIVA",
 "202" => "FECHADA"
 );
+
+print_r($conta_sinc);
+
 foreach($contas as $conta)
 {
     if($conta['age'] > 0 && (array_search($conta['name'],$conta_sinc) == false))
