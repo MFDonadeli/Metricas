@@ -85,7 +85,19 @@ class App extends CI_Controller {
 
       log_message('debug', 'get_contas');
 
+      $userID = $this->session->userdata('facebook_id');
+      $contas_user = $this->metricas->getContas($userID);
+      
+      if($contas_user)
+      {
+        foreach($contas_user as $conta_user)
+        {
+          $conta_sinc[] = $conta_user->account_name;
+        }
+      }
+
       $data['contas'] = $contas;
+      $data['conta_sinc'] = $conta_sinc;
       $ret = $this->load->view('caixa_div', $data, true);
 
       //Mostra o html na tela

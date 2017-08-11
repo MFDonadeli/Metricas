@@ -13,7 +13,7 @@ $arr_status = array(
 );
 foreach($contas as $conta)
 {
-    if($conta['age'] > 0)
+    if($conta['age'] > 0 && (array_search($conta['name'],$conta_sinc) == false))
     {
         $id = $conta['id'];
         echo "<tr>";
