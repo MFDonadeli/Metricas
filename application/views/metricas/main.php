@@ -287,16 +287,12 @@
     });
 
     $('#cmbanuncios').change(function(){
-        var story = $('#cmbanuncios').data('story');
+        var story = $(this).find(':selected').data('story');
         var retorno = ajax_fill_combo(val, 'ads');
 
         if(story!='')
         {
             $('#link_anuncio').html("<a href='https://facebook.com/" + story + "' target='_blank'>Anúncio com comentários</a>");
-            $('#numeros').hide();
-
-            $('#cmbanuncios').empty();
-            $('#cmbanuncios').append(retorno);
         }
         
     });
