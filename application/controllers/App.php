@@ -74,7 +74,7 @@ class App extends CI_Controller {
     public function get_contas()
     {
       log_message('debug', 'get_contas');
-      
+
       $accounts = $this->facebook->request('get', 'me/adaccounts?fields=name,account_status,age&limit=1200',$this->usrtkn);
 
       log_message('debug',json_encode($accounts));
@@ -95,6 +95,8 @@ class App extends CI_Controller {
           $conta_sinc[] = $conta_user->account_name;
         }
       }
+
+      log_message('debug',print_r($conta_sinc, true));
 
       $data['contas'] = $contas;
       $data['conta_sinc'] = $conta_sinc;
