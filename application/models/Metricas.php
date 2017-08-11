@@ -217,8 +217,18 @@ class Metricas extends CI_Model{
         log_message('debug', 'get_from_tipo');
 
 
-        $this->db->select("name, id");
-        $this->db->from($tipo);
+        if($tipo == 'ads')
+        {
+            $this->db->select("ads.name, ads.id, ad_creatives.effective_object_story_id");
+            $this->db->from('ads');
+            $this->db->join("ad_creatives", "ads.id = ad_creatives.ad_id");
+        }
+        else
+        {
+            $this->db->select("name, id");
+            $this->db->from($tipo);
+        }
+        
 
         switch($tipo)
         {
@@ -229,7 +239,7 @@ class Metricas extends CI_Model{
                 $where = "campaign_id";
                 break;
             case 'ads':
-                $where = "adset_id";
+                $where = "ads.adset_id";
                 break;
         }
         $this->db->where($where,$id);
