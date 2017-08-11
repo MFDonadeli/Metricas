@@ -92,7 +92,7 @@ class App extends CI_Controller {
       {
         foreach($contas_user as $conta_user)
         {
-          $conta_sinc[] = $conta_user->account_name;
+          $conta_sinc[] = trim($conta_user->account_name);
         }
       }
 

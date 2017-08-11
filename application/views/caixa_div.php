@@ -18,7 +18,7 @@ foreach($contas as $conta)
 {
     log_message('debug',"Age: " . $conta['age']);
     log_message('debug',"Name: " . $conta['name']);
-    if(array_search($conta['name'],$conta_sinc))
+    if(array_search(trim($conta['name']),$conta_sinc))
         log_message('debug',"Array search: Achou" ); 
     else
         log_message('debug',"Array search: Não Achou" ); 
