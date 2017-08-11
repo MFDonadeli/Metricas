@@ -292,7 +292,7 @@
 
         if(story!='')
         {
-            $('#link_anuncio').html("<a href='https://facebook.com/" + story + "' target='_blank'>" + Anúncio com comentários + "</a>");
+            $('#link_anuncio').html("<a href='https://facebook.com/" + story + "' target='_blank'>Anúncio com comentários</a>");
             $('#numeros').hide();
 
             $('#cmbanuncios').empty();
