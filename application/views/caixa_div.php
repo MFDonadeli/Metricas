@@ -12,8 +12,13 @@ $arr_status = array(
 "202" => "FECHADA"
 );
 
+log_message('debug',print_r($conta_sinc, true));
+
 foreach($contas as $conta)
 {
+    log_message('debug',"Age: " . $conta['age'] . " Name: " . $conta['name'] . " Array search: " . array_search($conta['name'],$conta_sinc) . 
+      " Comparaçao " . $conta['age'] > 0 && (array_search($conta['name'],$conta_sinc) == false) );
+    
     if($conta['age'] > 0 && (array_search($conta['name'],$conta_sinc) == false))
     {
         $id = $conta['id'];

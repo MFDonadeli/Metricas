@@ -96,8 +96,6 @@ class App extends CI_Controller {
         }
       }
 
-      log_message('debug',print_r($conta_sinc, true));
-
       $data['contas'] = $contas;
       $data['conta_sinc'] = $conta_sinc;
       $ret = $this->load->view('caixa_div', $data, true);
