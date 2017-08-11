@@ -877,7 +877,17 @@ class App extends CI_Controller {
         $ret .= "<option value='-1'>Todos</option>";
         foreach($retorno as $val)
         {
-          $ret .= "<option value='" . $val->id . "'>" . $val->name . "</option>";  
+          $ret .= "<option value='" . $val->id . "'";
+          
+          if(isset($val->effective_object_story_id))
+          {
+            $arr = explode('_', $val->effective_object_story_id);
+            $url = $arr[0] . '/posts/' . $arr[1]; 
+            $ret .= " data-story='" . $url . "'";
+          }
+            
+
+          $ret .= ">" . $val->name . "</option>";  
         }
       }
     

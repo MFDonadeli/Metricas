@@ -60,6 +60,7 @@
                         <div class='col-sm-5'>
                             <select class='form-control' name="anuncios" id="cmbanuncios">
                             </select>
+                            <div id='link_anuncio'></div>
                         </div>
                     </div>
                     <div class='form-group'>
@@ -277,6 +278,21 @@
         if(val!=-1)
         {
             $('#div_select_anuncios').show();
+            $('#numeros').hide();
+
+            $('#cmbanuncios').empty();
+            $('#cmbanuncios').append(retorno);
+        }
+        
+    });
+
+    $('#cmbanuncios').change(function(){
+        var story = $('#cmbanuncios').data('story');
+        var retorno = ajax_fill_combo(val, 'ads');
+
+        if(story!='')
+        {
+            $('#link_anuncio').html("<a href='https://facebook.com/" + story + "' target='_blank'>" + Anúncio com comentários + "</a>");
             $('#numeros').hide();
 
             $('#cmbanuncios').empty();
