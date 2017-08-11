@@ -16,8 +16,10 @@ log_message('debug',print_r($conta_sinc, true));
 
 foreach($contas as $conta)
 {
-    log_message('debug',"Age: " . $conta['age'] . " Name: " . $conta['name'] . " Array search: " . array_search($conta['name'],$conta_sinc) . 
-      " Comparaçao " . $conta['age'] > 0 && (array_search($conta['name'],$conta_sinc) == false) );
+    log_message('debug',"Age: " . $conta['age']);
+    log_message('debug',"Name: " . $conta['name']);
+    log_message('debug',"Array search: " . array_search($conta['name'],$conta_sinc)); 
+    log_message('debug',"Comparaçao " . $conta['age'] > 0 && (array_search($conta['name'],$conta_sinc) == false));
     
     if($conta['age'] > 0 && (array_search($conta['name'],$conta_sinc) == false))
     {
