@@ -288,7 +288,6 @@
 
     $('#cmbanuncios').change(function(){
         var story = $(this).find(':selected').data('story');
-        var retorno = ajax_fill_combo(val, 'ads');
 
         if(story!='')
         {
