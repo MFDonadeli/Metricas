@@ -73,6 +73,8 @@ class App extends CI_Controller {
     */
     public function get_contas()
     {
+      log_message('debug', 'get_contas');
+      
       $accounts = $this->facebook->request('get', 'me/adaccounts?fields=name,account_status,age&limit=1200',$this->usrtkn);
 
       log_message('debug',json_encode($accounts));
@@ -82,8 +84,6 @@ class App extends CI_Controller {
         
       $contas = $accounts['data'];
       $ret = '';
-
-      log_message('debug', 'get_contas');
 
       $userID = $this->session->userdata('facebook_id');
       $contas_user = $this->metricas->getContas($userID);
