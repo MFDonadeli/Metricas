@@ -60,8 +60,8 @@
                         <div class='col-sm-5'>
                             <select class='form-control' name="anuncios" id="cmbanuncios">
                             </select>
-                            <div id='link_anuncio'></div>
                         </div>
+                        <div id='link_anuncio'></div>
                     </div>
                     <div class='form-group'>
                         <label class='col-md-2 control-label' for='txtcomissao'>Comissão Padrão:</label>
