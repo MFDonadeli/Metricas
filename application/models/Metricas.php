@@ -83,7 +83,7 @@ class Metricas extends CI_Model{
         $this->db->join("ads","accounts.id = ads.account_id");
         
         //Traz somente os anúncios realmente ativos
-        $this->db->where("accounts.account_status = 1");
+        $this->db->where("accounts.account_status > 0");
 
         $this->db->where('accounts.facebook_id',$id);
 
@@ -114,6 +114,7 @@ class Metricas extends CI_Model{
         $this->db->select("accounts.name as account_name, accounts.id as account_id");
         $this->db->from("accounts");
         $this->db->where('accounts.facebook_id',$id);
+        $this->db->where('accounts.account_status > 0');
 
         $result = $this->db->get();
 
@@ -123,6 +124,24 @@ class Metricas extends CI_Model{
             return $result->result();  
         else
             return false;   
+    }
+
+    /**
+    * apaga_conta
+    *
+    * Elimina a conta das contas a serem sincronizadas e exibidas
+    *
+    * @param	id: Id da conta
+    * @return	-
+    */
+    public function apaga_conta($id){
+        log_message('debug', 'apaga_conta');
+
+        $this->db->set("account_status" , "0");
+        $this->db->where('id',$id);
+        $this->db->update("accounts");
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
     }
     
 

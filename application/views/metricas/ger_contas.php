@@ -54,6 +54,7 @@
 									<th data-class="expand"> Nome</th>
 									<th data-hide="phone"> Última atualização</th>
 									<th>Anúncios Ativos</th>
+									<th>Remover</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -65,6 +66,7 @@
                                 echo "<td>" . $conta->name . "</td>"; 
                                 echo "<td>" . $conta->updated_time . "</td>"; 
                                 echo "<td>" . $conta->anuncios_ativos . "</td>"; 
+								echo "<td><a class='btn btn-danger btn_remover' id='btn" . $conta->id . "' data-name='" . $conta->name . "' href='#'><i class='fa fa-remove'></i> Remover do Sistema</a>";
                             echo "</tr>";
                         }
                     ?>
@@ -251,7 +253,49 @@
 
         $( document ).ready(function() {
             $('#div_novas_contas').hide();
-        });
+		});
+		
+		$('.btn_remover').click(function(e)  {
+			var name = $(this).data('name');
+			var id_conta = $(this).attr('id');
+			var close_tr = $(this).closest('tr');
+
+			$.SmartMessageBox({
+				title : "Alerta!",
+				content : "Deseja realmente remover a conta " + name + " do sistema?",
+				buttons : '[No][Yes]'
+			}, function(ButtonPressed) {
+				if (ButtonPressed === "Yes") {
+					console.log(id_conta);
+					id_conta = id_conta.replace("btn","");
+
+					var form_data = { conta: id_conta };
+
+					$.ajax({
+						url: '<?php echo base_url(); ?>app/apaga_conta',
+						type: 'POST',
+						data: form_data,
+						global: false,
+						async: true,
+						success: function(msg) { 
+							close_tr.remove();
+							$.smallBox({
+								title : "Conta Excluída",
+								content : "Conta " + name + " excluída do sistema",
+								color : "#659265",
+								iconSmall : "fa fa-check fa-2x fadeInRight animated",
+								timeout : 3000
+							});
+						}
+					});
+				}
+				if (ButtonPressed === "No") {
+	
+				}
+	
+			});
+			e.preventDefault();
+		});
 
         $('#btn_adicionar').click(function(){
             $.ajax({

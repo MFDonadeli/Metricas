@@ -44,11 +44,61 @@
 </div>
 
 <script>
+    var id;
+    var plataforma;
+
     $('.btn_plataforma').click(function (){
-        var id = $(this).attr('href');
+        id = $(this).attr('href');
         id = id.replace("#tab","");
 
-        var plataforma = $(this).text();
+        plataforma = $(this).text();
+
+        reloadTable();
+    });
+
+
+    $(document).on('click', '.btnAssociar', function(e)  {
+        var dados = [];
+        var tipos = [];
+        var tr_arr = [];
+        $('.chkCartao').each(function(){
+            if($(this).is(':checked'))
+            {
+                dados.push($(this).attr('id'));
+                tipos.push($(this).data('tipo'));
+                tr_arr.push($(this).closest('tr'));
+            }
+        });
+
+        var form_data = { dados: dados,
+                          ad_id: $('#cmbCartao').val(),
+                          tipo: tipos,
+                          plataforma: $('#hidPlataforma').val() };
+
+        $.ajax({
+            url: '<?php echo base_url(); ?>app/grava_ad_venda',
+            type: 'POST',
+            data: form_data,
+            global: false,
+            async:true,
+            success: function(msg) { 
+
+                $.smallBox({
+                    title : "Vendas na Plataforma",
+                    content : "Vendas Associadas Com Sucesso",
+                    color : "#659265",
+                    iconSmall : "fa fa-check fa-2x fadeInRight animated",
+                    timeout : 3000
+                });
+
+                reloadTable();
+
+            }
+        }).responseText;
+    });
+
+    function reloadTable()
+    {
         $('#hidPlataforma').val(plataforma);
 
         var form_data = { id: id,
@@ -68,40 +118,7 @@
         $('#resposta'+plataforma).html(resp);
 
         setUpGrids();
-    });
-
-    function enviar_dado(dados, ad, tipo)
-    {
-        var form_data = { dados: dados,
-                          ad_id: ad,
-                          tipo: tipo,
-                          plataforma: $('#hidPlataforma').val() };
-
-        var resp = $.ajax({
-            url: '<?php echo base_url(); ?>app/grava_ad_venda',
-            type: 'POST',
-            data: form_data,
-            global: false,
-            async:false,
-            success: function(msg) { 
-                resp = msg; 
-            }
-        }).responseText;
     }
-
-    $(document).on('click', '#btnCartoes', function(e)  {
-        var dados = [];
-        var tipos = [];
-        $('.chkCartao').each(function(){
-            if($(this).is(':checked'))
-            {
-                dados.push($(this).attr('id'));
-                tipos.push($(this).data('tipo'));
-            }
-        });
-
-        enviar_dado(dados, $('#cmbCartao').val(), tipos);
-    });
 
     function setUpGrids()
     {

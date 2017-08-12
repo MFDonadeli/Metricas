@@ -704,10 +704,17 @@ class App extends CI_Controller {
       {
         $ret = $this->metricas->getProdutoComissao($pb[$i], $plataforma);
 
+        if($tipo[$i] == "Boleto Impresso")
+          $tp = "boletos_gerados";
+        else if($tipo[$i] == "Boleto Pagos")
+          $tp = "boletos_pagos";
+        else if($tipo[$i] == "Cartão")
+          $tp = "cartoes";
+
         $item['ad_id'] = $ad;
         $item['plataforma'] = $plataforma;
-        $item['id_plataforma'] = $id_plataforma;
-        $item[$tipo[$i]] = 1;
+        $item['id_plataforma'] = $pb[$i];
+        $item[$tp] = 1;
         $item['adset_id'] = $adset_id;
         $item['campaign_id'] = $campaign_id;
         $item['produto'] = $ret->produto;
@@ -1001,6 +1008,15 @@ class App extends CI_Controller {
 
       $this->load->view('metricas/ger_contas',$data);
 
+    }
+
+    public function apaga_conta()
+    {
+      if(isset($_POST['conta']))
+      {
+        $conta = $this->input->post('conta');
+        $this->metricas->apaga_conta($conta);
+      }
     }
 
     /**
