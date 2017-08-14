@@ -84,6 +84,7 @@ class App extends CI_Controller {
         
       $contas = $accounts['data'];
       $ret = '';
+      $conta_sinc = false;
 
       $userID = $this->session->userdata('facebook_id');
       $contas_user = $this->metricas->getContas($userID);

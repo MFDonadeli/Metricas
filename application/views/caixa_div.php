@@ -12,19 +12,20 @@ $arr_status = array(
 "202" => "FECHADA"
 );
 
-log_message('debug',print_r($conta_sinc, true));
-
 foreach($contas as $conta)
 {
-    if($conta['age'] > 0 && (array_search($conta['name'],$conta_sinc) === false))
+    if(isset($conta_sinc))
     {
-        $id = $conta['id'];
-        echo "<tr>";
-            echo "<td><input type='checkbox' name='chkBoletoGerado' class='chkContaNova' id='" . $id . "'></td>";
-            echo "<td>" . $conta['id'] . "</td>"; 
-            echo "<td>" . $conta['name'] . "</td>"; 
-            echo "<td>" . $arr_status[$conta['account_status']] . "</td>";
-        echo "</tr>";
+        if($conta['age'] > 0 && (array_search($conta['name'],$conta_sinc) === false))
+        {
+            $id = $conta['id'];
+            echo "<tr>";
+                echo "<td><input type='checkbox' name='chkBoletoGerado' class='chkContaNova' id='" . $id . "'></td>";
+                echo "<td>" . $conta['id'] . "</td>"; 
+                echo "<td>" . $conta['name'] . "</td>"; 
+                echo "<td>" . $arr_status[$conta['account_status']] . "</td>";
+            echo "</tr>";
+        }
     }
 }
 ?>
