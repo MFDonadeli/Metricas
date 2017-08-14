@@ -41,6 +41,9 @@
 
 					<!-- widget content -->
 					<div class="widget-body no-padding">
+						<?php
+						if($compras):
+						?>	
 						<table id="dt_cartao" class="table table-striped table-bordered table-hover" width="100%">
 							<thead>
 									<tr>
@@ -70,27 +73,20 @@
 									</tr>
 								</thead>
                                 <tbody>
-									<?php
-									if($compras)
-									{
-										foreach($compras as $compra)
-										{
-									?>
-											<tr>
-												<td><input type="checkbox" name='chkCartao' class="chkCartao" id="<?php echo $compra->id_plataforma ?>" data-tipo='<?php echo $compra->tipo; ?>'></td>
-												<td><?php echo $compra->data_compra; ?></td>
-												<td><?php echo $compra->data_confirmacao; ?></td>
-												<td><?php echo $compra->produto; ?></td>
-												<td style="word-break: break-all;"><?php echo $compra->src; ?></td>
-												<td><?php echo $compra->tipo; ?></td>
-											</tr>
-									<?php
-										}
-									}
-									else
-									{
-										echo "Sem vendas registradas";
-									}
+								<?php
+                                    foreach($compras as $compra)
+                                    {
+                                ?>
+                                        <tr>
+                                            <td><input type="checkbox" name='chkCartao' class="chkCartao" id="<?php echo $compra->id_plataforma ?>" data-tipo='<?php echo $compra->tipo; ?>'></td>
+                                            <td><?php echo $compra->data_compra; ?></td>
+                                            <td><?php echo $compra->data_confirmacao; ?></td>
+                                            <td><?php echo $compra->produto; ?></td>
+                                            <td style="word-break: break-all;"><?php echo $compra->src; ?></td>
+											<td><?php echo $compra->tipo; ?></td>
+                                        </tr>
+                                <?php
+                                    }
                                 ?>
                                 </tbody>
 						</table>
@@ -113,7 +109,13 @@
                                 ?>
                             </select>
                         </div>
-                        <button id='btnCartoes' class='btnAssociar btn btn-primary'>Salvar</button>
+						<button id='btnCartoes' class='btnAssociar btn btn-primary'>Salvar</button>
+						
+						<?php 
+						else:
+							echo "Sem Vendas na Plataforma";
+						endif;
+						?>
 
 					</div>
 					<!-- end widget content -->
