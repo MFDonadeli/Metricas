@@ -1162,6 +1162,8 @@ class Metricas extends CI_Model{
         $this->db->where("postback_hotmart.ad_status != 'OK'");
         $result = $this->db->get();
 
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
         if($result->num_rows() > 0) $ret['Hotmart'] = $result->row()->hottok;
 
         $this->db->select("postback_monetizze.chave_unica");
@@ -1173,7 +1175,11 @@ class Metricas extends CI_Model{
         $this->db->where("postback_monetizze.ad_status != 'OK'");
         $result = $this->db->get();
 
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
         if($result->num_rows() > 0) $ret['Monetizze'] = $result->row()->chave_unica;
+
+        log_message('debug', print_r($ret, true));
 
         return $ret;
     }
