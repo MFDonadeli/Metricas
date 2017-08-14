@@ -126,11 +126,6 @@
 
 					<!-- widget content -->
 					<div class="widget-body no-padding">
-                    <?php 
-                        if(!$contas):
-                            echo "<h2> Sem contas sincronizadas </h2";
-                        else:
-                    ?>
 						<table id="dt-novas-contas" class="table table-striped table-bordered table-hover" width="100%">
 							<thead>			                
 								<tr>
@@ -143,7 +138,6 @@
 							<tbody>
 							</tbody>
 						</table>
-                    <?php endif; ?>
 
 					</div>
 					<!-- end widget content -->

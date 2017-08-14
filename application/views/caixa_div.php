@@ -14,18 +14,19 @@ $arr_status = array(
 
 foreach($contas as $conta)
 {
-    if(isset($conta_sinc))
+    if($conta['age'] > 0)
     {
-        if($conta['age'] > 0 && (array_search($conta['name'],$conta_sinc) === false))
-        {
-            $id = $conta['id'];
-            echo "<tr>";
-                echo "<td><input type='checkbox' name='chkBoletoGerado' class='chkContaNova' id='" . $id . "'></td>";
-                echo "<td>" . $conta['id'] . "</td>"; 
-                echo "<td>" . $conta['name'] . "</td>"; 
-                echo "<td>" . $arr_status[$conta['account_status']] . "</td>";
-            echo "</tr>";
-        }
+        if($conta_sinc)
+            if(array_search($conta['name'],$conta_sinc) !== false)
+                continue;
+        
+        $id = $conta['id'];
+        echo "<tr>";
+            echo "<td><input type='checkbox' name='chkBoletoGerado' class='chkContaNova' id='" . $id . "'></td>";
+            echo "<td>" . $conta['id'] . "</td>"; 
+            echo "<td>" . $conta['name'] . "</td>"; 
+            echo "<td>" . $arr_status[$conta['account_status']] . "</td>";
+        echo "</tr>";
     }
 }
 ?>
