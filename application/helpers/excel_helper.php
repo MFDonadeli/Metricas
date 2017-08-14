@@ -17,6 +17,8 @@ define('START_ROW',1);
 */
 function generate_excel($dados, $excel, $sem_dado_venda, $comissao)
 {
+    $diasemana = array('Dom', 'Seg', 'Ter', 'Quar', 'Qui', 'Sex', 'Sáb');
+
     //Pega o caminho do template
     $file_name_old = FCPATH."template/Template.xlsx";
     //Novo nome do arquivo de template
@@ -134,6 +136,12 @@ function generate_excel($dados, $excel, $sem_dado_venda, $comissao)
                             $date_start = explode(" ", $dado->date_start)[0];
                             $date = DateTime::createFromFormat('Y-m-d', $date_start);
                             $dado->{$campo} = $date->format('d/M');
+                        }
+                        else if($campo == 'dia_da_semana')
+                        {
+                            $date_start = explode(" ", $dado->date_start)[0];
+                            $date = DateTime::createFromFormat('Y-m-d', $date_start);
+                            $dado->{$campo} = $diasemana[$date->format('w')];    
                         }
                         elseif(strpos($valor,'.') !== false)
                         {

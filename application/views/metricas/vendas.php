@@ -94,7 +94,7 @@
                 reloadTable();
 
             }
-        }).responseText;
+        });
     });
 
     function reloadTable()

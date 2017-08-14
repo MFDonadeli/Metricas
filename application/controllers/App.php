@@ -1128,18 +1128,15 @@ class App extends CI_Controller {
     public function get_activities()
     {
       
-      $profiles = $this->metricas->get_resync_to_do();
+      $profiles = $this->metricas->get_profiles();
 
       foreach($profiles as $profile)
       {
-        $tipos = array("campaign", "adset", "ad");
 
         //Get token de acesso ao Facebook
-        $usr = $this->metricas->getProfileToken($profile->id);
+        $usr = $this->metricas->getProfileToken($profile->facebook_id);
         $this->usrtkn = $usr->token;
         $this->fb_id =  $usr->facebook_id;
-
-        $usr = $this->metricas->getProfileToken($profile->id);
 
         //Busca os dados a serem sincronizados no Facebook
         $detalhes = $this->facebook->request('get',
@@ -1174,7 +1171,7 @@ class App extends CI_Controller {
 
           if($conta['age'] > '0')
           {
-            if(array_key_exists('funding_source_details'))
+            if(array_key_exists('funding_source_details', $conta))
             {
               $conta['funding_source_details_id'] = $conta['funding_source_details']['id'];
               $conta['funding_source_details_display_string'] = $conta['funding_source_details']['display_string'];
@@ -1185,7 +1182,7 @@ class App extends CI_Controller {
             $age = intval($conta['age']);
             $date = new DateTime();
             $date->modify('-' . $age . ' day');
-            $begin = $this->metricas->get_last_activity($contas['id']);
+            $begin = $this->metricas->get_last_activity($conta['account_id']);
 
             if(!$begin)
               $begin = $date->format('Y-m-d');
@@ -1196,17 +1193,97 @@ class App extends CI_Controller {
               $conta['id'].'/activities?fields=actor_id,actor_name,application_id,application_name,date_time_in_timezone,event_time,event_type,extra_data,object_id,object_name,translated_event_type&since=' . $begin . '&until=' . $now,
               $this->usrtkn);
 
-            $this->metricas->insert_activity($detalhes['data']);
+            $activities = $detalhes['data'];
 
-            $conta_add[] = $conta;
+            if(array_key_exists('paging', $detalhes))
+            {
+              if(array_key_exists('next', $detalhes['paging']))
+              {
+                $next = $detalhes['paging']['next'];
+                while($next != '')
+                {
+                  $retorno = $this->process_pagination($next);
+
+                  if(array_key_exists('next', $retorno['paging']))
+                    $next = $retorno['paging']['next'];
+                  else
+                    $next = '';
+
+                  $activities = array_merge($activities, $retorno['data']);
+                }
+              }
+            }
+
+            $this->metricas->insert_activity($activities, $conta['account_id'], $usr->facebook_id);
+
+            $this->metricas->insert_contas_info($conta);
           }
-          $this->metricas->insert_contas_info($conta_add);
+          
         }
       }
 
       
     ///act_815527071921444/activities?fields=actor_id,actor_name,application_id,application_name,date_time_in_timezone,event_time,event_type,extra_data,object_id,object_name,translated_event_type&since=2015-01-01&until=2017-08-09
     }
+
+    public function show_activities()
+    {
+      $profiles = $this->metricas->get_profiles();
+
+      $data['profiles'] = $profiles;
+
+      $this->load->view('show_activities',$data);  
+    }
+
+    public function get_accounts_info()
+    {
+      if(isset($_POST['profile']))
+      {
+        $profile = $this->input->post('profile');
+
+        $accounts = $this->metricas->get_accounts_info($profile);
+
+        $retorno = "<option value='-1'>Selecione</option>";
+        foreach($accounts as $conta)
+        {
+          $retorno .= "<option value='" . $conta->account_id . "'>" . $conta->account_name . "</option>";
+        }
+      }
+    }
+
+    public function show_conta_activities()
+    {
+      if(isset($_POST['account']))
+      {
+        $account = $this->input->post('account');
+        $activities = $this->metricas->show_conta_activities(); 
+
+        $retorno = "<table>";
+
+        foreach($activies as $activity)
+        {
+          $data = explode(" at ", $activity->date_time_in_timezone);
+
+          if(!isset($intervalos))
+          {
+            $date = DateTime::createFromFormat('m/d/Y', $data[0]);
+            $hoje = new DateTime( );
+
+            $interval = DateInterval::createFromDateString('1 day');
+            $intervalos = new DatePeriod($date, $interval, $hoje);  
+          }
+
+
+foreach ( $period as $dt )
+  echo $dt->format( "m/d/Y" ) . "<br>";
+
+          
+        } 
+
+        
+      }
+    }
+    
 
 }
 

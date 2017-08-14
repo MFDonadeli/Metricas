@@ -1243,7 +1243,7 @@ class Metricas extends CI_Model{
 
         //$retorno['boleto_pago'] = $result->result();
 
-        $sql = "SELECT * FROM (" . $query1 . " union " . $query2 . " union " . $query3 . ") a order by data_compra";
+        $sql = "SELECT * FROM (" . $query1 . " union " . $query2 . " union " . $query3 . ") a order by data_compra desc";
 
         $result = $this->db->query($sql);
 
@@ -1318,7 +1318,7 @@ WHERE venda_status = 'Finalizada' and venda_forma_pagamento = 'Boleto')";
 
         //$retorno['boleto_pago'] = $result->result();
 
-        $sql = "SELECT * FROM (" . $query1 . " union " . $query2 . " union " . $query3 . ") a order by data_compra";
+        $sql = "SELECT * FROM (" . $query1 . " union " . $query2 . " union " . $query3 . ") a order by data_compra desc";
 
         $result = $this->db->query($sql);
 
@@ -1709,14 +1709,15 @@ campaigns.name as campanha, accounts.name as conta");
 
     public function get_last_activity($id)
     {
-        $this->db->select('max(event_time)');
+        $this->db->select('max(event_time) as event_time');
         $this->db->from('accounts_activities');
         $this->db->where('account_id',$id);
         $result = $this->db->get();
 
-        if($result->num_rows() > 0)
+        $row = $result->row();
+
+        if($row->event_time != null)
         {
-            $row = $result->row();
             $data = explode('T',$row->event_time);
 
             return $data;
@@ -1742,6 +1743,28 @@ campaigns.name as campanha, accounts.name as conta");
         }
 
         
+    }
+
+    public function insert_activity($array, $conta, $fb_id)
+    {
+        log_message('debug', 'insert_activity'); 
+
+        foreach($array as $arr_insert)
+        {
+            $arr_insert['account_id'] = $conta;
+            $arr_insert['facebook_id'] = $fb_id;
+
+            $this->db->insert('accounts_activities', $arr_insert);
+        }
+
+    }
+
+    public function insert_contas_info($array)
+    {
+        log_message('debug', 'insert_contas_info'); 
+        
+        $this->db->insert('accounts_info', $array);
+
     }
 
     
