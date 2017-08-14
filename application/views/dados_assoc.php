@@ -113,7 +113,7 @@
 						
 						<?php 
 						else:
-							echo "Sem Vendas na Plataforma";
+							echo "<h2>Sem Vendas na Plataforma</h2>";
 						endif;
 						?>
 

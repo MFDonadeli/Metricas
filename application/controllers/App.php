@@ -561,6 +561,7 @@ class App extends CI_Controller {
             }
           }
 
+          $dados->dia_da_semana = '';
           $retorno[] = $dados;
         }
 
