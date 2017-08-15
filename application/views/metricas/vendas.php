@@ -32,7 +32,6 @@
                 }
             ?>
         </ul>
-        <?php endif; ?>
 
         <?php
             foreach($plataformas as $key => $val)
@@ -46,6 +45,7 @@
         <?php
             }
         ?>
+        <?php endif; ?>
     </div>
 </div>
 
