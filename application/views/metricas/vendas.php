@@ -14,6 +14,11 @@
     <input type="hidden" id="hidPlataforma">
 
     <div id="tabs">
+        <?php
+        if(!$plataformas):
+            echo "<h1>Sem postbacks configurados. Configure os postbacks em Configurações -> Gerenciar Postbacks</h1>";
+        else:
+        ?>
         <ul>
             
             <?php
@@ -27,6 +32,7 @@
                 }
             ?>
         </ul>
+        <?php endif; ?>
 
         <?php
             foreach($plataformas as $key => $val)
