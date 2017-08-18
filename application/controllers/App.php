@@ -1243,13 +1243,17 @@ class App extends CI_Controller {
       {
         $profile = $this->input->post('profile');
 
+        
+
         $accounts = $this->metricas->get_accounts_info($profile);
 
         $retorno = "<option value='-1'>Selecione</option>";
         foreach($accounts as $conta)
         {
-          $retorno .= "<option value='" . $conta->account_id . "'>" . $conta->account_name . "</option>";
+          $retorno .= "<option value='" . $conta->id . "'>" . $conta->name . "</option>";
         }
+
+        echo $retorno;
       }
     }
 
@@ -1258,26 +1262,48 @@ class App extends CI_Controller {
       if(isset($_POST['account']))
       {
         $account = $this->input->post('account');
-        $activities = $this->metricas->show_conta_activities(); 
+        $account = str_replace("act_","",$account);
+        $activities = $this->metricas->show_conta_activities($account); 
 
         $retorno = "<table>";
 
-        foreach($activies as $activity)
+        foreach($activities as $activity)
         {
           $data = explode(" at ", $activity->date_time_in_timezone);
 
           if(!isset($intervalos))
           {
+            $i = 0;
             $date = DateTime::createFromFormat('m/d/Y', $data[0]);
             $hoje = new DateTime( );
 
             $interval = DateInterval::createFromDateString('1 day');
             $intervalos = new DatePeriod($date, $interval, $hoje);  
+
+            foreach($intervalos as $dt)
+            {
+              $periodo[] = $dt->format('m/d/Y');
+            }
+
+            echo "<h2>" . $data[0] . "</h2>";
           }
 
+          if($data[0] == $periodo[$i])
+          {
+            echo "<strong> " . $activity->translated_event_type . " </strong><i> Objeto: " . 
+              $activity->object_id . "</i> Dados: " . $activity->extra_data . "<br>";
+          }
+          else
+          {
+            while($data[0] != $periodo[$i])
+            {
+              $i++;
+              echo "<h2>" . $periodo[$i] . "</h2>";
+            }
+            
+          }
 
-foreach ( $period as $dt )
-  echo $dt->format( "m/d/Y" ) . "<br>";
+          
 
           
         } 

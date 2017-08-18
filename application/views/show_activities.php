@@ -31,7 +31,7 @@
             global: false,
             async:true,
             success: function(msg) { 
-
+               $('#cmbcontas').empty();
                $('#cmbcontas').append(msg);
 
             }

@@ -1666,7 +1666,7 @@ campaigns.name as campanha, accounts.name as conta");
         } 
         else
         {
-            $this->db->insert('profiles', $arr_data);   
+            $this->db->insert('config', $arr_data);   
         }
 
 
@@ -1708,7 +1708,8 @@ campaigns.name as campanha, accounts.name as conta");
         $result = $this->db->query("SELECT profiles.facebook_id as id
         FROM config
         JOIN profiles ON config.user_id = profiles.user_id
-        WHERE NOW() > DATE_ADD(config.last_update, INTERVAL config.sync_time HOUR)");
+        WHERE NOW() > DATE_ADD(config.last_update, INTERVAL config.sync_time HOUR)
+                OR config.last_update is NULL");
  
         return $result->result();
     }
@@ -1746,9 +1747,7 @@ campaigns.name as campanha, accounts.name as conta");
             $this->db->where('profile_id', $id);
             $ret = $this->db->get('profiles');
             return $ret->row();
-        }
-
-        
+        }   
     }
 
     public function insert_activity($array, $conta, $fb_id)
@@ -1770,7 +1769,27 @@ campaigns.name as campanha, accounts.name as conta");
         log_message('debug', 'insert_contas_info'); 
         
         $this->db->insert('accounts_info', $array);
+    }
 
+    public function get_accounts_info($user_id)
+    {
+        log_message('debug', 'get_accounts_info'); 
+
+        $user_id = $this->getuserid($user_id);   
+
+        $this->db->where('facebook_id', $user_id);
+        $ret = $this->db->get('accounts_info');
+        return $ret->result();   
+    }
+
+    public function show_conta_activities($account)
+    {
+        log_message('debug', 'show_conta_activities');  
+
+        $this->db->where('account_id', $account);
+        $this->db->order_by('event_time');
+        $ret = $this->db->get('accounts_activities');
+        return $ret->result();     
     }
 
     
