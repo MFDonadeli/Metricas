@@ -795,15 +795,32 @@ class App extends CI_Controller {
             {
               // Preparing data for database insertion
               $userData['oauth_provider'] = 'facebook';
-              $userData['oauth_uid'] = $userProfile['id'];
-              $userData['facebook_id'] = $userProfile['id'];
-              $userData['first_name'] = $userProfile['first_name'];
-              $userData['last_name'] = $userProfile['last_name'];
-              $userData['email'] = $userProfile['email'];
-              $userData['gender'] = $userProfile['gender'];
-              $userData['locale'] = $userProfile['locale'];
+              if(array_key_exists('id', $userProfile))
+              {
+                $userData['oauth_uid'] = $userProfile['id'];
+                $userData['facebook_id'] = $userProfile['id'];
+              }
+                
+              if(array_key_exists('first_name', $userProfile))  
+                $userData['first_name'] = $userProfile['first_name'];
+
+              if(array_key_exists('last_name', $userProfile))  
+                $userData['last_name'] = $userProfile['last_name'];
+
+              if(array_key_exists('email', $userProfile))  
+                $userData['email'] = $userProfile['email'];
+
+              if(array_key_exists('gender', $userProfile))  
+                $userData['gender'] = $userProfile['gender'];
+
+              if(array_key_exists('locale', $userProfile))  
+                $userData['locale'] = $userProfile['locale'];
+
               $userData['logged_in'] = true;
-              $userData['picture'] = $userProfile['picture']['data']['url'];
+
+              if(array_key_exists('picture', $userProfile))
+                $userData['picture'] = $userProfile['picture']['data']['url'];
+              
               $userData['token'] = $this->session->userdata('fb_access_token');
               $userData['token_expiration'] = $this->session->userdata('fb_expire');
 
