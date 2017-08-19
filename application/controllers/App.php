@@ -1131,14 +1131,21 @@ class App extends CI_Controller {
 
       $ret = "";
 
-      foreach($results as $row)
+      if(!$results)
       {
-        $ret .= "<tr>";
-        $ret .= "<td><input type='checkbox' name='checkbox-inline' class='chkToken' id='" . $row->platform_user_id . "'></td>";
-        $ret .= "<td>" . $row->plataforma . "</td>";
-        $ret .= "<td>" . $row->token . "</td>";
-        $ret .= "<td>" . $row->created_time . "</td>";
-        $ret .= "</tr>";
+        $ret = "Sem PostBacks Cadastrados";
+      }
+      else
+      {
+        foreach($results as $row)
+        {
+          $ret .= "<tr>";
+          $ret .= "<td><input type='checkbox' name='checkbox-inline' class='chkToken' id='" . $row->platform_user_id . "'></td>";
+          $ret .= "<td>" . $row->plataforma . "</td>";
+          $ret .= "<td>" . $row->token . "</td>";
+          $ret .= "<td>" . $row->created_time . "</td>";
+          $ret .= "</tr>";
+        }
       }
 
       echo $ret; 
@@ -1260,8 +1267,6 @@ class App extends CI_Controller {
       {
         $profile = $this->input->post('profile');
 
-        
-
         $accounts = $this->metricas->get_accounts_info($profile);
 
         $retorno = "<option value='-1'>Selecione</option>";
@@ -1284,48 +1289,49 @@ class App extends CI_Controller {
 
         $retorno = "<table>";
 
-        foreach($activities as $activity)
+        $data = explode(" at ", $activities[0]->date_time_in_timezone);
+
+        if(!isset($intervalos))
         {
-          $data = explode(" at ", $activity->date_time_in_timezone);
+          $date = DateTime::createFromFormat('m/d/Y', $data[0]);
+          $hoje = new DateTime( );
 
-          if(!isset($intervalos))
+          $interval = DateInterval::createFromDateString('1 day');
+          $intervalos = new DatePeriod($date, $interval, $hoje);  
+
+          foreach($intervalos as $dt)
           {
-            $i = 0;
-            $date = DateTime::createFromFormat('m/d/Y', $data[0]);
-            $hoje = new DateTime( );
+            $periodo[] = $dt->format('m/d/Y');
+          }
 
-            $interval = DateInterval::createFromDateString('1 day');
-            $intervalos = new DatePeriod($date, $interval, $hoje);  
+        }
 
-            foreach($intervalos as $dt)
+        $i = 0;
+        foreach($periodo as $data)
+        {
+          $data_activity = explode(" at ", $activities[$i]->date_time_in_timezone);
+          while($data == $data_activity[0])
+          {
+            if($activities[$i]->tipo == 'campanha')
             {
-              $periodo[] = $dt->format('m/d/Y');
+              $array_activity[$data][$activities[$i]->id][$activities[$i]->event_type] = $activities[$i]->extra_data;
+            }
+            else if($activities[$i]->tipo == 'conjunto')
+            {
+              $array_activity[$data][$activities[$i]->campanha_id][$activities[$i]->id][$activities[$i]->event_type] = $activities[$i]->extra_data;
+            }
+            else if($activities[$i]->tipo == 'anuncio')
+            {
+              $array_activity[$data][$activities[$i]->campanha_id][$activities[$i]->conjunto_id][$activities[$i]->id][$activities[$i]->event_type] = $activities[$i]->extra_data;
             }
 
-            echo "<h2>" . $data[0] . "</h2>";
+            $i++;
+            if($i < count($activities))
+              $data_activity = explode(" at ", $activities[$i]->date_time_in_timezone);
           }
+        }
 
-          if($data[0] == $periodo[$i])
-          {
-            echo "<strong> " . $activity->translated_event_type . " </strong><i> Objeto: " . 
-              $activity->object_id . "</i> Dados: " . $activity->extra_data . "<br>";
-          }
-          else
-          {
-            while($data[0] != $periodo[$i])
-            {
-              $i++;
-              echo "<h2>" . $periodo[$i] . "</h2>";
-            }
-            
-          }
-
-          
-
-          
-        } 
-
-        
+        $retorno = '';
       }
     }
     
