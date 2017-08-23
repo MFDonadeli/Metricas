@@ -864,6 +864,29 @@ class Metricas extends CI_Model{
     }
 
     /**
+    * getuserid
+    *
+    * Traz o id do facebook através do id do usuario
+    *
+    * @param	user_id: Id do Usuário
+    * @return	(string): Id do facebook
+    */
+    function getfbid($user_id)
+    {
+        log_message('debug', 'getuserid. Id:');
+
+        $this->db->select("facebook_id");
+        $this->db->from("profiles");
+        $this->db->where("user_id", $user_id);
+
+        $result = $this->db->get();
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        return $result->row()->facebook_id;
+    }
+
+    /**
     * getAdSetFromAd
     *
     * Traz o AdSet do Ad
@@ -1727,7 +1750,13 @@ campaigns.name as campanha, accounts.name as conta");
         {
             $data = explode('T',$row->event_time);
 
-            return $data;
+            $this->db->like('event_time', $data[0], 'both');
+            $this->db->where('account_id',$id);
+            $this->db->delete('accounts_activities');
+
+            log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+            return $data[0];
         }
         else
             return false;
@@ -1759,7 +1788,12 @@ campaigns.name as campanha, accounts.name as conta");
             $arr_insert['account_id'] = $conta;
             $arr_insert['facebook_id'] = $fb_id;
 
-            $this->db->insert('accounts_activities', $arr_insert);
+            $ret = $this->db->insert('accounts_activities', $arr_insert);
+
+            if(!$ret)
+            {
+                log_message('debug', 'Erro na query: ' . $this->db->last_query());
+            }
         }
 
     }
@@ -1767,18 +1801,40 @@ campaigns.name as campanha, accounts.name as conta");
     public function insert_contas_info($array)
     {
         log_message('debug', 'insert_contas_info'); 
-        
-        $this->db->insert('accounts_info', $array);
+
+        $this->db->where('id', $array['id']);
+        $result = $this->db->get('accounts_info');
+
+        if($result->num_rows() == 0)
+        {
+            $ret = $this->db->insert('accounts_info', $array); 
+
+            if(!$ret)
+                log_message('debug', 'Erro: ' . $this->db->error()->message);   
+        }
+        else
+        {
+            $this->db->where('id', $array['id']);
+            $ret = $this->db->update('accounts_info', $array);   
+
+            if(!$ret)
+                log_message('debug', 'Erro: ' . $this->db->error()->message);  
+        }
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
     }
 
     public function get_accounts_info($user_id)
     {
         log_message('debug', 'get_accounts_info'); 
 
-        $user_id = $this->getuserid($user_id);   
+        $face_id = $this->getfbid($user_id);   
 
-        $this->db->where('facebook_id', $user_id);
+        $this->db->where('facebook_id', $face_id);
         $ret = $this->db->get('accounts_info');
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
         return $ret->result();   
     }
 
@@ -1786,10 +1842,75 @@ campaigns.name as campanha, accounts.name as conta");
     {
         log_message('debug', 'show_conta_activities');  
 
+        /*
         $this->db->where('account_id', $account);
         $this->db->order_by('event_time');
         $ret = $this->db->get('accounts_activities');
-        return $ret->result();     
+        return $ret->result(); */
+
+        $this->db->select("ads.id, ads.name, ads.created_time, ads.updated_time, accounts_activities.event_time,
+ accounts_activities.event_type, accounts_activities.extra_data, 'anuncio' as tipo, accounts_activities.date_time_in_timezone,
+ ads.campaign_id as campanha_id, ads.adset_id as conjunto_id, id as anuncio_id, 3 as id_tipo");
+        $this->db->from("ads");
+        $this->db->join("accounts_activities", "ads.id = accounts_activities.object_id");
+        $this->db->where("ads.account_id", $account);
+
+        $query1 = $this->db->get_compiled_select();
+
+        $this->db->select("adsets.id, adsets.name, adsets.created_time, adsets.updated_time, accounts_activities.event_time,
+ accounts_activities.event_type, accounts_activities.extra_data, 'conjunto' as tipo, accounts_activities.date_time_in_timezone,
+ adsets.campaign_id as campanha_id, adsets.id as conjunto_id, '' as anuncio_id, 2 as id_tipo");
+        $this->db->from("adsets");
+        $this->db->join("accounts_activities", "adsets.id = accounts_activities.object_id");
+        $this->db->where("adsets.account_id", $account);
+
+        $query2 = $this->db->get_compiled_select();
+
+        $this->db->select("campaigns.id, campaigns.name, campaigns.created_time, campaigns.updated_time, accounts_activities.event_time,
+ accounts_activities.event_type, accounts_activities.extra_data, 'campanha' as tipo, accounts_activities.date_time_in_timezone,
+ id as campanha_id, '' as conjunto_id, '' as anuncio_id, 1 as id_tipo");
+        $this->db->from("campaigns");
+        $this->db->join("accounts_activities", "campaigns.id = accounts_activities.object_id");
+        $this->db->where("campaigns.account_id", $account);
+        
+        $query3 = $this->db->get_compiled_select();
+
+        $sql = "SELECT * FROM (" . $query1 . " union " . $query2 . " union " . $query3 . ") a order by event_time, id_tipo";
+
+        $ret = $this->db->query($sql);
+
+        return $ret->result();
+   
+    }
+
+    public function get_ad_data_preview($ad_id)
+    {
+        $this->db->select("ad_creatives.body, ad_creatives.object_story_spec_link_data_message,
+		ad_creatives.image_url, ad_creatives.title, ad_creatives.object_story_spec_link_data_name,
+        ad_creatives.object_story_spec_link_data_description, ad_creatives.call_to_action_type,
+		ad_creatives.object_story_spec_link_data_link, ad_creatives.url_tags, ad_creatives.effective_object_story_id,
+        adsets.attribution_spec_window_days, adsets.optimization_goal, adsets.promoted_object_custom_event_type,
+        ad_insights.cost_per_inline_link_click as cpc, ad_insights.inline_link_click_ctr as ctr,
+        ad_insights.cpm, ad_insights.relevance_score_score, ad_insights.spend, ad_insights.impressions,
+        ad_insights.clicks, max(accounts_activities.event_time) as ultima, min(accounts_activities.event_time) as primeira,
+        adset_targeting.age_max, adset_targeting.age_min, adset_targeting.device_platforms,
+		adset_targeting.publisher_platforms, adset_targeting.genders,
+        custom_audiences, excluded_custom_audiences, geo_locations, excluded_geo_locations,
+		facebook_positions, exclusions, interests, flexible_spec_interests, behaviors, flexible_spec_behaviors");
+
+        $this->db->from("ads"); 
+        $this->db->join("adsets", "ads.adset_id = adsets.id");
+        $this->db->join("adset_targeting", "adset_targeting.adset_id = adsets.id");
+        $this->db->join("ad_insights", "ads.id = ad_insights.ad_id", "left");
+        $this->db->join("ad_creatives", "ads.id = ad_creatives.ad_id");
+        $this->db->join("accounts_activities", "ads.id = accounts_activities.object_id");
+
+        $this->db->where("ads.id",$ad_id);
+
+        $ret = $this->db->get();
+
+        return $ret->row();
+ 
     }
 
     

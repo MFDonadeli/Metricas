@@ -204,6 +204,64 @@
     <!-- end row -->
 </div>
 <!-- end numeros -->
+
+<div id='grafico'>
+    <!-- row -->
+    <div class="row">
+
+        <!-- a blank row to get started -->
+        <div class="col-sm-12">
+        
+            <!-- your contents here -->
+            <!-- Widget ID (each widget will need unique ID)-->
+                <div class="jarviswidget" id="wid-id-2" data-widget-editbutton="false" data-widget-colorbutton="false">
+                    <!-- widget options:
+                        usage: <div class="jarviswidget" id="wid-id-0" data-widget-editbutton="false">
+                        
+                        data-widget-colorbutton="false"	
+                        data-widget-editbutton="false"
+                        data-widget-togglebutton="false"
+                        data-widget-deletebutton="false"
+                        data-widget-fullscreenbutton="false"
+                        data-widget-custombutton="false"
+                        data-widget-collapsed="true" 
+                        data-widget-sortable="false"
+                        
+                    -->
+                    <header>
+                        <span class="widget-icon"> <i class="fa fa-arrows-v"></i> </span>
+                        <h2 class="font-md"><strong>Métricas</strong></h2>				
+                    </header>
+
+                    <!-- widget div-->
+                    <div>
+                        
+                        <!-- widget edit box -->
+                        <div class="jarviswidget-editbox">
+                            <!-- This area used as dropdown edit box -->
+
+                        </div>
+                        <!-- end widget edit box -->
+                        
+                        <!-- widget content -->
+                        <div class="widget-body">
+                            <canvas id="lineChart" height="120"></canvas>     
+                        </div>
+                        <!-- end widget content -->
+                        
+                    </div>
+                    <!-- end widget div -->
+                    
+                </div>
+                <!-- end widget -->
+        </div>
+        <!-- end col-sm-12 -->
+            
+    </div>
+    <!-- end row -->
+</div>
+<!-- end grafico -->
+
 </section>
 
 <script>
@@ -455,14 +513,94 @@
 	 */
 	
 	// pagefunction
-	
-	var pagefunction = function() {
-		// clears the variable if left blank
-	};
+
+    var LineConfig;
 	
 	// end pagefunction
 	
 	// run pagefunction
-	pagefunction();
+	var pagefunction = function(){
+        LineConfig = {
+		            type: 'line',
+		            data: {
+		                labels: ["January", "February", "March", "April", "May", "June", "July"],
+		                datasets: [{
+		                    label: "My First dataset",
+		                    data: [randomScalingFactor(), randomScalingFactor(), randomScalingFactor(), randomScalingFactor(), randomScalingFactor(), randomScalingFactor(), randomScalingFactor()],
+		                    
+		                }, {
+		                    label: "My Second dataset",
+		                    data: [randomScalingFactor(), randomScalingFactor(), randomScalingFactor(), randomScalingFactor(), randomScalingFactor(), randomScalingFactor(), randomScalingFactor()],
+		                }]
+		            },
+		            options: {
+		                responsive: true,
+		                tooltips: {
+		                    mode: 'label'
+		                },
+		                hover: {
+		                    mode: 'dataset'
+		                },
+		                scales: {
+		                    xAxes: [{
+		                        display: true,
+		                        scaleLabel: {
+		                            show: true,
+		                            labelString: 'Month'
+		                        }
+		                    }],
+		                    yAxes: [{
+		                        display: true,
+		                        scaleLabel: {
+		                            show: true,
+		                            labelString: 'Value'
+		                        },
+		                        ticks: {
+		                            suggestedMin: 0,
+		                            suggestedMax: 100,
+		                        }
+		                    }]
+		                }
+		            }
+		        };
+		        $.each(LineConfig.data.datasets, function(i, dataset) {
+		            dataset.borderColor = 'rgba(0,0,0,0.15)';
+		            dataset.backgroundColor = randomColor(0.5);
+		            dataset.pointBorderColor = 'rgba(0,0,0,0.15)';
+		            dataset.pointBackgroundColor = randomColor(0.5);
+		            dataset.pointBorderWidth = 1;
+		        });
+
+        myLine = new Chart(document.getElementById("lineChart"), LineConfig);
+    }
+
+    var pagedestroy = function(){
+		
+		//destroy all charts
+    	myLine.destroy();
+		LineConfig=null;
+
+    	myBar.destroy();
+    	barChartData=null;
+
+    	myRadar.destroy();
+    	RadarConfig=null;
+
+    	myDoughnut.destroy();
+    	DoughtnutConfig=null;
+
+    	myPolarArea.destroy();
+    	PolarConfig=null;
+
+    	myPie.destroy();
+    	PieConfig=null;
+
+    	if (debugState){
+			root.console.log("✔ Chart.js charts destroyed");
+		} 
+	}
+
+
+    loadScript("js/plugin/chartjs/chart.min.js", pagefunction);
 	
 </script>

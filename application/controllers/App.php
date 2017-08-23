@@ -1133,7 +1133,7 @@ class App extends CI_Controller {
 
       if(!$results)
       {
-        $ret = "Sem PostBacks Cadastrados";
+        $ret = "<h2>Sem PostBacks Cadastrados</h2>";
       }
       else
       {
@@ -1164,8 +1164,10 @@ class App extends CI_Controller {
         $this->usrtkn = $usr->token;
         $this->fb_id =  $usr->facebook_id;
 
+        $contas_bd = $this->metricas->getContas($this->fb_id);
+
         //Busca os dados a serem sincronizados no Facebook
-        $detalhes = $this->facebook->request('get',
+        /*$detalhes = $this->facebook->request('get',
           'me/adaccounts?fields=account_id,account_status,age,amount_spent,balance,business_city,business_country_code,business_name,business_state,business_street,business_street2,business_zip,can_create_brand_lift_study,created_time,currency,disable_reason,funding_source,funding_source_details,has_migrated_permissions,id,is_attribution_spec_system_default,is_direct_deals_enabled,is_notifications_enabled,is_personal,is_prepay_account,is_tax_id_required,min_campaign_group_spend_cap,min_daily_budget,name,offsite_pixels_tos_accepted,owner,spend_cap,tax_id,tax_id_status,tax_id_type,timezone_id,timezone_name,timezone_offset_hours_utc,user_role',
           $this->usrtkn);
 
@@ -1189,11 +1191,23 @@ class App extends CI_Controller {
 
             $contas = array_merge($contas, $retorno['data']);
           }
-        }
+        }*/
 
-        foreach($contas as $conta)
+      if($contas_bd)
+      {
+        foreach($contas_bd as $conta_user)
         {
           $conta_add = null;
+
+          $detalhes = $this->facebook->request('get', 'act_' . $conta_user->account_id . 
+          '?fields=account_id,account_status,age,amount_spent,balance,business_city,business_country_code,business_name,business_state,business_street,business_street2,business_zip,can_create_brand_lift_study,created_time,currency,disable_reason,funding_source,funding_source_details,has_migrated_permissions,id,is_attribution_spec_system_default,is_direct_deals_enabled,is_notifications_enabled,is_personal,is_prepay_account,is_tax_id_required,min_campaign_group_spend_cap,min_daily_budget,name,offsite_pixels_tos_accepted,owner,spend_cap,tax_id,tax_id_status,tax_id_type,timezone_id,timezone_name,timezone_offset_hours_utc,user_role',
+          $this->usrtkn);
+
+          if(isset($detalhes['error']))
+            die('Erro. Tente novamete');
+
+          $conta = $detalhes;
+          $conta['facebook_id'] = $this->fb_id;
 
           if($conta['age'] > '0')
           {
@@ -1205,47 +1219,97 @@ class App extends CI_Controller {
               unset($conta['funding_source_details']);
             }
 
-            $age = intval($conta['age']);
-            $date = new DateTime();
-            $date->modify('-' . $age . ' day');
+            $date = explode("T", $conta['created_time']);
             $begin = $this->metricas->get_last_activity($conta['account_id']);
 
             if(!$begin)
-              $begin = $date->format('Y-m-d');
+              $begin = $date[0];
 
-            $now = date("Y-m-d");
+
+            $now = date('Y-m-d',strtotime($begin . "+60 days"));
+            $today = date('Y-m-d');
+
+            if($now > $today)
+              $now = $today;
+
+            if($begin > $today)
+              $begin = $today;
+
+            //$now = date("Y-m-d");
             //Busca os dados a serem sincronizados no Facebook
             $detalhes = $this->facebook->request('get',
-              $conta['id'].'/activities?fields=actor_id,actor_name,application_id,application_name,date_time_in_timezone,event_time,event_type,extra_data,object_id,object_name,translated_event_type&since=' . $begin . '&until=' . $now,
+              $conta['id'].'/activities?fields=actor_id,actor_name,application_id,application_name,date_time_in_timezone,event_time,event_type,extra_data,object_id,object_name,translated_event_type&since=' . $begin . '&until=' . $now . '&limit=1000',
               $this->usrtkn);
 
-            $activities = $detalhes['data'];
+            $activities = false;
 
-            if(array_key_exists('paging', $detalhes))
+
+            if(!isset($detalhes['error']))
             {
-              if(array_key_exists('next', $detalhes['paging']))
+              $k = 30;
+              while(array_key_exists('paging', $detalhes))
               {
-                $next = $detalhes['paging']['next'];
-                while($next != '')
+                $now = date('Y-m-d',strtotime($begin . "+" . (int)$k . " days")); 
+                $detalhes = $this->facebook->request('get',
+                  $conta['id'].'/activities?fields=actor_id,actor_name,application_id,application_name,date_time_in_timezone,event_time,event_type,extra_data,object_id,object_name,translated_event_type&since=' . $begin . '&until=' . $now . '&limit=1000',
+                  $this->usrtkn); 
+                $k /= 2;
+              }  
+            }
+
+            if(!isset($detalhes['error']))
+            {
+
+              $activities = $detalhes['data'];
+
+              if(array_key_exists('paging', $detalhes))
+              {
+                if(array_key_exists('next', $detalhes['paging']))
                 {
-                  $retorno = $this->process_pagination($next);
+                  $next = $detalhes['paging']['next'];
+                  while($next != '')
+                  {
+                    log_message('debug', "Quantos: " . count($activities)); 
 
-                  if(array_key_exists('next', $retorno['paging']))
-                    $next = $retorno['paging']['next'];
-                  else
-                    $next = '';
+                    $retorno = $this->process_pagination($next);
 
-                  $activities = array_merge($activities, $retorno['data']);
+                    if($retorno)
+                    {
+                      if(array_key_exists('paging', $retorno))
+                      {
+                        if(array_key_exists('next', $retorno['paging']))
+                          $next = $retorno['paging']['next'];
+                        else
+                          $next = '';
+                      }
+                    }
+
+                    $activities = array_merge($activities, $retorno['data']);
+                  }
                 }
               }
             }
+            else
+            {
+                log_message('debug', 'Erro: ' . $detalhes['error']);
+            }
 
-            $this->metricas->insert_activity($activities, $conta['account_id'], $usr->facebook_id);
-
-            $this->metricas->insert_contas_info($conta);
+            if($activities)
+            {
+              $activities[] = array("event_type" => "controle", "event_time" => $now."T00:00:00");
+              $this->metricas->insert_activity($activities, $conta['account_id'], $usr->facebook_id);
+              $this->metricas->insert_contas_info($conta);
+            }
+            else
+            {
+              $activities[] = array("event_type" => "controle", "event_time" => $now."T00:00:00");
+              $this->metricas->insert_activity($activities, $conta['account_id'], $usr->facebook_id);
+            }
+            
           }
           
         }
+      }
       }
 
       
@@ -1287,7 +1351,8 @@ class App extends CI_Controller {
         $account = str_replace("act_","",$account);
         $activities = $this->metricas->show_conta_activities($account); 
 
-        $retorno = "<table>";
+        if(count($activities) == 0)
+          die("Sem atividades registradas");
 
         $data = explode(" at ", $activities[0]->date_time_in_timezone);
 
@@ -1307,31 +1372,195 @@ class App extends CI_Controller {
         }
 
         $i = 0;
+        $retorno = "<table class='table'>";
         foreach($periodo as $data)
         {
-          $data_activity = explode(" at ", $activities[$i]->date_time_in_timezone);
-          while($data == $data_activity[0])
+          if($i < count($activities))
           {
-            if($activities[$i]->tipo == 'campanha')
-            {
-              $array_activity[$data][$activities[$i]->id][$activities[$i]->event_type] = $activities[$i]->extra_data;
-            }
-            else if($activities[$i]->tipo == 'conjunto')
-            {
-              $array_activity[$data][$activities[$i]->campanha_id][$activities[$i]->id][$activities[$i]->event_type] = $activities[$i]->extra_data;
-            }
-            else if($activities[$i]->tipo == 'anuncio')
-            {
-              $array_activity[$data][$activities[$i]->campanha_id][$activities[$i]->conjunto_id][$activities[$i]->id][$activities[$i]->event_type] = $activities[$i]->extra_data;
-            }
+            $data_activity = explode(" at ", $activities[$i]->date_time_in_timezone);
+            $retorno .= "<tr><td colspan=3><h3>" . $data . "</h3></td></tr>";
 
-            $i++;
-            if($i < count($activities))
-              $data_activity = explode(" at ", $activities[$i]->date_time_in_timezone);
+            while($data == $data_activity[0])
+            {
+              if($activities[$i]->tipo == 'campanha')
+              {
+                $msg = "<strong>" . $activities[$i]->name . "</strong>";
+                $msg .= " - " . $activities[$i]->id . "<br>" . $activities[$i]->event_type;
+                $retorno .= "<tr><td class='campanha campanha_" . $activities[$i]->id . "' data-extra='" . $activities[$i]->extra_data .  "'>" . $msg . "</td><td></td><td></td></tr>";
+                //$array_activity[$data][$activities[$i]->id][$activities[$i]->event_type] = $activities[$i]->extra_data;
+              }
+              else if($activities[$i]->tipo == 'conjunto')
+              {
+                $msg = "<strong>" . $activities[$i]->name . "</strong>";
+                $msg .= " - " . $activities[$i]->id . "<br>" . $activities[$i]->event_type;
+                $retorno .= "<tr><td></td><td class='conjunto 
+                  campanha_" . $activities[$i]->campanha_id . "
+                  conjunto_" . $activities[$i]->id . "' data-extra='" . $activities[$i]->extra_data .  "'>" . $msg . "</td><td></td></tr>";
+                //$array_activity[$data][$activities[$i]->campanha_id][$activities[$i]->id][$activities[$i]->event_type] = $activities[$i]->extra_data;
+              }
+              else if($activities[$i]->tipo == 'anuncio')
+              {
+                $msg = "<strong>" . $activities[$i]->name . "</strong>";
+                $msg .= " - " . $activities[$i]->id . "<br>" . $activities[$i]->event_type;
+                $retorno .= "<tr><td></td><td></td><td class='anuncio 
+                  campanha_" . $activities[$i]->campanha_id . "
+                  conjunto_" . $activities[$i]->conjunto_id . "
+                  anuncio_" . $activities[$i]->id . "' data-extra='" . $activities[$i]->extra_data .  "'>" . $msg . "</td></tr>";
+                //$array_activity[$data][$activities[$i]->campanha_id][$activities[$i]->conjunto_id][$activities[$i]->id][$activities[$i]->event_type] = $activities[$i]->extra_data;
+              }
+
+              log_message('debug', 'Processando: ' . $i . " de " . count($activities) . " Data: " . $data ); 
+              
+              $i++;
+              if($i < count($activities))
+                $data_activity = explode(" at ", $activities[$i]->date_time_in_timezone);
+              else
+                break;
+            }
           }
         }
 
-        $retorno = '';
+        $retorno .= "</table>";
+
+        echo $retorno;
+      }
+    }
+
+    public function show_conta_activities_graph()
+    {
+      if(isset($_POST['account']))
+      {
+        $account = $this->input->post('account');
+        $account = str_replace("act_","",$account);
+        $activities = $this->metricas->show_conta_activities($account); 
+
+        $data = explode(" at ", $activities[0]->date_time_in_timezone);
+
+        if(!isset($intervalos))
+        {
+          $date = DateTime::createFromFormat('m/d/Y', $data[0]);
+          $hoje = new DateTime( );
+
+          $interval = DateInterval::createFromDateString('1 day');
+          $intervalos = new DatePeriod($date, $interval, $hoje);  
+
+          foreach($intervalos as $dt)
+          {
+            $periodo[] = $dt->format('m/d/Y');
+          }
+
+        }
+
+        foreach($activities as $activity)
+        {
+          $data_activity = explode(" at ", $activity->date_time_in_timezone);
+
+          if($activity->event_type == 'create_ad')
+          {
+            $anuncio[$activity->id]['criou'] = $data_activity[0];
+          }
+          else if($activity->event_type == 'ad_review_approved')
+          {
+            $anuncio[$activity->id]['aprovou'] = $data_activity[0];
+          }
+          else if($activity->event_type == 'update_ad_run_status' && 
+            strpos($activity->extra_data,'"new_value":"Inactive"') !== false)
+          {
+            $anuncio[$activity->id]['parou'] = $data_activity[0];
+          }
+          else if($activity->event_type == 'update_ad_set_budget')
+          {
+            $anuncio[$activity->id]['orcamento'] = $data_activity[0];
+            $anuncio[$activity->id]['orcamento_valor'] = $activity->extra_data;
+          }
+        }
+
+        $ativos = 0;
+        $i = 0;
+        $retorno = "";
+        foreach($periodo as $data)
+        {
+          $orcamento = false;
+        
+          foreach($anuncio as $a)
+          {
+            if(isset($a['aprovou']))
+            {
+              if($a['aprovou'] == $data)
+              {
+                $ativos++;
+              }
+            }
+            else if(isset($a['parou']))
+            {
+              if($a['parou'] == $data)
+              {
+                $ativos--;
+              }
+            }
+            else if(isset($a['orcamento']))
+            {
+              if($a['orcamento'] == $data)
+              {
+                $orcamento = true;
+              }  
+            }
+          }
+
+          $retorno .= "<h2>" . $data . "</h2>";
+          $retorno .= "Anuncios Ativos: " . $ativos . "<br>";
+          if($orcamento)
+            $retorno .= "Mexeu no orçamento <br>";
+        }
+
+        echo $retorno;
+      }
+    }
+
+    public function preview_ad()
+    {
+      if(isset($_POST))
+      {
+        $ad_id = $this->input->post('anuncio');
+        $retorno = $this->metricas->get_ad_data_preview($ad_id);
+
+        $msg = $retorno->body . "<br>";
+        $msg .= "<img src='" . $retorno->image_url . "' width=500px/><br>";
+        $msg .= "<h4>" . $retorno->title . "</h4><br>";
+        $msg .= $retorno->object_story_spec_link_data_description . "<br>";
+        $msg .= $retorno->call_to_action_type . "<br>";
+        $msg .= $retorno->object_story_spec_link_data_link . "<br>";
+
+        $msg .= "<table border=1>";
+        $msg .= "<tr><td>Primeira Data</td><td>" . $retorno->primeira . "</td></tr>";
+        $msg .= "<tr><td>Ultima Data</td><td>" . $retorno->ultima . "</td></tr>";
+        $msg .= "<tr><td>Janela</td><td>" . $retorno->attribution_spec_window_days . "</td></tr>";
+        $msg .= "<tr><td>Promovendo</td><td>" . $retorno->promoted_object_custom_event_type . "</td></tr>";
+        $msg .= "<tr><td>Idade</td><td>" . $retorno->age_min . "-" . $retorno->age_max . "</td></tr>";
+        $msg .= "<tr><td>Devices</td><td>" . $retorno->device_platforms . "</td></tr>";
+        $msg .= "<tr><td>Publisher</td><td>" . $retorno->publisher_platforms . "</td></tr>";
+        $msg .= "<tr><td>Posições</td><td>" . $retorno->facebook_positions . "</td></tr>";
+        $msg .= "<tr><td>Sexo</td><td>" . $retorno->genders . "</td></tr>";
+        $msg .= "<tr><td>CPC</td><td>" . $retorno->cpc . "</td></tr>";
+        $msg .= "<tr><td>CTR</td><td>" . $retorno->ctr . "</td></tr>";
+        $msg .= "<tr><td>CPM</td><td>" . $retorno->cpm . "</td></tr>";
+        $msg .= "<tr><td>Relevancia</td><td>" . $retorno->relevance_score_score . "</td></tr>";
+        $msg .= "<tr><td>Investimento</td><td>" . $retorno->spend . "</td></tr>";
+        $msg .= "<tr><td>Impressoes</td><td>" . $retorno->impressions . "</td></tr>";
+        $msg .= "<tr><td>Cliques</td><td>" . $retorno->clicks . "</td></tr>";
+        $msg .= "</table>";
+
+        $msg .= "<table border=1>";
+        $msg .= "<tr><td>Audiencia Personalizada</td><td>" . $retorno->custom_audiences . "</td></tr>";
+        $msg .= "<tr><td>Excluindo</td><td>" . $retorno->excluded_custom_audiences . "</td></tr>";
+        $msg .= "<tr><td>Local</td><td>" . $retorno->geo_locations . "</td></tr>";
+        $msg .= "<tr><td>Excluindo</td><td>" . $retorno->excluded_geo_locations . "</td></tr>";
+        $msg .= "<tr><td>Interesses</td><td>" . $retorno->flexible_spec_interests . "</td></tr>";
+        $msg .= "<tr><td>Comportamento</td><td>" . $retorno->flexible_spec_behaviors . "</td></tr>";
+        $msg .= "<tr><td>Excluindo</td><td>" . $retorno->exclusions . "</td></tr>";
+        $msg .= "</table>";
+
+        echo $msg;
       }
     }
     

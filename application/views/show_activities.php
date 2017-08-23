@@ -1,7 +1,8 @@
 <head>
-  <link rel="stylesheet" href="styles.css">
-  <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
-  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 </head>
 
 <select name="cmbprofiles" id="cmbprofiles">
@@ -9,7 +10,7 @@
     <?php
     foreach($profiles as $profile)
     {
-        echo "<option value=" . $profile->profile_id . ">" . $profile->first_name . " " . $profile->last_name . "</option>";
+        echo "<option value=" . $profile->user_id . ">" . $profile->first_name . " " . $profile->last_name . "</option>";
     }
     ?>
 </select>
@@ -18,7 +19,11 @@
     
 </select>
 
-<div id='calendario'></div>
+<button id='btnlista'>Lista</button>
+<button id='btngrafico'>Gráfico</button>
+
+<div id='calendario' style="overflow:scroll; height:800px;width:70%;float:left;"></div>
+<div id='preview' style="overflow:scroll; height:800px;float:left;width:30%;"></div>
 
 <script>
     $('#cmbprofiles').change(function(){
@@ -38,8 +43,8 @@
         });
     });
 
-    $('#cmbcontas').change(function(){
-        var form_data = { account: $(this).val() };
+    $('#btnlista').click(function(){
+        var form_data = { account: $('#cmbcontas').val() };
 
         $.ajax({
             url: '<?php echo base_url(); ?>app/show_conta_activities',
@@ -51,6 +56,92 @@
 
                $('#calendario').html(msg);
 
+            }
+        });
+    });
+
+    $('#btngrafico').click(function(){
+        var form_data = { account: $('#cmbcontas').val() };
+
+        $.ajax({
+            url: '<?php echo base_url(); ?>app/show_conta_activities_graph',
+            type: 'POST',
+            data: form_data,
+            global: false,
+            async:true,
+            success: function(msg) { 
+
+               $('#calendario').html(msg);
+
+            }
+        });
+    });
+
+    $(document).on('click', '.campanha', function(e)  {
+        var classes = $(this).attr("class").split(' ');
+
+        $('.campanha').css("background-color", "#FFFFFF");
+        $('.conjunto').css("background-color", "#FFFFFF");
+        $('.anuncio').css("background-color", "#FFFFFF");
+
+        $.each(classes, function(key, value) {
+            if(value.search('campanha_') == 0)
+                $('.'+value).css("background-color", "red");
+        });
+    });
+
+    $(document).on('click', '.conjunto', function(e)  {
+        var classes = $(this).attr("class").split(' ');
+
+        $('.campanha').css("background-color", "#FFFFFF");
+        $('.conjunto').css("background-color", "#FFFFFF");
+        $('.anuncio').css("background-color", "#FFFFFF");
+
+        $.each(classes, function(key, value) {
+            if(value.search('campanha_') == 0)
+                $('.'+value).css("background-color", "red");
+            if(value.search('conjunto_') == 0)
+                $('.'+value).css("background-color", "yellow");
+        });
+    });
+
+    $(document).on('click', '.anuncio', function(e)  {
+        var classes = $(this).attr("class").split(' ');
+
+        $('.campanha').css("background-color", "#FFFFFF");
+        $('.conjunto').css("background-color", "#FFFFFF");
+        $('.anuncio').css("background-color", "#FFFFFF");
+
+        $.each(classes, function(key, value) {
+            if(value.search('campanha_') == 0)
+                $('.'+value).css("background-color", "red");
+            
+            if(value.search('anuncio_') == 0)
+            {
+                var id = value.replace("anuncio_","");
+
+                var form_data = { anuncio: id };
+
+                $.ajax({
+                    url: '<?php echo base_url(); ?>app/preview_ad',
+                    type: 'POST',
+                    data: form_data,
+                    global: false,
+                    async:true,
+                    success: function(msg) { 
+                        $('#preview').html(msg);
+                    }
+                });
+            }
+        });
+    });
+
+    $( function() {
+        $( document ).tooltip({
+            items: "td",
+            content: function() {
+                var extra = JSON.stringify($(this).data('extra'));
+                return extra;
             }
         });
     });
