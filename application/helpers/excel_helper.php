@@ -70,6 +70,7 @@ function generate_excel($dados, $excel, $sem_dado_venda, $comissao)
             //Se for geral e estiver na primeira linha, coloca o título geral   
             if(($row == START_ROW || $row == START_ROW+1) && $dado->bydate != 1)
             {
+                $dado->date_start = "Geral";
                 $objPHPExcel->getActiveSheet()->getCellByColumnAndRow($column, $row)->setValue("Geral"); 
             }
             else

@@ -230,7 +230,7 @@
                     -->
                     <header>
                         <span class="widget-icon"> <i class="fa fa-arrows-v"></i> </span>
-                        <h2 class="font-md"><strong>Métricas</strong></h2>				
+                        <h2 class="font-md"><strong>Gráfico</strong></h2>				
                     </header>
 
                     <!-- widget div-->
@@ -245,6 +245,11 @@
                         
                         <!-- widget content -->
                         <div class="widget-body">
+                            <select name="cmbgrafico1" id="cmbgrafico1">
+                            </select>
+                            <select name="cmbgrafico2" id="cmbgrafico2">
+                            </select>
+                            <br>
                             <canvas id="lineChart" height="120"></canvas>     
                         </div>
                         <!-- end widget content -->
@@ -268,6 +273,7 @@
     $( document ).ready(function() {
         <?php if(!$contas) { ?> $('#botao_contas').hide(); <?php } ?>
         $('#numeros').hide();
+        $('#graficos').hide();
         $('#btnvernumeros').hide();
         $('#contas').hide();
 
@@ -399,11 +405,33 @@
                 $('#numeros-content').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Loading...</h1>');
             },
             success: function(msg) { 
-                $('#numeros-content').html("<iframe width='100%' height='500 px' src='https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>template/" + msg.trim() + "'>");
+                var obj = $.parseJSON(msg);
+                processa_retorno(obj);
+                $('#numeros-content').html("<iframe width='100%' height='500 px' src='https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>template/" + obj.filename.trim() + "'>");
             }
         });
 
     });
+
+    function processa_retorno(obj)
+    {
+       
+       var aaa = "<option value='-1'>Selecione</option>";
+       aaa += "<option value='cost_per_inline_link_click'>CPC</option>";
+       aaa += "<option value='cpm'>CPM</option>";
+       aaa += "<option value='inline_link_click_ctr'>CTR</option>";
+       aaa += "<option value='ROI'>ROI</option>";
+
+       $.each(obj.nomes_conversoes, function(key, value) {
+           aaa += "<option value='" + key + "'>" + value + "</option>";
+           aaa += "<option value='Custo por " + key + "'>Custo por " + value + "</option>"  
+       });
+
+       $('#cmbgrafico1').append(aaa);
+       $('#cmbgrafico2').append(aaa);
+
+       dados = obj.dados;
+    }
 
     $('#btnfechar').click(function(){
         $('.numeros').hide();
@@ -452,6 +480,173 @@
 
     $(document).on('click', '.div_caixa', function(e)  {
         $(this).toggleClass('selected_container');
+    });
+
+    var dados;
+    var LineConfig;
+    var myLine = null;
+
+    function getDado(dado)
+    {
+        var retorno = [];
+        $.each(dados, function(key, value) {
+            retorno.push(value[dado]);
+         });
+
+       retorno.pop();
+
+       return retorno;
+    }
+
+    $('#cmbgrafico1').change(function(){
+        $('#cmbgrafico2').val('-1').change();
+        
+        var randomColorFactor = function() {
+            return Math.round(Math.random() * 255);
+        };
+        var randomColor = function(opacity) {
+            return 'rgba(' + randomColorFactor() + ',' + randomColorFactor() + ',' + randomColorFactor() + ',' + (opacity || '.3') + ')';
+        };
+        
+        if(myLine != null)
+            myLine.destroy();
+
+        var x = getDado('date_start');
+        var y = getDado($(this).val());
+
+        LineConfig = {
+		            type: 'line',
+		            data: {
+		                labels: x,
+		                datasets: [{
+		                    label: $(this).find(':selected').text(),
+		                    data: y,
+		                    
+		                }]
+		            },
+		            options: {
+		                responsive: true,
+		                tooltips: {
+		                    mode: 'label'
+		                },
+		                hover: {
+		                    mode: 'dataset'
+		                },
+		                scales: {
+		                    xAxes: [{
+		                        display: true,
+		                        scaleLabel: {
+		                            show: true,
+		                            labelString: 'Month'
+		                        }
+		                    }],
+		                    yAxes: [{
+		                        display: true,
+		                        scaleLabel: {
+		                            show: true,
+		                            labelString: 'Value'
+		                        },
+		                        ticks: {
+		                            suggestedMin: Math.min.apply(null, y),
+		                            suggestedMax: Math.max.apply(null, y),
+		                        }
+		                    }]
+		                }
+		            }
+		        };
+		        $.each(LineConfig.data.datasets, function(i, dataset) {
+		            dataset.borderColor = 'rgba(0,0,0,0.15)';
+		            dataset.backgroundColor = randomColor(0.5);
+		            dataset.pointBorderColor = 'rgba(0,0,0,0.15)';
+		            dataset.pointBackgroundColor = randomColor(0.5);
+		            dataset.pointBorderWidth = 1;
+		        });
+
+        myLine = new Chart(document.getElementById("lineChart"), LineConfig);
+    });
+
+    $('#cmbgrafico2').change(function(){
+        var randomColorFactor = function() {
+            return Math.round(Math.random() * 255);
+        };
+        var randomColor = function(opacity) {
+            return 'rgba(' + randomColorFactor() + ',' + randomColorFactor() + ',' + randomColorFactor() + ',' + (opacity || '.3') + ')';
+        };
+        
+        if(myLine != null)
+            myLine.destroy();
+
+        var x = getDado('date_start');
+        var y1 = getDado($('#cmbgrafico1').val());
+        var y2 = getDado($(this).val());
+
+        LineConfig = {
+		            type: 'line',
+		            data: {
+		                labels: x,
+		                datasets: [{
+		                    label: $('#cmbgrafico1').find(':selected').text(),
+		                    data: y1, 
+                            yAxisID: 'y-axis-1',  
+		                },
+                        {
+		                    label: $(this).find(':selected').text(),
+		                    data: y2,  
+                            yAxisID: 'y-axis-2', 
+		                }],
+		            },
+		            options: {
+		                responsive: true,
+		                tooltips: {
+		                    mode: 'label'
+		                },
+		                hover: {
+		                    mode: 'dataset'
+		                },
+		                scales: {
+		                    xAxes: [{
+		                        display: true,
+		                        scaleLabel: {
+		                            show: true,
+		                            labelString: 'Month'
+		                        }
+		                    }],
+		                    yAxes: [{
+		                        display: true,
+		                        scaleLabel: {
+		                            show: true,
+		                            labelString: 'Value'
+		                        },
+		                        ticks: {
+		                            suggestedMin: Math.min.apply(null, y1),
+		                            suggestedMax: Math.max.apply(null, y1),
+		                        },
+                                id: 'y-axis-1'
+		                    },
+                            {
+                                display: true,
+		                        scaleLabel: {
+		                            show: true,
+		                            labelString: 'Value'
+		                        },
+		                        ticks: {
+		                            suggestedMin: Math.min.apply(null, y2),
+		                            suggestedMax: Math.max.apply(null, y2),
+		                        },
+                                id: 'y-axis-2'    
+                            }]
+		                }
+		            }
+		        };
+		        $.each(LineConfig.data.datasets, function(i, dataset) {
+		            dataset.borderColor = 'rgba(0,0,0,0.15)';
+		            dataset.backgroundColor = randomColor(0.5);
+		            dataset.pointBorderColor = 'rgba(0,0,0,0.15)';
+		            dataset.pointBackgroundColor = randomColor(0.5);
+		            dataset.pointBorderWidth = 1;
+		        });
+
+        myLine = new Chart(document.getElementById("lineChart"), LineConfig);
     });
 </script>
 
@@ -513,87 +708,17 @@
 	 */
 	
 	// pagefunction
-
-    var LineConfig;
 	
 	// end pagefunction
 	
 	// run pagefunction
-	var pagefunction = function(){
-        LineConfig = {
-		            type: 'line',
-		            data: {
-		                labels: ["January", "February", "March", "April", "May", "June", "July"],
-		                datasets: [{
-		                    label: "My First dataset",
-		                    data: [randomScalingFactor(), randomScalingFactor(), randomScalingFactor(), randomScalingFactor(), randomScalingFactor(), randomScalingFactor(), randomScalingFactor()],
-		                    
-		                }, {
-		                    label: "My Second dataset",
-		                    data: [randomScalingFactor(), randomScalingFactor(), randomScalingFactor(), randomScalingFactor(), randomScalingFactor(), randomScalingFactor(), randomScalingFactor()],
-		                }]
-		            },
-		            options: {
-		                responsive: true,
-		                tooltips: {
-		                    mode: 'label'
-		                },
-		                hover: {
-		                    mode: 'dataset'
-		                },
-		                scales: {
-		                    xAxes: [{
-		                        display: true,
-		                        scaleLabel: {
-		                            show: true,
-		                            labelString: 'Month'
-		                        }
-		                    }],
-		                    yAxes: [{
-		                        display: true,
-		                        scaleLabel: {
-		                            show: true,
-		                            labelString: 'Value'
-		                        },
-		                        ticks: {
-		                            suggestedMin: 0,
-		                            suggestedMax: 100,
-		                        }
-		                    }]
-		                }
-		            }
-		        };
-		        $.each(LineConfig.data.datasets, function(i, dataset) {
-		            dataset.borderColor = 'rgba(0,0,0,0.15)';
-		            dataset.backgroundColor = randomColor(0.5);
-		            dataset.pointBorderColor = 'rgba(0,0,0,0.15)';
-		            dataset.pointBackgroundColor = randomColor(0.5);
-		            dataset.pointBorderWidth = 1;
-		        });
-
-        myLine = new Chart(document.getElementById("lineChart"), LineConfig);
-    }
+	var pagefunction;
 
     var pagedestroy = function(){
 		
 		//destroy all charts
     	myLine.destroy();
 		LineConfig=null;
-
-    	myBar.destroy();
-    	barChartData=null;
-
-    	myRadar.destroy();
-    	RadarConfig=null;
-
-    	myDoughnut.destroy();
-    	DoughtnutConfig=null;
-
-    	myPolarArea.destroy();
-    	PolarConfig=null;
-
-    	myPie.destroy();
-    	PieConfig=null;
 
     	if (debugState){
 			root.console.log("✔ Chart.js charts destroyed");

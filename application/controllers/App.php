@@ -465,6 +465,8 @@ class App extends CI_Controller {
       //Traz os dados de postback sincronizado, geral
       $dados_vendas_geral = $this->metricas->dados_vendas_geral($id, $tipo);
 
+      $conversions = "";
+
       //Se houver resultados a serem mostrados
       if($resultado)
       {
@@ -568,7 +570,15 @@ class App extends CI_Controller {
 
         //Chama a função de gerar planilha
         $filename = generate_excel($retorno, $this->phpexcel, $sem_dado_venda, $comissao);
-        return $filename;
+
+        $ret = array("filename" => $filename,
+                      "dados" => $retorno,
+                      "conversoes" => $conversions,
+                      "nomes_conversoes" => $translate);
+
+        $js = json_encode($ret);
+
+        echo $js;
       }
 
       return false;
@@ -1314,6 +1324,11 @@ class App extends CI_Controller {
 
       
     ///act_815527071921444/activities?fields=actor_id,actor_name,application_id,application_name,date_time_in_timezone,event_time,event_type,extra_data,object_id,object_name,translated_event_type&since=2015-01-01&until=2017-08-09
+    }
+
+    public function show_grafico()
+    {
+      $this->load->view('show_grafico',null);  
     }
 
     public function show_activities()
