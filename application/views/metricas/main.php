@@ -730,6 +730,7 @@
 	}
 
     var path = "<?php echo base_url(); ?>assets/";
-    loadScript(path+"js/plugin/chartjs/chart.min.js", pagefunction);
+    loadScript(path+"js/plugin/moment/moment.min.js", function(){
+		loadScript(path+"js/plugin/chartjs/chart.min.js", pagefunction)});
 	
 </script>
