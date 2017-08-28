@@ -324,6 +324,78 @@
 </section>
 
 <script>
+			if (!window.jQuery) {
+				document.write('<script src="http://superadmetrics.com/metricas/assets/js/libs/jquery-2.1.1.min.js"><\/script>');
+			}
+		</script>
+
+		<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+		<script>
+			if (!window.jQuery.ui) {
+				document.write('<script src="http://superadmetrics.com/metricas/assets/js/libs/jquery-ui-1.10.3.min.js"><\/script>');
+			}
+		</script>
+
+		<!-- IMPORTANT: APP CONFIG -->
+		<script src="http://superadmetrics.com/metricas/assets/js/app.config.js"></script>
+
+		<!-- JS TOUCH : include this plugin for mobile drag / drop touch events-->
+		<script src="http://superadmetrics.com/metricas/assets/js/plugin/jquery-touch/jquery.ui.touch-punch.min.js"></script> 
+
+		<!-- BOOTSTRAP JS -->
+		<script src="http://superadmetrics.com/metricas/assets/js/bootstrap/bootstrap.min.js"></script>
+
+		<!-- CUSTOM NOTIFICATION -->
+		<script src="http://superadmetrics.com/metricas/assets/js/notification/SmartNotification.min.js"></script>
+
+		<!-- JARVIS WIDGETS -->
+		<script src="http://superadmetrics.com/metricas/assets/js/smartwidgets/jarvis.widget.min.js"></script>
+
+		<!-- EASY PIE CHARTS -->
+		<script src="http://superadmetrics.com/metricas/assets/js/plugin/easy-pie-chart/jquery.easy-pie-chart.min.js"></script>
+
+		<!-- SPARKLINES -->
+		<script src="http://superadmetrics.com/metricas/assets/js/plugin/sparkline/jquery.sparkline.min.js"></script>
+
+		<!-- JQUERY VALIDATE -->
+		<script src="http://superadmetrics.com/metricas/assets/js/plugin/jquery-validate/jquery.validate.min.js"></script>
+
+		<!-- JQUERY MASKED INPUT -->
+		<script src="http://superadmetrics.com/metricas/assets/js/plugin/masked-input/jquery.maskedinput.min.js"></script>
+
+		<!-- JQUERY SELECT2 INPUT -->
+		<script src="http://superadmetrics.com/metricas/assets/js/plugin/select2/select2.min.js"></script>
+
+		<!-- JQUERY UI + Bootstrap Slider -->
+		<script src="http://superadmetrics.com/metricas/assets/js/plugin/bootstrap-slider/bootstrap-slider.min.js"></script>
+
+		<!-- browser msie issue fix -->
+		<script src="http://superadmetrics.com/metricas/assets/js/plugin/msie-fix/jquery.mb.browser.min.js"></script>
+
+		<!-- FastClick: For mobile devices -->
+		<script src="http://superadmetrics.com/metricas/assets/js/plugin/fastclick/fastclick.min.js"></script>
+
+		<!--[if IE 8]>
+
+			<h1>Your browser is out of date, please update your browser by going to www.microsoft.com/download</h1>
+
+		<![endif]-->
+
+		<!-- Demo purpose only -->
+		<script src="http://superadmetrics.com/metricas/assets/js/demo.min.js"></script>
+
+		<!-- MAIN APP JS FILE -->
+		<script src="http://superadmetrics.com/metricas/assets/js/app.min.js"></script>		
+
+		<!-- ENHANCEMENT PLUGINS : NOT A REQUIREMENT -->
+		<!-- Voice command : plugin -->
+		<script src="http://superadmetrics.com/metricas/assets/js/speech/voicecommand.min.js"></script><div class="modal fade" id="voiceModal" tabindex="-1" role="dialog" aria-labelledby="remoteModalLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content"></div></div></div>		
+
+		<!-- SmartChat UI : plugin -->
+		<script src="http://superadmetrics.com/metricas/assets/js/smart-chat-ui/smart.chat.ui.min.js"></script>
+		<script src="http://superadmetrics.com/metricas/assets/js/smart-chat-ui/smart.chat.manager.min.js"></script>
+
+<script>
     $( document ).ready(function() {
         <?php if(!$contas) { ?> $('#botao_contas').hide(); <?php } ?>
         $('#numeros').hide();
