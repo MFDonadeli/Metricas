@@ -513,7 +513,7 @@
         if(myLine != null)
         {
             console.log(myLine);
-            //myLine.destroy();
+            myLine.destroy();
         }
             
 
@@ -582,7 +582,7 @@
         if(myLine != null)
         {
             console.log(myLine);
-            //myLine.destroy();
+            myLine.destroy();
         }
 
         var x = getDado('date_start');
@@ -722,7 +722,7 @@
 	
 	// run pagefunction
 	var pagefunction = function() {
-        myLine = new Chart(document.getElementById("lineChart"), LineConfig);
+        
     }
 
     var pagedestroy = function(){
