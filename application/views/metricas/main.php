@@ -273,7 +273,7 @@
     $( document ).ready(function() {
         <?php if(!$contas) { ?> $('#botao_contas').hide(); <?php } ?>
         $('#numeros').hide();
-        $('#graficos').hide();
+        $('#grafico').hide();
         $('#btnvernumeros').hide();
         $('#contas').hide();
 
@@ -343,6 +343,7 @@
         {
             $('#div_select_anuncios').show();
             $('#numeros').hide();
+            $('#grafico').hide();
 
             $('#cmbanuncios').empty();
             $('#cmbanuncios').append(retorno);
@@ -408,6 +409,7 @@
                 var obj = $.parseJSON(msg);
                 processa_retorno(obj);
                 $('#numeros-content').html("<iframe width='100%' height='500 px' src='https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>template/" + obj.filename.trim() + "'>");
+                $('#grafico').show();
             }
         });
 
@@ -712,7 +714,9 @@
 	// end pagefunction
 	
 	// run pagefunction
-	var pagefunction;
+	var pagefunction = function() {
+        myLine = new Chart(document.getElementById("lineChart"), LineConfig);
+    }
 
     var pagedestroy = function(){
 		
