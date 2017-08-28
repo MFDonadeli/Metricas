@@ -513,7 +513,7 @@
         if(myLine != null)
         {
             console.log(myLine);
-            myLine.destroy();
+            //myLine.destroy();
         }
             
 
@@ -580,7 +580,10 @@
         };
         
         if(myLine != null)
-            myLine.destroy();
+        {
+            console.log(myLine);
+            //myLine.destroy();
+        }
 
         var x = getDado('date_start');
         var y1 = getDado($('#cmbgrafico1').val());
