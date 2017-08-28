@@ -729,7 +729,7 @@
 		} 
 	}
 
-
-    loadScript("js/plugin/chartjs/chart.min.js", pagefunction);
+    var path = "<?php echo base_url(); ?>assets/";
+    loadScript(path+"js/plugin/chartjs/chart.min.js", pagefunction);
 	
 </script>
