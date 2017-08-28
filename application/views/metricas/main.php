@@ -511,7 +511,11 @@
         };
         
         if(myLine != null)
+        {
+            console.log(myLine);
             myLine.destroy();
+        }
+            
 
         var x = getDado('date_start');
         var y = getDado($(this).val());
