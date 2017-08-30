@@ -67,7 +67,10 @@
                         <label class='col-md-2 control-label' for='txtcomissao'>Comissão Padrão:</label>
                         <div class='col-sm-5'><input class='form-control' type="text" name="txtcomissao" id="txtcomissao"></div>
                     </div>
-                    <button class='btn btn-default' id="btnvernumeros">Ver Números</button>
+                    <div class='form-group'>
+                        <label class='col-md-2 control-label'></label>
+                        <div class='col-sm-5'><button class='btn btn-default' id="btnvernumeros">Ver Números</button></div>
+                    </div>
                     </fieldset>
             
                 <?php 
@@ -487,7 +490,7 @@
                 $('#numeros-content').html("<iframe width='100%' height='500 px' src='https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>template/" + obj.filename.trim() + "'>");
                 $('#grafico').show();
                 
-                if(val_anuncio != -1 && val_anuncio !== null)
+                if(val_anuncio == -1 || val_anuncio === null)
                 {
                     if(obj.resumo != 'Nenhum')
                     {
