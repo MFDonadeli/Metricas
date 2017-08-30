@@ -48,6 +48,8 @@ function generate_excel($dados, $excel, $sem_dado_venda, $comissao)
 
     $linha_faturamento = procura_valor("#faturamento_boleto", 1, $objPHPExcel->getActiveSheet());
 
+    $linha_roi = procura_valor("%ROI:", 0, $objPHPExcel->getActiveSheet())-1;
+
     //Para cada dado a ser inserido
     foreach($dados as $dado)
     {
@@ -157,6 +159,7 @@ function generate_excel($dados, $excel, $sem_dado_venda, $comissao)
             }
         }
 
+        $dado->roi = $objPHPExcel->getActiveSheet()->getCellByColumnAndRow($column, $linha_roi)->getCalculatedValue();
         //Acabou os dados para esta coluna, vamos para a próxima
         $column++;
 

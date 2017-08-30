@@ -716,13 +716,15 @@ class Metricas extends CI_Model{
     *
     * @param	id: O Id do tipo que será pesquisado
     * @param    tipo(string): Qual tipo será pego: ad, adset, campaign
+    * @param    abaixo(bool): Se true traz os dados do tipo abaixo: 
+    *                se Campanha traz AdSets, se AdSet traz Ads
     * @return	
     *    lista de dados (geral e por dia) do id do tipo pesquisado
     */
     public function getTableData($id, $tipo)
     {
         log_message('debug', 'getTableData. Id:' . $id);
-        
+            
         $this->db->select('date_start, cost_per_inline_link_click, inline_link_click_ctr, inline_link_clicks,impressions, cpm, relevance_score_score, spend, bydate, ' . $tipo . '_insights_id');
         $this->db->from($tipo.'_insights');
         $this->db->where($tipo.'_id', $id);
@@ -731,6 +733,46 @@ class Metricas extends CI_Model{
         $result = $this->db->get();
 
         log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        return $result->result();
+
+    }
+
+    /**
+    * getTableDataFromTipo
+    *
+    * Pega os dados a serem exibidos no resumo a partir do tipo os dados abaixo:
+    *   se Campanha traz AdSets, se AdSet traz Ads
+    *
+    * @param	id: O Id do tipo que será pesquisado
+    * @param    tipo(string): Qual tipo será pego: ad, adset, campaign
+    *             
+    * @return	
+    *    lista de dados (geral e por dia) do id do tipo pesquisado
+    */
+    public function getTableDataFromTipo($id, $tipo)
+    {
+        if($tipo == 'campaign')
+            $tipo1 = 'adset';
+        else if($tipo == 'adset')
+            $tipo1 = 'ad';
+
+        log_message('debug', 'getTableDataFromTipo. Id:' . $id);
+            
+        $this->db->select('cost_per_inline_link_click, inline_link_click_ctr, cpm, ' . $tipo1 . '_insights_id as id, ' .
+            $tipo1 . 's.effective_status, "' . $tipo1 . '" as tipo');
+        $this->db->from($tipo1.'_insights');
+        $this->db->join($tipo1."s", $tipo1 . "s.id = " . $tipo1 . "_insights." . $tipo1 . "_id");
+        $this->db->where($tipo1.'_insights.' . $tipo.'_id', $id);
+
+        $this->db->where('bydate is null');
+        $this->db->where('effective_status', 'ACTIVE');
+        $result = $this->db->get();
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        if($result->num_rows() == 0)
+            return false;
 
         return $result->result();
 
@@ -814,6 +856,45 @@ class Metricas extends CI_Model{
         log_message('debug', 'Last Query: ' . $this->db->last_query());
 
         return $result->row()->name;    
+    }
+
+    /**
+    * get_resumo
+    *
+    * Pega resumo do tipo para consulta rápida de todos o tipo abaixo
+    * @param id: Id do tipo
+    * @param tipo: Tipo
+    * @param comissao: Comissao para cálculo do ROI
+    */
+    public function get_resumo($id, $tipo, $comissao)
+    {
+        log_message('debug', 'get_resumo. Id:' . $id);   
+
+        $tipos = $this->getTableDataFromTipo($id, $tipo);
+
+        if($tipos)
+        {
+            $conversions = $this->getPossibleConversions($id, $tipo);
+            
+            foreach($tipos as $val)
+            {
+                $dados['cpc'] = $val->cost_per_inline_link_click;
+                $dados['ctr'] = $val->inline_link_click_ctr;
+                $dados['cpm'] = $val->cpm;
+
+                $actions = $this->getTableDataActions($val->id, $val->tipo);
+                foreach($actions as $action)
+                {
+                    if($action->action_type == 'offsite_conversion.fb_pixel_custom')
+                        continue;
+
+                    $dados[$action->action_type] = $action->value;
+                }
+                $dados_ret[] = $dados;
+            }
+        }
+
+        return $dados_ret;
     }
 
     /**

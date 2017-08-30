@@ -571,6 +571,8 @@ class App extends CI_Controller {
         //Chama a função de gerar planilha
         $filename = generate_excel($retorno, $this->phpexcel, $sem_dado_venda, $comissao);
 
+        $resumo = $this->get_resumo($id, $tipo, $comissao, $translate);
+
         $ret = array("filename" => $filename,
                       "dados" => $retorno,
                       "conversoes" => $conversions,
@@ -584,6 +586,53 @@ class App extends CI_Controller {
       return false;
       
 
+    }
+
+    /**
+    * get_resumo
+    *
+    * Pega resumo do tipo para consulta rápida de todos o tipo abaixo
+    * @param id: Id do tipo
+    * @param tipo: Tipo
+    * @param comissao: Comissao para cálculo do ROI
+    * @param translate: Para traduzir nome das conversões
+    */
+    private function get_resumo($id, $tipo, $comissao, $translate)
+    {
+      log_message('debug', 'get_resumo');   
+
+      $retorno = $this->metricas->get_resumo($id, $tipo, $comissao);
+
+      $header = "<tr>";
+      $header .="<th>Nome</th>";
+      $header .="<th>CPC</th>";
+      $header .="<th>CTR</th>";
+      $header .="<th>CPM</th>";
+      foreach($translate as $key => $val)
+      {
+        $header .="<th>".$val."</th>";
+      }
+      $header .= "<tr>";
+
+      $body = "";
+      foreach($retorno as $ret)
+      {
+        $body .= "<tr>";
+        $body .= "<td>" . $ret['cpc'] . "</td>";
+        $body .= "<td>" . $ret['ctr'] . "</td>";
+        $body .= "<td>" . $ret['cpm'] . "</td>";
+        foreach($translate as $key => $val)
+        {
+          if(isset($ret[$key]))
+            $body .="<td>".$ret[$key]."</td>";
+        }
+        $body .= "</tr>";
+      }   
+
+      $val_ret['header'] = $header;
+      $val_ret['body'] = $body;
+
+      return $val_ret;                                
     }
 
     /**

@@ -147,6 +147,74 @@
 </div>
 <!-- end contas -->
 
+<div id='resumo'>
+    <!-- row -->
+    <div class="row">
+
+        <!-- a blank row to get started -->
+        <div class="col-sm-12">
+        
+            <!-- your contents here -->
+            <!-- Widget ID (each widget will need unique ID)-->
+                <div class="jarviswidget" id="wid-id-2" data-widget-editbutton="false" data-widget-colorbutton="false">
+                    <!-- widget options:
+                        usage: <div class="jarviswidget" id="wid-id-0" data-widget-editbutton="false">
+                        
+                        data-widget-colorbutton="false"	
+                        data-widget-editbutton="false"
+                        data-widget-togglebutton="false"
+                        data-widget-deletebutton="false"
+                        data-widget-fullscreenbutton="false"
+                        data-widget-custombutton="false"
+                        data-widget-collapsed="true" 
+                        data-widget-sortable="false"
+                        
+                    -->
+                    <header>
+                        <span class="widget-icon"> <i class="fa fa-arrows-v"></i> </span>
+                        <h2 class="font-md"><strong>Resumo</strong></h2>				
+                    </header>
+
+                    <!-- widget div-->
+                    <div>
+                        
+                        <!-- widget edit box -->
+                        <div class="jarviswidget-editbox">
+                            <!-- This area used as dropdown edit box -->
+
+                        </div>
+                        <!-- end widget edit box -->
+                        
+                        <!-- widget content -->
+                        <div class="widget-body">
+                            <div class="table-responsive">
+						
+                                <table id="table_resumo" class="table table-bordered table-striped table-condensed table-fixed table-hover smart-form">
+                                    <thead>
+                                        
+                                    </thead>
+                                    <tbody>
+                                        
+                                    </tbody>
+                                </table>
+                                
+                            </div>        
+                        </div>
+                        <!-- end widget content -->
+                        
+                    </div>
+                    <!-- end widget div -->
+                    
+                </div>
+                <!-- end widget -->
+        </div>
+        <!-- end col-sm-12 -->
+            
+    </div>
+    <!-- end row -->
+</div>
+<!-- end resumo -->
+
 <div id='numeros'>
     <!-- row -->
     <div class="row">
@@ -276,6 +344,7 @@
         $('#grafico').hide();
         $('#btnvernumeros').hide();
         $('#contas').hide();
+        $('#resumo').hide();
 
         $('#div_select_campanhas').hide();
         $('#div_select_conjuntos').hide();
@@ -410,6 +479,9 @@
                 processa_retorno(obj);
                 $('#numeros-content').html("<iframe width='100%' height='500 px' src='https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>template/" + obj.filename.trim() + "'>");
                 $('#grafico').show();
+                $('#resumo').show();
+                $('#table_resumo theader').html(obj.resumo.header);
+                $('#table_resumo tbody').html(obj.resumo.body);
             }
         });
 
@@ -622,6 +694,7 @@
 		                    }],
 		                    yAxes: [{
 		                        display: true,
+                                position: "left",
 		                        scaleLabel: {
 		                            show: true,
 		                            labelString: 'Value'
@@ -634,6 +707,7 @@
 		                    },
                             {
                                 display: true,
+                                position: "right",
 		                        scaleLabel: {
 		                            show: true,
 		                            labelString: 'Value'
