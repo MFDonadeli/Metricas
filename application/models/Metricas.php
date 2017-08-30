@@ -872,6 +872,8 @@ class Metricas extends CI_Model{
 
         $tipos = $this->getTableDataFromTipo($id, $tipo);
 
+        $dados_ret = false;
+
         if($tipos)
         {
             $conversions = $this->getPossibleConversions($id, $tipo);

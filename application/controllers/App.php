@@ -572,9 +572,12 @@ class App extends CI_Controller {
         $filename = generate_excel($retorno, $this->phpexcel, $sem_dado_venda, $comissao);
 
         $resumo = $this->get_resumo($id, $tipo, $comissao, $translate);
+        if(!$resumo)
+          $resumo = 'Nenhum';
 
         $ret = array("filename" => $filename,
                       "dados" => $retorno,
+                      "resumo" => $resumo,
                       "conversoes" => $conversions,
                       "nomes_conversoes" => $translate);
 
@@ -602,6 +605,9 @@ class App extends CI_Controller {
       log_message('debug', 'get_resumo');   
 
       $retorno = $this->metricas->get_resumo($id, $tipo, $comissao);
+
+      if(!$retorno)
+        return false;
 
       $header = "<tr>";
       $header .="<th>Nome</th>";
