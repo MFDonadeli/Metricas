@@ -968,7 +968,11 @@ class App extends CI_Controller {
       }
       else
       {
-        $ret .= "<option value='-1'>Todos</option>";
+        if($tipo == 'campaigns')
+          $ret .= "<option value='-1'>Selecione</option>";
+        else
+          $ret .= "<option value='-1'>Todos</option>";
+          
         foreach($retorno as $val)
         {
           $ret .= "<option value='" . $val->id . "'";

@@ -172,7 +172,7 @@
                     -->
                     <header>
                         <span class="widget-icon"> <i class="fa fa-arrows-v"></i> </span>
-                        <h2 class="font-md"><strong>Resumo</strong></h2>				
+                        <h2 class="font-md"><strong>Resumo </strong><span id='resumo_titulo'></span></h2>				
                     </header>
 
                     <!-- widget div-->
@@ -400,6 +400,10 @@
             $('#cmbanuncios').empty();
             $('#cmbconjunto').append(retorno);
             $('#btnvernumeros').show();
+
+            var text = $('#cmbcampanhas').find(':selected').text();
+
+            $('#resumo_titulo').html('dos conjuntos de ' + text);
         }
         
     });
@@ -416,6 +420,9 @@
 
             $('#cmbanuncios').empty();
             $('#cmbanuncios').append(retorno);
+
+            var text = $('#cmbcampanhas').find(':selected').text();
+            $('#resumo_titulo').html('dos anúncios de ' + text);
         }
         
     });
@@ -480,11 +487,14 @@
                 $('#numeros-content').html("<iframe width='100%' height='500 px' src='https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>template/" + obj.filename.trim() + "'>");
                 $('#grafico').show();
                 
-                if(obj.resumo != 'Nenhum')
+                if(val_anuncio != -1 && val_anuncio !== null)
                 {
-                    $('#resumo').show();
-                    $('#table_resumo thead').html(obj.resumo.header);
-                    $('#table_resumo tbody').html(obj.resumo.body);
+                    if(obj.resumo != 'Nenhum')
+                    {
+                        $('#resumo').show();
+                        $('#table_resumo thead').html(obj.resumo.header);
+                        $('#table_resumo tbody').html(obj.resumo.body);
+                    }
                 }
             }
         });
