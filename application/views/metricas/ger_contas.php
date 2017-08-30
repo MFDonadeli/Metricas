@@ -385,6 +385,11 @@
 				}
 			});
 
+			if(contas.length == 0)
+			{
+				return;
+			}
+
 			sync_conta(i);
         });
 

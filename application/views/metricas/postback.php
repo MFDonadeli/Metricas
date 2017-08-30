@@ -35,7 +35,10 @@
                         <label class='col-md-2 control-label' for='txttoken'>Token:</label>
                         <div class='col-sm-5'><input class='form-control' type="text" name="txttoken" id="txttoken"></div>
                     </div>
-                    <button class='btn btn-default' id="btninserir">Inserir</button>
+					<div class='form-group'>
+                        <label class='col-md-2 control-label'></label>
+                        <div class='col-sm-5'><button class='btn btn-default' id="btninserir">Inserir</button></div>
+                    </div>
                 </fieldset>
             </form>
 		</div> <!-- well -->
@@ -151,9 +154,24 @@
     $('#btninserir').click(function(e){
         e.preventDefault();
         //id = $(this).attr('id'); 
+
+		$plataforma = $('#cmbplataformas').val();
+		$token = $('#txttoken').val();
+
+		if($plataforma == -1)
+		{
+			alert('Selecione uma plataforma');
+			return;
+		}
+
+		if($token == '')
+		{
+			alert('Token não pode estar em branco!');
+			return;	
+		}
         
-        var form_data = { plataforma: $('#cmbplataformas').val(),
-                          token: $('#txttoken').val() };
+        var form_data = { plataforma: $plataforma,
+                          token: $token };
 
         var resp = $.ajax({
             url: '<?php echo base_url(); ?>app/cadastra_token',
@@ -178,6 +196,11 @@
             if($(this).is(':checked'))
                 dados.push($(this).attr('id'));
         });
+
+		if(dados.length == 0)
+		{
+			return;
+		}
 
         var form_data = { id_token: dados };
 

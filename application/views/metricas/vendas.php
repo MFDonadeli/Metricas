@@ -128,8 +128,8 @@
 
     function setUpGrids()
     {
-        var responsiveHelper_dt_cartao = undefined;
-         var table_cartao = undefined;
+        var responsiveHelper_dt_cartao;
+        var table_cartao;
          
          var breakpointDefinition = {
              tablet : 1024,

@@ -41,7 +41,12 @@ $('#btnsalvar').click(function(){
 	if($('#start_interval').prop('checked'))
 		postback = 1;
 
-    var form_data = { sync_time: $("#txtsinc").val(),
+	var sync_time = $("#txtsinc").val();
+
+	if(sync_time == '' || sync_time < 1)
+		sync_time = 1;
+
+    var form_data = { sync_time: sync_time,
                           postback_enabled: postback };
 
     var resp = $.ajax({

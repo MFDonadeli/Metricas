@@ -437,6 +437,8 @@
         {
             $('#link_anuncio').html("<a href='https://facebook.com/" + story + "' target='_blank'>Anúncio com comentários</a>");
         }
+
+        $('#resumo').hide();
         
     });
 
