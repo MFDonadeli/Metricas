@@ -624,6 +624,7 @@ class App extends CI_Controller {
       foreach($retorno as $ret)
       {
         $body .= "<tr>";
+        $body .= "<td>" . $ret['nome'] . "</td>";
         $body .= "<td>" . $ret['cpc'] . "</td>";
         $body .= "<td>" . $ret['ctr'] . "</td>";
         $body .= "<td>" . $ret['cpm'] . "</td>";
@@ -631,6 +632,8 @@ class App extends CI_Controller {
         {
           if(isset($ret[$key]))
             $body .="<td>".$ret[$key]."</td>";
+          else
+            $body .="<td>-</td>";
         }
         $body .= "</tr>";
       }   

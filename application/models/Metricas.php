@@ -760,7 +760,7 @@ class Metricas extends CI_Model{
         log_message('debug', 'getTableDataFromTipo. Id:' . $id);
             
         $this->db->select('cost_per_inline_link_click, inline_link_click_ctr, cpm, ' . $tipo1 . '_insights_id as id, ' .
-            $tipo1 . 's.effective_status, "' . $tipo1 . '" as tipo');
+            $tipo1 . 's.effective_status, "' . $tipo1 . '" as tipo, ' . $tipo1 . 's.name');
         $this->db->from($tipo1.'_insights');
         $this->db->join($tipo1."s", $tipo1 . "s.id = " . $tipo1 . "_insights." . $tipo1 . "_id");
         $this->db->where($tipo1.'_insights.' . $tipo.'_id', $id);
@@ -880,6 +880,7 @@ class Metricas extends CI_Model{
             
             foreach($tipos as $val)
             {
+                $dados['nome'] = $val->name;
                 $dados['cpc'] = $val->cost_per_inline_link_click;
                 $dados['ctr'] = $val->inline_link_click_ctr;
                 $dados['cpm'] = $val->cpm;
