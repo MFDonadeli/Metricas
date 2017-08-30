@@ -137,8 +137,10 @@
          };
          
          if ( $.fn.dataTable.isDataTable( '#dt_cartao' ) ) {
+             console.log(table_cartao);
              table_cartao = $('#dt_cartao').DataTable();
              table_cartao.destroy();
+             console.log(table_cartao);
          }
          
          table_cartao = $('#dt_cartao').DataTable({
@@ -159,8 +161,8 @@
          	responsiveHelper_dt_cartao.respond();
          }
          });
-                 console.log(table_cartao);
-                 console.log(responsiveHelper_dt_cartao);
+        
+        console.log(table_cartao);
          
          // Apply the filter
          $("#dt_cartao thead th select").on( 'change', function () {

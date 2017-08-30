@@ -571,7 +571,11 @@ class App extends CI_Controller {
         //Chama a função de gerar planilha
         $filename = generate_excel($retorno, $this->phpexcel, $sem_dado_venda, $comissao);
 
-        $resumo = $this->get_resumo($id, $tipo, $comissao, $translate);
+        $resumo = false;
+
+        if($tipo!='ads')
+          $resumo = $this->get_resumo($id, $tipo, $comissao, $translate);
+
         if(!$resumo)
           $resumo = 'Nenhum';
 
@@ -972,7 +976,7 @@ class App extends CI_Controller {
           $ret .= "<option value='-1'>Selecione</option>";
         else
           $ret .= "<option value='-1'>Todos</option>";
-          
+
         foreach($retorno as $val)
         {
           $ret .= "<option value='" . $val->id . "'";
