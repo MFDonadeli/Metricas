@@ -76,6 +76,10 @@
             }
         });
 
+        if(dados.lenght == 0)
+            return;
+
+
         var form_data = { dados: dados,
                           ad_id: $('#cmbCartao').val(),
                           tipo: tipos,
@@ -121,6 +125,8 @@
             }
         }).responseText;
 
+        $("table[id*=dt_cartao]").remove();
+
         $('#resposta'+plataforma).html(resp);
 
         setUpGrids();
@@ -135,7 +141,7 @@
              tablet : 1024,
              phone : 480
          };
-         
+
          if ( $.fn.dataTable.isDataTable( '#dt_cartao' ) ) {
              console.log(table_cartao);
              table_cartao = $('#dt_cartao').DataTable();
