@@ -346,7 +346,7 @@ class App extends CI_Controller {
         if(isset($datalhes['error']))
           die('Erro. Tente novamente');
 
-        log_message('debug',json_encode($detalhes));
+        log_message('debug', 'Resposta insight por data ' . json_encode($detalhes));
 
         //Chama a função para processamento do insight
         $this->processa_resposta_insight($detalhes, $tipo, true);
@@ -362,7 +362,7 @@ class App extends CI_Controller {
       if(isset($detalhes['error']))
         die('Error');
 
-      log_message('debug',json_encode($detalhes));
+      log_message('debug','Resposta insight ' . json_encode($detalhes));
 
       //Chama a função para processamento do insight
       $this->processa_resposta_insight($detalhes, $tipo);

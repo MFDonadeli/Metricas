@@ -880,6 +880,7 @@ class Metricas extends CI_Model{
             
             foreach($tipos as $val)
             {
+                $dados = array();
                 $dados['nome'] = $val->name;
                 $dados['cpc'] = $val->cost_per_inline_link_click;
                 $dados['ctr'] = $val->inline_link_click_ctr;
