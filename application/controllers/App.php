@@ -587,7 +587,7 @@ class App extends CI_Controller {
 
         $js = json_encode($ret);
 
-        echo $js;
+        return $js;
       }
 
       return false;
