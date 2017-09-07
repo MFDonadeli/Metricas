@@ -752,6 +752,8 @@ class Metricas extends CI_Model{
     */
     public function getTableDataFromTipo($id, $tipo)
     {
+        $tipo1 = $tipo;
+        
         if($tipo == 'campaign')
             $tipo1 = 'adset';
         else if($tipo == 'adset')
@@ -1013,7 +1015,7 @@ class Metricas extends CI_Model{
         $this->db->select("sum(boletos_gerados) as boletos_gerados, sum(boletos_pagos) as boletos_pagos, 
             sum(cartoes) as cartoes, sum(boletos_pagos * comissao) as faturamento_boleto, 
             sum(cartoes * comissao) as faturamento_cartao, produto,
-            substring(data,1,10) as dt, " . $tipo . "_id");
+            substring(data,1,10) as dt, comissao, " . $tipo . "_id");
 
         $this->db->from("ads_vendas");
         $this->db->where($tipo . "_id",$id);
@@ -1043,7 +1045,7 @@ class Metricas extends CI_Model{
 
         $this->db->select("sum(boletos_gerados) as boletos_gerados, sum(boletos_pagos) as boletos_pagos, 
             sum(cartoes) as cartoes, sum(boletos_pagos * comissao) as faturamento_boleto, 
-            sum(cartoes * comissao) as faturamento_cartao, produto, " . $tipo . "_id");
+            sum(cartoes * comissao) as faturamento_cartao, produto, comissao, " . $tipo . "_id");
 
         $this->db->from("ads_vendas");
         $this->db->where($tipo . "_id",$id);

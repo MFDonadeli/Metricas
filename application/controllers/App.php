@@ -15,11 +15,10 @@ class App extends CI_Controller {
         // Load phpexcel library
         $this->load->library('phpexcel');
 
-        $this->load->helper('constants_helper');
-        $this->load->helper('data_process_helper');
-        $this->load->helper('excel_helper');
+        $this->load->library('excel_build');
 
-        
+        $this->load->helper('constants_helper');
+        $this->load->helper('data_process_helper');    
     }
 
 	/**
@@ -526,6 +525,7 @@ class App extends CI_Controller {
             $dados->cartoes = $dados_vendas_geral->cartoes;
             $dados->faturamento_boleto = $dados_vendas_geral->faturamento_boleto;
             $dados->faturamento_cartao = $dados_vendas_geral->faturamento_cartao;
+            $comissao = $dados_vendas_geral->comissao;
           }
 
           //Faz o cálculo de %PurchaseCheckout
@@ -569,7 +569,7 @@ class App extends CI_Controller {
         }
 
         //Chama a função de gerar planilha
-        $filename = generate_excel($retorno, $this->phpexcel, $sem_dado_venda, $comissao);
+        $filename = $this->excel_build->generate_excel($retorno, $this->phpexcel, $sem_dado_venda, $comissao);
 
         $resumo = false;
 
