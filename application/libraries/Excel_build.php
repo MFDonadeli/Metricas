@@ -173,10 +173,10 @@ class Excel_build
         //Coloca formatação condicional no ROI
         $this->formata_roi($qtde_colunas, $objPHPExcel->getActiveSheet());
 
-        if($tipo == 'ads')
+        //if($tipo == 'ads')
             $this->processa_kpis($dados, $comissao, $sem_dado_venda, $objPHPExcel);
-        else
-            $objPHPExcel->removeSheetByIndex(1);
+        //else
+        //    $objPHPExcel->removeSheetByIndex(1);
 
         //$chart = build_chart($qtde_colunas, '%CTR', $objPHPExcel->getActiveSheet());
 
