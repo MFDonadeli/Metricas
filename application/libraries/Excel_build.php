@@ -6,7 +6,6 @@ define('START_ROW',1);
 class Excel_build
 {
     private $linhas_planilhas = array();
-
     
     /**
     * generate_excel
@@ -173,10 +172,10 @@ class Excel_build
         //Coloca formatação condicional no ROI
         $this->formata_roi($qtde_colunas, $objPHPExcel->getActiveSheet());
 
-        //if($tipo == 'ads')
+        if($tipo == 'ad')
             $this->processa_kpis($dados, $comissao, $sem_dado_venda, $objPHPExcel);
-        //else
-        //    $objPHPExcel->removeSheetByIndex(1);
+        else
+            $objPHPExcel->removeSheetByIndex(1);
 
         //$chart = build_chart($qtde_colunas, '%CTR', $objPHPExcel->getActiveSheet());
 
@@ -205,31 +204,37 @@ class Excel_build
     */
     function processa_kpis($dados, $comissao, $sem_dado_venda, $objPHPExcel)
     {
+        $colunas_7dias = array('I', 'J', 'K', 'L', 'M', 'N', 'O');
+        $colunas_3dias = array('P', 'Q', 'R', 'S', 'T', 'U', 'V');
+
+        $linhas_2_calculo = array(11, 23);
+
+
         $colGeral = $objPHPExcel->getActiveSheet()->getHighestColumn();
         $colNumber = PHPExcel_Cell::columnIndexFromString($colGeral);
 
         if($colNumber > 1)
             $colUltima = PHPExcel_Cell::stringFromColumnIndex($colNumber-2);
         
-        if($colNumber > 7)
+        if(count($dados) > 7)
             $colPrimeira7dias = PHPExcel_Cell::stringFromColumnIndex($colNumber-8);
         
-        if($colNumber > 3)
+        if(count($dados) > 3)
             $colPrimeira3dias = PHPExcel_Cell::stringFromColumnIndex($colNumber-4);
 
         $kpi['comissao'] = $comissao;
         $kpi['Geral'] = $colGeral;
         $kpi['Ultima'] = $colUltima;
-        $kpi['Primeira7dias'] = $colPrimeira7dias;
-        $kpi['Primeira3dias'] = $colPrimeira3dias;
+        if(isset($colPrimeira7dias)) $kpi['Primeiro_7dias'] = $colPrimeira7dias;
+        if(isset($colPrimeira3dias)) $kpi['Primeiro_3dias'] = $colPrimeira3dias;
         $kpi['Primeira'] = 'B';
 
         $view_contents = $this->linhas_planilhas['fb_pixel_view_content'];
 
         $kpi['ViewContents'] = "Métricas!" . $colGeral . $this->linhas_planilhas[$view_contents];
         $kpi['Ultimo_ViewContent'] = "Métricas!" . $colUltima . $this->linhas_planilhas[$view_contents];
-        $kpi['ViewContent_7dias'] = "Métricas!" . $colPrimeira7dias . $this->linhas_planilhas[$view_contents];
-        $kpi['ViewContent_3dias'] = "Métricas!" . $colPrimeira3dias . $this->linhas_planilhas[$view_contents];
+        if(isset($colPrimeira7dias)) $kpi['ViewContent_7dias'] = "Métricas!" . $colPrimeira7dias . $this->linhas_planilhas[$view_contents];
+        if(isset($colPrimeira3dias)) $kpi['ViewContent_3dias'] = "Métricas!" . $colPrimeira3dias . $this->linhas_planilhas[$view_contents];
 
         if($sem_dado_venda)
         {
@@ -237,10 +242,14 @@ class Excel_build
             {
                 $vendas = $this->linhas_planilhas['fb_pixel_purchase'];    
                 $kpi['Vendas'] = "Métricas!" . $colGeral . $this->linhas_planilhas[$vendas];
-                $kpi['Vendas_7dias'] = "Métricas!" . $colPrimeira7dias . $this->linhas_planilhas[$vendas] . ":" .
-                    $colUltima . $this->linhas_planilhas[$vendas];
-                $kpi['Vendas_3dias'] = "Métricas!" . $colPrimeira3dias . $this->linhas_planilhas[$vendas] . ":" .
-                    $colUltima . $this->linhas_planilhas[$vendas];
+                
+                if(isset($colPrimeira7dias))
+                    $kpi['Vendas_7dias'] = "Métricas!" . $colPrimeira7dias . $this->linhas_planilhas[$vendas] . ":" .
+                     $colUltima . $this->linhas_planilhas[$vendas];
+                
+                if(isset($colPrimeira3dias))
+                    $kpi['Vendas_3dias'] = "Métricas!" . $colPrimeira3dias . $this->linhas_planilhas[$vendas] . ":" .
+                        $colUltima . $this->linhas_planilhas[$vendas];
             }
             else
             {   
@@ -262,30 +271,34 @@ class Excel_build
             if(array_key_exists('fb_pixel_purchase', $this->linhas_planilhas))
             {
                 $kpi['Cartoes'] = "Métricas!" . $colGeral . $this->linhas_planilhas['#Cartões:'];
-                $kpi['Cartao_7dias'] = "SUM(Métricas!" . $colPrimeira7dias . $this->linhas_planilhas['#Cartões:'] . ":" . 
-                    $colUltima . $this->linhas_planilhas['#Cartões:'] . ")";
-                $kpi['Cartao_3dias'] = "SUM(Métricas!" . $colPrimeira3dias . $this->linhas_planilhas['#Cartões:'] . ":" . 
-                    $colUltima . $this->linhas_planilhas['#Cartões:'] . ")";
-    
                 $kpi['BoletosGerados'] = "Métricas!" . $colGeral . $this->linhas_planilhas['#Boletos Gerados:'];
-                $kpi['BoletosGerado_7dias'] = "SUM(Métricas!" . $colPrimeira7dias . $this->linhas_planilhas['#Boletos Gerados:'] . ":" . 
-                    $colUltima . $this->linhas_planilhas['#Boletos Gerados:'] . ")";
-                $kpi['BoletosGerado_3dias'] = "SUM(Métricas!" . $colPrimeira3dias . $this->linhas_planilhas['#Boletos Gerados:'] . ":" . 
-                    $colUltima . $this->linhas_planilhas['#Boletos Gerados:'] . ")";
-    
                 $kpi['BoletosPagos'] = "Métricas!" . $colGeral . $this->linhas_planilhas['#Boletos Pagos:'];
-                $kpi['BoletosPago_7dias'] = "SUM(Métricas!" . $colPrimeira7dias . $this->linhas_planilhas['#Boletos Pagos:'] . ":" . 
-                    $colUltima . $this->linhas_planilhas['#Boletos Pagos:'] . ")";
-                $kpi['BoletosPago_3dias'] = "SUM(Métricas!" . $colPrimeira3dias . $this->linhas_planilhas['#Boletos Pagos:'] . ":" . 
-                    $colUltima . $this->linhas_planilhas['#Boletos Pagos:'] . ")";
-    
                 $kpi['BoletosTotais'] = "(" . $kpi['BoletosPagos'] . "+" . $kpi['BoletosGerados'] . ")";
-                $kpi['BoletosTotal_7dias'] = "(" . $kpi['BoletosPago_7dias']  . "+" . $kpi['BoletosGerado_7dias'] . ")";
-                $kpi['BoletosTotal_3dias'] = "(" . $kpi['BoletosPago_3dias']  . "+" . $kpi['BoletosGerado_3dias'] . ")";
-    
                 $kpi['Vendas'] = "(" . $kpi['BoletosPagos'] . "+" . $kpi['Cartoes'] . ")";
-                $kpi['Venda_7dias'] = "(" . $kpi['BoletosPago_7dias']  . "+" . $kpi['Cartao_7dias'] . ")";
-                $kpi['Venda_3dias'] = "(" . $kpi['BoletosPago_3dias']  . "+" . $kpi['Cartao_3dias'] . ")";
+                
+                if(isset($colPrimeira7dias))
+                {
+                    $kpi['Cartao_7dias'] = "SUM(Métricas!" . $colPrimeira7dias . $this->linhas_planilhas['#Cartões:'] . ":" . 
+                        $colUltima . $this->linhas_planilhas['#Cartões:'] . ")";
+                    $kpi['BoletosGerado_7dias'] = "SUM(Métricas!" . $colPrimeira7dias . $this->linhas_planilhas['#Boletos Gerados:'] . ":" . 
+                        $colUltima . $this->linhas_planilhas['#Boletos Gerados:'] . ")";
+                    $kpi['BoletosPago_7dias'] = "SUM(Métricas!" . $colPrimeira7dias . $this->linhas_planilhas['#Boletos Pagos:'] . ":" . 
+                        $colUltima . $this->linhas_planilhas['#Boletos Pagos:'] . ")";
+                    $kpi['BoletosTotal_7dias'] = "(" . $kpi['BoletosPago_7dias']  . "+" . $kpi['BoletosGerado_7dias'] . ")";
+                    $kpi['Venda_7dias'] = "(" . $kpi['BoletosPago_7dias']  . "+" . $kpi['Cartao_7dias'] . ")";
+                }
+
+                if(isset($colPrimeira3dias))
+                {
+                    $kpi['Cartao_3dias'] = "SUM(Métricas!" . $colPrimeira3dias . $this->linhas_planilhas['#Cartões:'] . ":" . 
+                        $colUltima . $this->linhas_planilhas['#Cartões:'] . ")";
+                    $kpi['BoletosGerado_3dias'] = "SUM(Métricas!" . $colPrimeira3dias . $this->linhas_planilhas['#Boletos Gerados:'] . ":" . 
+                        $colUltima . $this->linhas_planilhas['#Boletos Gerados:'] . ")";
+                    $kpi['BoletosPago_3dias'] = "SUM(Métricas!" . $colPrimeira3dias . $this->linhas_planilhas['#Boletos Pagos:'] . ":" . 
+                        $colUltima . $this->linhas_planilhas['#Boletos Pagos:'] . ")";
+                    $kpi['BoletosTotal_3dias'] = "(" . $kpi['BoletosPago_3dias']  . "+" . $kpi['BoletosGerado_3dias'] . ")";
+                    $kpi['Venda_3dias'] = "(" . $kpi['BoletosPago_3dias']  . "+" . $kpi['Cartao_3dias'] . ")";
+                }
             }
             else
             {  
@@ -343,6 +356,30 @@ class Excel_build
             }
         }   
         
+        if(!isset($colPrimeira3dias))
+        {
+            foreach($colunas_3dias as $coluna)
+            {
+                $objPHPExcel->getActiveSheet()->getColumnDimension($coluna)->setVisible(FALSE);    
+            }
+        }
+
+        if(!isset($colPrimeira7dias))
+        {
+            foreach($colunas_7dias as $coluna)
+            {
+                $objPHPExcel->getActiveSheet()->getColumnDimension($coluna)->setVisible(FALSE);    
+            }
+        }
+
+        if($sem_dado_venda)
+        {
+            for($i=$linhas_2_calculo[0]; $i<=$linhas_2_calculo[1]; $i++)
+            {
+                $objPHPExcel->getActiveSheet()->getRowDimension($i)->setVisible(FALSE);       
+            }
+        }
+
         $objPHPExcel->getActiveSheet()->setSelectedCell('A1'); 
 
     }
