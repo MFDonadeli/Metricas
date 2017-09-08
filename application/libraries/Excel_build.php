@@ -19,7 +19,7 @@ class Excel_build
     * @param    $comissao(float): Valor da comissao padrão 
     * @return   string nome do arquivo gerado
     */
-    function generate_excel($dados, $excel, $sem_dado_venda, $comissao)
+    function generate_excel($dados, $excel, $sem_dado_venda, $comissao, $tipo)
     {
         $diasemana = array('Dom', 'Seg', 'Ter', 'Quar', 'Qui', 'Sex', 'Sáb');
 
@@ -173,7 +173,10 @@ class Excel_build
         //Coloca formatação condicional no ROI
         $this->formata_roi($qtde_colunas, $objPHPExcel->getActiveSheet());
 
-        $this->processa_kpis($dados, $comissao, $sem_dado_venda, $objPHPExcel);
+        if($tipo == 'ads')
+            $this->processa_kpis($dados, $comissao, $sem_dado_venda, $objPHPExcel);
+        else
+            $objPHPExcel->removeSheetByIndex(1);
 
         //$chart = build_chart($qtde_colunas, '%CTR', $objPHPExcel->getActiveSheet());
 
@@ -298,6 +301,7 @@ class Excel_build
                     $kpi['ViewContents'] = ($vc * 100) + 100;
                 }
             }
+
         }
         
 
@@ -337,7 +341,9 @@ class Excel_build
                 }
                 $objPHPExcel->getActiveSheet()->getCell($col . $row)->setValue($value);  
             }
-        }    
+        }   
+        
+        $objPHPExcel->getActiveSheet()->setSelectedCell('A1'); 
 
     }
 

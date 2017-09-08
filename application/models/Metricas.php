@@ -151,7 +151,7 @@ class Metricas extends CI_Model{
     * Traz nome, id e status do (ad, conjunto e campanha) a partir de uma conta cadastrada
     *
     * @param	id: Id da conta
-    * @param    tipo(string): ad, adset, campaign
+    * @param    tipo string: ad, adset, campaign
     * @return	
     *    false se não encontrar nenhuma informação
     *    lista com o nome, id e status do tipo
@@ -226,7 +226,7 @@ class Metricas extends CI_Model{
     *   - Se $tipo for ads usa adset_id para buscar anúncios
     *
     * @param	id: Id do tipo
-    * @param    tipo(string): campaigns, adsets, ads
+    * @param    tipo string: campaigns, adsets, ads
     * @return	
     *    "Nenhum ativo" se não encontrar nenhum tipo ativo
     *    lista de um determinado tipo
@@ -283,7 +283,7 @@ class Metricas extends CI_Model{
     * Insere no banco de dados os dados de uma conta após ser processado dos dados obtidos
     * do Facebook
     *
-    * @param	arr_account(array): As contas a serem inseridas no banco
+    * @param	arr_account array: As contas a serem inseridas no banco
     * @return	-
     */
     public function insertAccount($arr_account)
@@ -333,7 +333,7 @@ class Metricas extends CI_Model{
     * Insere no banco de dados os dados das campanhas após serem processado dos dados obtidos
     * do Facebook
     *
-    * @param	arr_campaign(array): As campanhas a serem inseridas no banco
+    * @param	arr_campaign array: As campanhas a serem inseridas no banco
     * @return	-
     */
     public function insertCampaign($arr_campaign)
@@ -393,9 +393,9 @@ class Metricas extends CI_Model{
     * Insere no banco de dados os dados do insights após ser processado dos dados obtidos
     * do Facebook
     *
-    * @param	arr_insights(array): Os insights a serem inseridos no banco
-    * @param    tipo(string): ad, adset ou campaign. Tipo do insight
-    * @param    bydate(boolean): padrão false. Se o insight é geral(false) ou por dia(true)
+    * @param	arr_insights array: Os insights a serem inseridos no banco
+    * @param    tipo string: ad, adset ou campaign. Tipo do insight
+    * @param    bydate boolean: padrão false. Se o insight é geral(false) ou por dia(true)
     * @return	-
     */
     public function insertInsights($arr_insights, $tipo, $bydate = false)
@@ -439,7 +439,7 @@ class Metricas extends CI_Model{
     * Insere no banco de dados os dados de um conjunto após ser processado dos dados obtidos
     * do Facebook
     *
-    * @param	arr_adset(array): Os conjuntos a serem inseridos no banco
+    * @param	arr_adset array: Os conjuntos a serem inseridos no banco
     * @return   -
     */
     public function insertAdSet($arr_adset)
@@ -514,7 +514,7 @@ class Metricas extends CI_Model{
     * Insere no banco de dados os dados das contas após ser processadas dos dados obtidos
     * do Facebook
     *
-    * @param	arr_ad(array): Os anúncios a serem inseridos no banco
+    * @param	arr_ad array: Os anúncios a serem inseridos no banco
     * @return	-
     */
     public function insertAd($arr_ad)
@@ -590,7 +590,7 @@ class Metricas extends CI_Model{
     * Insere no banco de dados os dados das conversões personalizadas após
     * serem processados dos dados do Facebook
     *
-    * @param	arr_custom_conversions(array): As conversões personalizadas a serem inseridas no banco
+    * @param	arr_custom_conversions array: As conversões personalizadas a serem inseridas no banco
     * @return	-
     */
     public function grava_custom_conversions($arr_custom_conversions)
@@ -667,7 +667,7 @@ class Metricas extends CI_Model{
     * - Se tive ele apaga para atualizar
     *
     * @param	id: O Id do tipo que será pesquisado
-    * @param    tipo(string): Qual tipo será pego: ad, adset, campaign
+    * @param    tipo string: Qual tipo será pego: ad, adset, campaign
     * @return	
     *    data de criação do tipo ou data do insight 
     */
@@ -715,8 +715,8 @@ class Metricas extends CI_Model{
     * Pega os dados necessários que serão exibidos na planilha
     *
     * @param	id: O Id do tipo que será pesquisado
-    * @param    tipo(string): Qual tipo será pego: ad, adset, campaign
-    * @param    abaixo(bool): Se true traz os dados do tipo abaixo: 
+    * @param    tipo string: Qual tipo será pego: ad, adset, campaign
+    * @param    abaixo bool: Se true traz os dados do tipo abaixo: 
     *                se Campanha traz AdSets, se AdSet traz Ads
     * @return	
     *    lista de dados (geral e por dia) do id do tipo pesquisado
@@ -745,7 +745,7 @@ class Metricas extends CI_Model{
     *   se Campanha traz AdSets, se AdSet traz Ads
     *
     * @param	id: O Id do tipo que será pesquisado
-    * @param    tipo(string): Qual tipo será pego: ad, adset, campaign
+    * @param    tipo string: Qual tipo será pego: ad, adset, campaign
     *             
     * @return	
     *    lista de dados (geral e por dia) do id do tipo pesquisado
@@ -787,7 +787,7 @@ class Metricas extends CI_Model{
     *   - As conversões sempre começam com 'offsite_conversion.'
     *
     * @param	id: O Id do tipo que será pesquisado
-    * @param    tipo(string): Qual tipo será pego: ad, adset, campaign
+    * @param    tipo string: Qual tipo será pego: ad, adset, campaign
     * @return	
     *    lista de conversões (geral e por dia) do id do tipo pesquisado
     */
@@ -815,7 +815,7 @@ class Metricas extends CI_Model{
     *     não faltar alguma conversão em algum dia na planilha
     *
     * @param	id: O Id do tipo que será pesquisado
-    * @param    tipo(string): Qual tipo será pego: ad, adset, campaign
+    * @param    tipo string: Qual tipo será pego: ad, adset, campaign
     * @return	
     *    lista de todas as conversões possíveis para este id
     */
@@ -909,7 +909,7 @@ class Metricas extends CI_Model{
     * Pega o url_tag configurado no anúncio
     *
     * @param	id: O Id do anúncio
-    * @return   (string): Nome da conversão personalizada
+    * @return   string: Nome da conversão personalizada
     */
     function get_tags_from_ad($ad_id)
     {
@@ -933,7 +933,7 @@ class Metricas extends CI_Model{
     * Traz o id do usuário através do id do Facebook
     *
     * @param	fb_id: Id do Facebook
-    * @return	(string): Id do usuário
+    * @return	string: Id do usuário
     */
     function getuserid($fb_id)
     {
@@ -956,7 +956,7 @@ class Metricas extends CI_Model{
     * Traz o id do facebook através do id do usuario
     *
     * @param	user_id: Id do Usuário
-    * @return	(string): Id do facebook
+    * @return	string: Id do facebook
     */
     function getfbid($user_id)
     {
@@ -1004,7 +1004,7 @@ class Metricas extends CI_Model{
     *  agrupados por dia e id
     *
     * @param	id: O Id do tipo que será pesquisado
-    * @param    tipo(string): Qual tipo será pego: ad, adset, campaign
+    * @param    tipo string: Qual tipo será pego: ad, adset, campaign
     * @return	
     *    lista de dados dos boletos gerados, pagos, cartões e seus valores agrupados por data e id
     */
@@ -1035,7 +1035,7 @@ class Metricas extends CI_Model{
     *   agrupados somente por id (Serve para trazer o resultado geral do tipo)
     *
     * @param	id: O Id do tipo que será pesquisado
-    * @param    tipo(string): Qual tipo será pego: ad, adset, campaign
+    * @param    tipo string: Qual tipo será pego: ad, adset, campaign
     * @return	
     *    lista de dados dos boletos gerados, pagos, cartões e seus valores agrupados por id
     */
@@ -1548,7 +1548,7 @@ campaigns.name as campanha, accounts.name as conta");
     * @param    id: Id da Conta cujos dados serão apagados
     * @return	-
     */
-    public function deleteToNewSync($id)
+    public function deleteToNewSync($id, $completa = false)
     {
         log_message('debug', 'deleteToNewSync. Id:' . $id);
         
@@ -1557,9 +1557,17 @@ campaigns.name as campanha, accounts.name as conta");
         $this->db->delete('ad_creatives');
         
         //Apaga os insights do anúncio (geral) e seus actions
-        $this->db->query("DELETE ad_insights_actions, ad_insights FROM ad_insights_actions
-	                        JOIN ad_insights ON ad_insights_actions.ad_insights_id = ad_insights.ad_insights_id
-                            WHERE ad_insights.bydate is NULL AND ad_insights.account_id = '" . $id . "';");
+        $sql = "DELETE ad_insights_actions, ad_insights FROM ad_insights_actions
+            JOIN ad_insights ON ad_insights_actions.ad_insights_id = ad_insights.ad_insights_id
+            WHERE ad_insights.account_id = '" . $id . "'";
+
+        if(!$completa)
+            $sql .= " AND ad_insights.bydate is NULL;";
+        else
+            $sql .= ";";
+        
+        
+        $this->db->query($sql);
 
         log_message('debug', 'Last Query: ' . $this->db->last_query()); 
         
@@ -1570,9 +1578,16 @@ campaigns.name as campanha, accounts.name as conta");
         log_message('debug', 'Last Query: ' . $this->db->last_query()); 
 
         //Apaga os insights do conjunto (geral) e seus actions
-        $this->db->query("DELETE adset_insights_actions, adset_insights FROM adset_insights_actions
-	                        JOIN adset_insights ON adset_insights_actions.adset_insights_id = adset_insights.adset_insights_id
-                            WHERE adset_insights.bydate is NULL AND adset_insights.account_id = '" . $id . "';");
+        $sql = "DELETE adset_insights_actions, adset_insights FROM adset_insights_actions
+            JOIN adset_insights ON adset_insights_actions.adset_insights_id = adset_insights.adset_insights_id
+            WHERE adset_insights.account_id = '" . $id . "'";
+        
+        if(!$completa)
+            $sql .= " AND adset_insights.bydate is NULL;";
+        else
+            $sql .= ";";
+
+        $this->db->query($sql);
 
         log_message('debug', 'Last Query: ' . $this->db->last_query()); 
 
@@ -1584,9 +1599,16 @@ campaigns.name as campanha, accounts.name as conta");
         log_message('debug', 'Last Query: ' . $this->db->last_query()); 
 
         //Apaga os insights da campanha (geral) e seus actions
-        $this->db->query("DELETE campaign_insights_actions, campaign_insights FROM campaign_insights_actions
-	                        JOIN campaign_insights ON campaign_insights_actions.campaign_insights_id = campaign_insights.campaign_insights_id
-                            WHERE campaign_insights.bydate is NULL AND campaign_insights.account_id = '" . $id . "';");
+        $sql = "DELETE campaign_insights_actions, campaign_insights FROM campaign_insights_actions
+            JOIN campaign_insights ON campaign_insights_actions.campaign_insights_id = campaign_insights.campaign_insights_id
+            WHERE campaign_insights.account_id = '" . $id . "'";
+
+        if(!$completa)
+            $sql .= " AND campaign_insights.bydate is NULL;";
+        else
+            $sql .= ";";
+
+        $this->db->query($sql);
 
         log_message('debug', 'Last Query: ' . $this->db->last_query());  
 

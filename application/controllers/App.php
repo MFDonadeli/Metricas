@@ -111,8 +111,9 @@ class App extends CI_Controller {
     *   esta função faz a chamada do Facebook e inicia o tratamento dos dados a serem
     *   incluídos no banco de dados
     * @param  conta: Parâmetro opcional para caso de testes via barra de endereço
+    * @param  completa: Se vai fazer a sincronização apagando os dados de actions
     */
-    public function sync_contas($conta = null)
+    public function sync_contas($conta = null, $completa = false)
     {
       log_message('debug', $this->input->raw_input_stream);
 
@@ -140,7 +141,7 @@ class App extends CI_Controller {
         die('Erro');
       }
 
-      $this->grava_bd($detalhes); 
+      $this->grava_bd($detalhes, $completa); 
 
       //Busca as conversões personalizadas
       $detalhes = $this->facebook->request('get',$conta.'/customconversions?fields=id,name,custom_event_type,account_id',$this->usrtkn);
@@ -175,7 +176,7 @@ class App extends CI_Controller {
       {
         $detalhes = json_decode($aa, true);
 
-        $this->grava_bd($detalhes, '1621655807847312'); 
+        $this->grava_bd($detalhes, '1621655807847312', false); 
 
         $detalhes = $this->facebook->request('get',$detalhes['id'].'/customconversions?fields=id,name,custom_event_type,account_id',$this->usrtkn);
         log_message('debug',json_encode($detalhes));
@@ -200,7 +201,7 @@ class App extends CI_Controller {
     * @param  detalhes: O array de resultados vindo do Facebook
     * @param  fb_id: Opcional. Id do Facebook do dono da conta
     */
-    public function grava_bd($detalhes, $fb_id = '0')
+    public function grava_bd($detalhes, $completa, $fb_id = '0')
     {
       if($fb_id == 0)
         $fb_id = $this->fb_id;
@@ -211,7 +212,7 @@ class App extends CI_Controller {
       }
       
       //Apaga os dados antes de inserir novamente
-      $this->metricas->deleteToNewSync(str_replace('act_','',$detalhes['id']));
+      $this->metricas->deleteToNewSync(str_replace('act_','',$detalhes['id']), $completa);
 
       //Separa os arrays
       $campaigns = $detalhes['campaigns']['data'];
@@ -569,7 +570,7 @@ class App extends CI_Controller {
         }
 
         //Chama a função de gerar planilha
-        $filename = $this->excel_build->generate_excel($retorno, $this->phpexcel, $sem_dado_venda, $comissao);
+        $filename = $this->excel_build->generate_excel($retorno, $this->phpexcel, $sem_dado_venda, $comissao, $tipo);
 
         $resumo = false;
 
@@ -654,7 +655,7 @@ class App extends CI_Controller {
     * Faz a atualização dos dados já sincronizados (resincronização)
     * @param id: Id do Facebook para ser feita a resincronização
     */
-    public function resync($id = 'all')
+    public function resync($id = 'all', $completa = false)
     {
       log_message('debug', 'resync.'); 
 
@@ -683,7 +684,7 @@ class App extends CI_Controller {
         foreach($results as $result)
         {
           //Sincroniza as contas
-          $this->sync_contas($result->account_id);
+          $this->sync_contas($result->account_id, $completa);
           foreach($tipos as $tipo)
           {
             $results_tipo = $this->metricas->getFromConta($result->account_id, $tipo);
