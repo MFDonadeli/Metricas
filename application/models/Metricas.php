@@ -622,13 +622,15 @@ class Metricas extends CI_Model{
     {
         log_message('debug', 'getLastDateSync');
 
-        //Busca da tabela <tipo>_insight a última data quebrada já sincronizada
+        //Busca da tabela <tipo>_insight as duas últimas data quebrada já sincronizada
+        //Pega as duas últimas pois pode ter dado algum problema de sincronização na data
+        //anterior (sincronizar perto da meia noite por exemplo)
         $this->db->select('date_start, '.$tipo.'_insights_id');
         $this->db->from($tipo.'_insights');
         $this->db->where($tipo.'_id', $id);
         $this->db->where('bydate = 1');
         $this->db->order_by($tipo.'_insights_id', 'desc');
-        $this->db->limit(1);
+        $this->db->limit(2);
         $result = $this->db->get();
 
         log_message('debug', 'Last Query: ' . $this->db->last_query());
@@ -636,15 +638,22 @@ class Metricas extends CI_Model{
         //Se achou, apaga esta data de insights e actions
         if($result->num_rows() > 0)
         {
-            $row = $result->row();
+            $results = $result->result();
 
-            $this->db->where($tipo.'_insights_id', $row->{$tipo.'_insights_id'});
-            $this->db->delete($tipo.'_insights_actions');
+            $ret = "";
 
-            $this->db->where($tipo.'_insights_id', $row->{$tipo.'_insights_id'});
-            $this->db->delete($tipo.'_insights');
+            foreach($results as $row)
+            {
+                $this->db->where($tipo.'_insights_id', $row->{$tipo.'_insights_id'});
+                $this->db->delete($tipo.'_insights_actions');
+    
+                $this->db->where($tipo.'_insights_id', $row->{$tipo.'_insights_id'});
+                $this->db->delete($tipo.'_insights');
 
-            return explode(' ', $row->date_start)[0];    
+                $ret = explode(' ', $row->date_start)[0];
+            }
+
+            return $ret;    
         }
 
         //Pega do tipo buscado 
@@ -669,7 +678,7 @@ class Metricas extends CI_Model{
     * @param	id: O Id do tipo que será pesquisado
     * @param    tipo string: Qual tipo será pego: ad, adset, campaign
     * @return	
-    *    data de criação do tipo ou data do insight 
+    *    data de criação do tipo ou data do insight ou false se não encontrar datas
     */
     public function getFirstDate($id, $tipo)
     {
@@ -703,10 +712,15 @@ class Metricas extends CI_Model{
 
         log_message('debug', 'Last Query: ' . $this->db->last_query());
 
-        $row = $result->row();
+        if($result->num_rows() > 0)
+        {
+            $row = $result->row();
 
-        //Retorna a data de criação do tipo
-        return explode('T', $row->created_time)[0];
+            //Retorna a data de criação do tipo
+            return explode('T', $row->created_time)[0];
+        }
+
+        return false;
     }
 
     /**
@@ -1314,7 +1328,7 @@ class Metricas extends CI_Model{
         //$result = $this->db->query(
         $query1 = "SELECT purchase_date as data_compra, confirmation_purchase_date as data_confirmacao,
 		    cms_aff as comissao, prod_name as produto, postback_hotmart_id as id_plataforma,
-            'hotmart' as plataforma, src, 'Boleto Impresso' as tipo FROM postback_hotmart
+            'hotmart' as plataforma, src, 'Boleto Impresso' as tipo, postback_hotmart.transaction FROM postback_hotmart
             join platform_users on postback_hotmart.hottok = platform_users.token
             WHERE postback_hotmart.status = 'billet_printed' AND postback_hotmart.ad_status != 'OK'
             AND platform_users.user_id = '" . $user_id . "'
@@ -1328,7 +1342,7 @@ class Metricas extends CI_Model{
 
         $this->db->select("purchase_date as data_compra, confirmation_purchase_date as data_confirmacao,
 		    cms_aff as comissao, prod_name as produto, postback_hotmart_id as id_plataforma,
-            'hotmart' as plataforma, src, 'Cartão' as tipo");
+            'hotmart' as plataforma, src, 'Cartão' as tipo, postback_hotmart.transaction");
         $this->db->from("postback_hotmart");
         $this->db->join("platform_users","postback_hotmart.hottok = platform_users.token");
         $this->db->where("postback_hotmart.ad_status != 'OK'");
@@ -1345,7 +1359,7 @@ class Metricas extends CI_Model{
 
         $this->db->select("purchase_date as data_compra, confirmation_purchase_date as data_confirmacao,
 		    cms_aff as comissao, prod_name as produto, postback_hotmart_id as id_plataforma,
-            'hotmart' as plataforma, src, 'Boleto Pago' as tipo");
+            'hotmart' as plataforma, src, 'Boleto Pago' as tipo, postback_hotmart.transaction");
         $this->db->from("postback_hotmart");
         $this->db->join("platform_users","postback_hotmart.hottok = platform_users.token");
         $this->db->where("postback_hotmart.ad_status != 'OK'");
@@ -1381,7 +1395,7 @@ class Metricas extends CI_Model{
     */
     function busca_monetizze_token($id)
     {
-        log_message('debug', 'busca_monetizze.'); 
+        log_message('debug', 'busca_monetizze_token.'); 
 
         $user_id = $this->getuserid($id);
 
@@ -1391,7 +1405,8 @@ class Metricas extends CI_Model{
         //$result = $this->db->query(
         $query1 =  "SELECT venda_data_inicio as data_compra, venda_data_finalizada as data_confirmacao,
 		    venda_valor as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
-            'monetizze' as plataforma, venda_src as src, 'Boleto Impresso' as tipo
+            'monetizze' as plataforma, venda_src as src, 'Cartão' as tipo, postback_monetizze.venda_codigo as transaction
+            'monetizze' as plataforma, venda_src as src, 'Boleto Impresso' as tipo, postback_monetizze.venda_codigo as transaction
 FROM postback_monetizze join platform_users on postback_monetizze.chave_unica = platform_users.token
 WHERE venda_forma_pagamento = 'Boleto' and postback_monetizze.ad_status != 'OK' 
 and venda_status = 'Aguardando pagamento' and platform_users.user_id = '" . $user_id . "'
@@ -1404,7 +1419,7 @@ WHERE venda_status = 'Finalizada' and venda_forma_pagamento = 'Boleto')";
 
         $this->db->select("venda_data_inicio as data_compra, venda_data_finalizada as data_confirmacao,
 		    venda_valor as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
-            'monetizze' as plataforma, venda_src as src, 'Cartão' as tipo");
+            'monetizze' as plataforma, venda_src as src, 'Cartão' as tipo, postback_monetizze.venda_codigo as transaction");
         $this->db->from("postback_monetizze"); 
         $this->db->join("platform_users","postback_monetizze.chave_unica = platform_users.token");
         $this->db->where("ad_status != 'OK'");
@@ -1420,7 +1435,7 @@ WHERE venda_status = 'Finalizada' and venda_forma_pagamento = 'Boleto')";
 
         $this->db->select("venda_data_inicio as data_compra, venda_data_finalizada as data_confirmacao,
 		    venda_valor as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
-            'monetizze' as plataforma, venda_src as src, 'Boleto Pago' as tipo");
+            'monetizze' as plataforma, venda_src as src, 'Boleto Pago' as tipo, postback_monetizze.venda_codigo as transaction");
         $this->db->from("postback_monetizze");
         $this->db->join("platform_users","postback_monetizze.chave_unica = platform_users.token");
         $this->db->where("ad_status != 'OK'");
@@ -1495,6 +1510,13 @@ campaigns.name as campanha, accounts.name as conta");
             $insert->data = $insert->data_compra;
             unset($insert->data_compra);
             unset($insert->data_confirmacao);
+
+            $this->db->where('plataforma', $insert['plataforma']);
+            $this->db->where('id_plataforma', $insert['id_plataforma']);
+            $result = $this->db->get('ads_vendas');
+
+            if($result->num_rows() > 0)
+                continue;
 
             $this->db->insert('ads_vendas', $insert);
 
