@@ -1405,7 +1405,6 @@ class Metricas extends CI_Model{
         //$result = $this->db->query(
         $query1 =  "SELECT venda_data_inicio as data_compra, venda_data_finalizada as data_confirmacao,
 		    venda_valor as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
-            'monetizze' as plataforma, venda_src as src, 'Cartão' as tipo, postback_monetizze.venda_codigo as transaction
             'monetizze' as plataforma, venda_src as src, 'Boleto Impresso' as tipo, postback_monetizze.venda_codigo as transaction
 FROM postback_monetizze join platform_users on postback_monetizze.chave_unica = platform_users.token
 WHERE venda_forma_pagamento = 'Boleto' and postback_monetizze.ad_status != 'OK' 
