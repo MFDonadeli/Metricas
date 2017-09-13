@@ -65,11 +65,13 @@
 										<th>
                                             <input type="checkbox" name="checkbox-inline">
 										</th>
+										<th>Código Compra</th>
 										<th>Data da Compra </th>
 										<th>Data da Confirmação</th>
 										<th>Produto </th>
 										<th>Src </th>
 										<th>Tipo </th>
+										<th>Comissão </th>
 									</tr>
 								</thead>
                                 <tbody>
@@ -79,11 +81,13 @@
                                 ?>
                                         <tr>
                                             <td><input type="checkbox" name='chkCartao' class="chkCartao" id="<?php echo $compra->id_plataforma ?>" data-tipo='<?php echo $compra->tipo; ?>'></td>
-                                            <td><?php echo $compra->data_compra; ?></td>
+                                            <td><?php echo $compra->transaction; ?></td>
+											<td><?php echo $compra->data_compra; ?></td>
                                             <td><?php echo $compra->data_confirmacao; ?></td>
                                             <td><?php echo $compra->produto; ?></td>
                                             <td style="word-break: break-all;"><?php echo $compra->src; ?></td>
 											<td><?php echo $compra->tipo; ?></td>
+											<td><?php echo $compra->comissao; ?></td>
                                         </tr>
                                 <?php
                                     }

@@ -354,6 +354,9 @@ class App extends CI_Controller {
 
       $dt_inicio = $this->metricas->getFirstDate($id, $tipo);
 
+      if(!$dt_inicio)
+        $dt_inicio = $this->metricas->getLastDateSync($id, $tipo);
+
       $url_params = get_param_contas_data_simples($dt_inicio);
 
       //Faz a chamada no Facebook
@@ -657,6 +660,9 @@ class App extends CI_Controller {
     */
     public function resync($id = 'all', $completa = false)
     {
+      if($completa !== false)
+        $completa = true;
+        
       log_message('debug', 'resync.'); 
 
       if($id == 'all')
@@ -698,7 +704,7 @@ class App extends CI_Controller {
               if($res_tipo->effective_status != 'ACTIVE')
                 $sogeral = true; 
 
-              if($res_tipo->effective_status == 'ACTIVE') // SÓ FAZ OS ATIVOS
+              // if($res_tipo->effective_status == 'ACTIVE') // SÓ FAZ OS ATIVOS
                 $this->sync_metricas($res_tipo->id, $tipo, $sogeral, false);
             }
           }

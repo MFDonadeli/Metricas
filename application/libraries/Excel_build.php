@@ -209,7 +209,6 @@ class Excel_build
 
         $linhas_2_calculo = array(11, 23);
 
-
         $colGeral = $objPHPExcel->getActiveSheet()->getHighestColumn();
         $colNumber = PHPExcel_Cell::columnIndexFromString($colGeral);
 
