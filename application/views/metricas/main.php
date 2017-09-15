@@ -487,7 +487,7 @@
                         $('#table_resumo tbody').html(obj.resumo.body);
                     }
                 }
-                window.open("'https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>template/" + obj.filename.trim() + "'",'_blank');
+                window.open('https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>template/' + obj.filename.trim(),'_blank');
                 //$("#wid-id-3").wrap("<div id='jarviswidget-fullscreen-mode'></div>")
             }
         });
