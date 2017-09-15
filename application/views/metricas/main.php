@@ -28,49 +28,43 @@
                 <?php
                 else: ?>
                     <fieldset>
-                    <div class="form-group" id="div_select_contas">
-                        <label class='col-md-2 control-label' for="contas">Conta:</label>
-                        <div class='col-sm-5'><select class='form-control' name="contas" id="cmbcontas">
-                            <option value="-1">Selecione</option>
-                            <?php 
-                                foreach($contas as $conta):
-                            ?>
-                                    <option value="<?php echo $conta->account_id; ?>"><?php echo $conta->account_name; ?></option>
-                            <?php
-                                endforeach;
-                            ?>
-                        </select></div>
-                    </div> <!-- div_select_contas -->
-                    <div class='form-group' id="div_select_campanhas">
-                        <label class='col-md-2 control-label' for="campanhas">Campanha:</label>
-                        <div class='col-sm-5'>
-                            <select class='form-control' name="campanhas" id="cmbcampanhas">
+                        <div class="form-group" id="div_select_contas" style='width:15%;float: left;margin:1px;'>
+                            <label class='col-md-2 control-label' for="contas">Conta:</label><br>
+                            <select class='form-control' name="contas" id="cmbcontas">
+                                <option value="-1">Selecione</option>
+                                <?php 
+                                    foreach($contas as $conta):
+                                ?>
+                                        <option value="<?php echo $conta->account_id; ?>"><?php echo $conta->account_name; ?></option>
+                                <?php
+                                    endforeach;
+                                ?>
                             </select>
+                        </div> <!-- div_select_contas -->
+                        <div class='form-group' id="div_select_campanhas" style='width:15%;float: left;margin:1px;'>
+                            <label class='col-md-2 control-label' for="campanhas">Campanha:</label><br>
+                                <select class='form-control' name="campanhas" id="cmbcampanhas">
+                                </select>
                         </div>
-                    </div>
-                    <div class='form-group' id="div_select_conjuntos">
-                        <label class='col-md-2 control-label' for="conjunto">Conjunto:</label>
-                        <div class='col-sm-5'>
+                        <div class='form-group' id="div_select_conjuntos" style='width:15%;float: left;margin:1px;'>
+                            <label class='col-md-2 control-label' for="conjunto">Conjunto:</label><br>
                             <select class='form-control' name="conjunto" id="cmbconjunto">
                             </select>
                         </div>
-                    </div>
-                    <div class='form-group' id="div_select_anuncios">
-                        <label class='col-md-2 control-label' for="anuncios">Anúncio:</label>
-                        <div class='col-sm-5'>
+                        <div class='form-group' id="div_select_anuncios" style='width:15%;float: left;margin:1px;'>
+                            <label class='col-md-2 control-label' for="anuncios">Anúncio:</label><br>
                             <select class='form-control' name="anuncios" id="cmbanuncios">
                             </select>
+                            <div id='link_anuncio'></div>
                         </div>
-                        <div id='link_anuncio'></div>
-                    </div>
-                    <div class='form-group'>
-                        <label class='col-md-2 control-label' for='txtcomissao'>Comissão Padrão:</label>
-                        <div class='col-sm-5'><input class='form-control' type="text" name="txtcomissao" id="txtcomissao"></div>
-                    </div>
-                    <div class='form-group'>
-                        <label class='col-md-2 control-label'></label>
-                        <div class='col-sm-5'><button class='btn btn-default' id="btnvernumeros">Ver Números</button></div>
-                    </div>
+                        <div class='form-group' style='width:15%;float: left;margin:1px;'>
+                            <label class='col-md-2 control-label' for='txtcomissao'>Comissão:</label><br>
+                            <input class='form-control' type="text" name="txtcomissao" id="txtcomissao">
+                        </div>
+                        <div class='form-group' style='width:15%;float: left;margin:1px;'>
+                            <label class='col-md-2 control-label'></label><br>
+                            <button class='btn btn-default' id="btnvernumeros">Ver Números</button>
+                        </div>
                     </fieldset>
             
                 <?php 

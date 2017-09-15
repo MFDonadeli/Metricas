@@ -23,7 +23,7 @@ ex:
 */
 $page_nav = array(
 	"inicio" => array(
-		"title" => "Início",
+		"title" => "Métricas",
 		"icon" => "fa-home",
 		"url" => "main"
 	),
