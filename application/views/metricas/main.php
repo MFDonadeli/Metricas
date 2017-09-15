@@ -86,7 +86,7 @@
         
             <!-- your contents here -->
             <!-- Widget ID (each widget will need unique ID)-->
-                <div class="jarviswidget" id="wid-id-2" data-widget-editbutton="false" data-widget-colorbutton="false">
+                <div class="jarviswidget" id="wid-id-1" data-widget-editbutton="false" data-widget-colorbutton="false">
                     <!-- widget options:
                         usage: <div class="jarviswidget" id="wid-id-0" data-widget-editbutton="false">
                         
@@ -212,7 +212,7 @@
         
             <!-- your contents here -->
             <!-- Widget ID (each widget will need unique ID)-->
-                <div class="jarviswidget" id="wid-id-2" data-widget-editbutton="false" data-widget-colorbutton="false">
+                <div class="jarviswidget" id="wid-id-3" data-widget-editbutton="false" data-widget-colorbutton="false">
                     <!-- widget options:
                         usage: <div class="jarviswidget" id="wid-id-0" data-widget-editbutton="false">
                         
@@ -270,7 +270,7 @@
         
             <!-- your contents here -->
             <!-- Widget ID (each widget will need unique ID)-->
-                <div class="jarviswidget" id="wid-id-2" data-widget-editbutton="false" data-widget-colorbutton="false">
+                <div class="jarviswidget" id="wid-id-4" data-widget-editbutton="false" data-widget-colorbutton="false">
                     <!-- widget options:
                         usage: <div class="jarviswidget" id="wid-id-0" data-widget-editbutton="false">
                         
@@ -488,7 +488,7 @@
                     }
                 }
 
-                $("#wid-id-2").wrap("<div id='jarviswidget-fullscreen-mode'></div>")
+                $("#wid-id-3").wrap("<div id='jarviswidget-fullscreen-mode'></div>")
             }
         });
 
