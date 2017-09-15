@@ -212,7 +212,7 @@
         
             <!-- your contents here -->
             <!-- Widget ID (each widget will need unique ID)-->
-                <div class="jarviswidget" id="wid-id-3" data-widget-editbutton="false" data-widget-colorbutton="false">
+                <div class="jarviswidget" id="wid-id-3" data-widget-editbutton="false" data-widget-colorbutton="false" data-widget-deletebutton="false">
                     <!-- widget options:
                         usage: <div class="jarviswidget" id="wid-id-0" data-widget-editbutton="false">
                         
@@ -475,7 +475,7 @@
                 console.log(msg);
                 var obj = $.parseJSON(msg);
                 processa_retorno(obj);
-                $('#numeros-content').html("<iframe width='100%' height='500 px' src='https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>template/" + obj.filename.trim() + "'>");
+                $('#numeros-content').html("<iframe width='100%' height='600 px' src='https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>template/" + obj.filename.trim() + "'>");
                 $('#grafico').show();
                 
                 if(val_anuncio == -1 || val_anuncio === null)
@@ -487,8 +487,8 @@
                         $('#table_resumo tbody').html(obj.resumo.body);
                     }
                 }
-
-                $("#wid-id-3").wrap("<div id='jarviswidget-fullscreen-mode'></div>")
+                window.open("'https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>template/" + obj.filename.trim() + "'",'_blank');
+                //$("#wid-id-3").wrap("<div id='jarviswidget-fullscreen-mode'></div>")
             }
         });
 
