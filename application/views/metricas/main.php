@@ -487,6 +487,8 @@
                         $('#table_resumo tbody').html(obj.resumo.body);
                     }
                 }
+
+                $("#wid-id-2").wrap("<div id='jarviswidget-fullscreen-mode'></div>")
             }
         });
 
