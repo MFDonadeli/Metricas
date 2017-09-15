@@ -1,15 +1,6 @@
 <?php require_once("inc/init.php"); ?>
 
 <div class="row">
-	<div class="col-xs-12 col-sm-7 col-md-7 col-lg-4">
-		<h1 class="page-title txt-color-blueDark">
-			<i class="fa fa-home"></i> 
-			Página Inicial
-		</h1>
-	</div>
-</div>
-
-<div class="row">
 	<div class="col-sm-12">
 		
 		<div class="well">
@@ -429,7 +420,7 @@
 
         if(story!='')
         {
-            $('#link_anuncio').html("<a href='https://facebook.com/" + story + "' target='_blank'>Anúncio com comentários</a>");
+            $('#link_anuncio').html("<a href='https://facebook.com/" + story + "' target='_blank'>Ver Anúncio</a>");
         }
 
         $('#resumo').hide();
