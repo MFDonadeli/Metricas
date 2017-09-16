@@ -53,6 +53,7 @@ class Excel_build
         $linha_faturamento = $this->procura_valor("#faturamento_boleto", 1, $objPHPExcel->getActiveSheet());
 
         $linha_roi = $this->linhas_planilhas["%ROI:"];
+        $linha_cpv = $this->linhas_planilhas["\$CPV:"];
 
         //Para cada dado a ser inserido
         foreach($dados as $dado)
@@ -108,6 +109,37 @@ class Excel_build
                             //Escreve na célula
                             $objPHPExcel->getActiveSheet()->getCellByColumnAndRow($column, $row)->setValue($value);
                         }
+                        
+                    }
+
+                    if($row == $linha_cpv)
+                    {
+                        $coluna_atual = PHPExcel_Cell::stringFromColumnIndex($column);
+                        if($sem_dado_venda)
+                        {
+                            if(isset($dado->{"offsite_conversion.fb_pixel_purchase"}))
+                                $subst_vendas = $coluna_atual . $this->linhas_planilhas['fb_pixel_purchase'];
+                            else
+                                $subst_vendas = 0;
+                        }
+                        else
+                        {
+                            if(isset($dado->{"offsite_conversion.fb_pixel_purchase"}))
+                            {
+                                $cpv_cartao = $coluna_atual . $this->linhas_planilhas['#Cartões:'];
+                                $cpv_boleto = $coluna_atual . $this->linhas_planilhas['#Boletos Pagos:'];
+
+                                $subst_vendas = "(" . $cpv_boleto . "+" . $cpv_cartao . ")";
+                            }  
+                            else
+                                $subst_vendas = 0;    
+                        }
+
+                        $value = str_replace("Vendas", $subst_vendas, $value);
+                
+                    
+                        //Escreve na célula
+                        $objPHPExcel->getActiveSheet()->getCellByColumnAndRow($column, $row)->setValue($value);
                     }
 
                     //Se for um valor que começa com #. Serve para identificar um campo a ser alterado no template
