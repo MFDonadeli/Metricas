@@ -1584,16 +1584,18 @@ class App extends CI_Controller {
 
       $contas_bd = $contas;
 
+      //print_r($contas_bd);
+
       if($contas_bd)
       {
         foreach($contas_bd as $conta_user)
         {
-          echo $conta_user->account_id . "<br>";
+          echo $conta_user['account_id'] . "<br>";
           ob_flush();
 
           $conta_add = null;
 
-          $detalhes = $this->facebook->request('get', 'act_' . $conta_user->account_id . 
+          $detalhes = $this->facebook->request('get', 'act_' . $conta_user['account_id']  . 
           '?fields=account_id,account_status,age,amount_spent,balance,business_city,business_country_code,business_name,business_state,business_street,business_street2,business_zip,can_create_brand_lift_study,created_time,currency,disable_reason,funding_source,funding_source_details,has_migrated_permissions,id,is_attribution_spec_system_default,is_direct_deals_enabled,is_notifications_enabled,is_personal,is_prepay_account,is_tax_id_required,min_campaign_group_spend_cap,min_daily_budget,name,offsite_pixels_tos_accepted,owner,spend_cap,tax_id,tax_id_status,tax_id_type,timezone_id,timezone_name,timezone_offset_hours_utc,user_role',
           $this->usrtkn);
 
