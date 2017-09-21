@@ -1578,6 +1578,8 @@ class App extends CI_Controller {
           }
         }
 
+      $contas_bd = $contas;
+      
       if($contas_bd)
       {
         foreach($contas_bd as $conta_user)
