@@ -195,6 +195,53 @@ class App extends CI_Controller {
     }
 
     /**
+    * sync_contas_info
+    *
+    * Chamada pelo ajax, quando clica no botão Sincronizar Conta na View home,
+    *   esta função faz a chamada do Facebook e inicia o tratamento dos dados a serem
+    *   incluídos no banco de dados
+    * @param  conta: Parâmetro opcional para caso de testes via barra de endereço
+    * @param  completa: Se vai fazer a sincronização apagando os dados de actions
+    */
+    public function sync_contas_info($conta = null, $completa = false)
+    {
+      log_message('debug', $this->input->raw_input_stream);
+
+      //Se o parâmetro conta vier do post (do ajax)
+      if(isset($_POST['conta']))
+      {
+        $conta = $this->input->post('conta');
+        //$conta = str_replace('div_','',$conta);
+      }
+      elseif($conta == null)
+      {
+        die('Erro. Sem acesso ao sistema');  
+      }
+      else
+      {
+        $conta = 'act_'.$conta;
+      }
+      
+      //Busca os dados a serem sincronizados no Facebook
+      $detalhes = $this->facebook->request('get',$conta.get_param_contas(),$this->usrtkn);
+      log_message('debug',json_encode($detalhes));
+
+      if(array_key_exists('error',$detalhes))
+      {
+        die('Erro');
+      }
+
+      $this->grava_bd($detalhes, $completa); 
+
+      //Busca as conversões personalizadas
+      $detalhes = $this->facebook->request('get',$conta.'/customconversions?fields=id,name,custom_event_type,account_id',$this->usrtkn);
+      log_message('debug',json_encode($detalhes));
+
+      if(!empty($detalhes['data']))
+        $this->metricas->grava_custom_conversions($detalhes['data']);
+    }
+
+    /**
     * grava_bd
     *
     * Faz o processamento dos dados da conta vindo do Facebook. E grava no banco.
@@ -1502,10 +1549,10 @@ class App extends CI_Controller {
         $this->usrtkn = $usr->token;
         $this->fb_id =  $usr->facebook_id;
 
-        $contas_bd = $this->metricas->getContas($this->fb_id);
+        //$contas_bd = $this->metricas->getContas($this->fb_id);
 
         //Busca os dados a serem sincronizados no Facebook
-        /*$detalhes = $this->facebook->request('get',
+        $detalhes = $this->facebook->request('get',
           'me/adaccounts?fields=account_id,account_status,age,amount_spent,balance,business_city,business_country_code,business_name,business_state,business_street,business_street2,business_zip,can_create_brand_lift_study,created_time,currency,disable_reason,funding_source,funding_source_details,has_migrated_permissions,id,is_attribution_spec_system_default,is_direct_deals_enabled,is_notifications_enabled,is_personal,is_prepay_account,is_tax_id_required,min_campaign_group_spend_cap,min_daily_budget,name,offsite_pixels_tos_accepted,owner,spend_cap,tax_id,tax_id_status,tax_id_type,timezone_id,timezone_name,timezone_offset_hours_utc,user_role',
           $this->usrtkn);
 
@@ -1529,7 +1576,7 @@ class App extends CI_Controller {
 
             $contas = array_merge($contas, $retorno['data']);
           }
-        }*/
+        }
 
       if($contas_bd)
       {
