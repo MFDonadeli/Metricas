@@ -1538,6 +1538,7 @@ class App extends CI_Controller {
 
     public function get_activities()
     {
+      ob_start();
       
       $profiles = $this->metricas->get_profiles();
 
@@ -1548,6 +1549,9 @@ class App extends CI_Controller {
         $usr = $this->metricas->getProfileToken($profile->facebook_id);
         $this->usrtkn = $usr->token;
         $this->fb_id =  $usr->facebook_id;
+
+        echo $profile->first_name . "<br>";
+        ob_flush();
 
         //$contas_bd = $this->metricas->getContas($this->fb_id);
 
@@ -1579,11 +1583,14 @@ class App extends CI_Controller {
         }
 
       $contas_bd = $contas;
-      
+
       if($contas_bd)
       {
         foreach($contas_bd as $conta_user)
         {
+          echo $conta_user->name . "<br>";
+          ob_flush();
+
           $conta_add = null;
 
           $detalhes = $this->facebook->request('get', 'act_' . $conta_user->account_id . 
@@ -1701,6 +1708,7 @@ class App extends CI_Controller {
 
       
     ///act_815527071921444/activities?fields=actor_id,actor_name,application_id,application_name,date_time_in_timezone,event_time,event_type,extra_data,object_id,object_name,translated_event_type&since=2015-01-01&until=2017-08-09
+      ob_end_flush();
     }
 
     public function show_grafico()
