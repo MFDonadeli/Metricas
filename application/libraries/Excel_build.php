@@ -266,27 +266,27 @@ class Excel_build
         if(isset($colPrimeira3dias)) $kpi['Primeiro_3dias'] = $colPrimeira3dias;
         $kpi['Primeira'] = 'B';
 
-        $view_contents = $this->linhas_planilhas['fb_pixel_view_content'];
+        $view_contents = $this->linhas_planilhas['conversoes']['fb_pixel_view_content'];
 
-        $kpi['ViewContents'] = "Métricas!" . $colGeral . $this->linhas_planilhas['conversoes'][$view_contents];
-        $kpi['Ultimo_ViewContent'] = "Métricas!" . $colUltima . $this->linhas_planilhas['conversoes'][$view_contents];
-        if(isset($colPrimeira7dias)) $kpi['ViewContent_7dias'] = "Métricas!" . $colPrimeira7dias . $this->linhas_planilhas['conversoes'][$view_contents];
-        if(isset($colPrimeira3dias)) $kpi['ViewContent_3dias'] = "Métricas!" . $colPrimeira3dias . $this->linhas_planilhas['conversoes'][$view_contents];
+        $kpi['ViewContents'] = "Métricas!" . $colGeral . $this->linhas_planilhas[$view_contents];
+        $kpi['Ultimo_ViewContent'] = "Métricas!" . $colUltima . $this->linhas_planilhas[$view_contents];
+        if(isset($colPrimeira7dias)) $kpi['ViewContent_7dias'] = "Métricas!" . $colPrimeira7dias . $this->linhas_planilhas[$view_contents];
+        if(isset($colPrimeira3dias)) $kpi['ViewContent_3dias'] = "Métricas!" . $colPrimeira3dias . $this->linhas_planilhas[$view_contents];
 
         if($sem_dado_venda)
         {
             if(array_key_exists('fb_pixel_purchase', $this->linhas_planilhas))
             {
-                $vendas = $this->linhas_planilhas['fb_pixel_purchase'];    
-                $kpi['Vendas'] = "Métricas!" . $colGeral . $this->linhas_planilhas['conversoes'][$vendas];
+                $vendas = $this->linhas_planilhas['conversoes']['fb_pixel_purchase'];    
+                $kpi['Vendas'] = "Métricas!" . $colGeral . $this->linhas_planilhas[$vendas];
                 
                 if(isset($colPrimeira7dias))
-                    $kpi['Vendas_7dias'] = "Métricas!" . $colPrimeira7dias . $this->linhas_planilhas['conversoes'][$vendas] . ":" .
-                     $colUltima . $this->linhas_planilhas['conversoes'][$vendas];
+                    $kpi['Vendas_7dias'] = "Métricas!" . $colPrimeira7dias . $this->linhas_planilhas[$vendas] . ":" .
+                     $colUltima . $this->linhas_planilhas[$vendas];
                 
                 if(isset($colPrimeira3dias))
-                    $kpi['Vendas_3dias'] = "Métricas!" . $colPrimeira3dias . $this->linhas_planilhas['conversoes'][$vendas] . ":" .
-                        $colUltima . $this->linhas_planilhas['conversoes'][$vendas];
+                    $kpi['Vendas_3dias'] = "Métricas!" . $colPrimeira3dias . $this->linhas_planilhas[$vendas] . ":" .
+                        $colUltima . $this->linhas_planilhas[$vendas];
             }
             else
             {   
