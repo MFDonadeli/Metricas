@@ -1028,7 +1028,7 @@ class Metricas extends CI_Model{
 
         $this->db->select("sum(boletos_gerados) as boletos_gerados, sum(boletos_pagos) as boletos_pagos, 
             sum(cartoes) as cartoes, sum(boletos_pagos * comissao) as faturamento_boleto, 
-            sum(cartoes * comissao) as faturamento_cartao, produto,
+            sum(cartoes * comissao) as faturamento_cartao, produto, plataforma, 
             substring(data,1,10) as dt, comissao, " . $tipo . "_id");
 
         $this->db->from("ads_vendas");
@@ -1070,6 +1070,35 @@ class Metricas extends CI_Model{
         log_message('debug', 'Last Query: ' . $this->db->last_query());
 
         return $result->row();
+    }
+
+    /**
+    * dados_vendas_dia
+    *
+    * Traz todas as vendas ocorridas em uma determinada data para um tipo
+    *
+    * @param	data: Data a ser pesquisada
+    * @param    id: Id do tipo a ser pesquisado
+    * @param    tipo string: Qual tipo será pego: ad, adset, campaign
+    * @return	
+    *    lista de dados dos boletos gerados, pagos, cartões e seus valores agrupados por data e id
+    */
+    function dados_vendas_dia($data, $id, $tipo)
+    {
+        log_message('debug', 'dados_vendas_dia');
+
+        $this->db->select("boletos_gerados, boletos_pagos, cartoes, comissao, produto, 
+            substring(data,1,10) as dt, src, comissao, " . $tipo . "_id, ads_vendas_id");
+
+        $this->db->from("ads_vendas");
+        $this->db->where($tipo . "_id",$id);
+        $this->db->like('data', $data, 'right');
+        
+        $result = $this->db->get();
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        return $result->result();
     }
 
     /**
@@ -1157,7 +1186,7 @@ class Metricas extends CI_Model{
         $ret = false;
 
         $this->db->select("venda_data_inicio as data_compra, venda_data_finalizada as data_confirmacao,
-		    venda_valor as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
+            venda_valor_recebido as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
             'monetizze' as plataforma");
         $this->db->from("postback_monetizze");
         $this->db->like('venda_src', $var_array['src'], 'both'); 
@@ -1171,7 +1200,7 @@ class Metricas extends CI_Model{
         $retorno['boleto_impresso'] = $result->result();
 
         $this->db->select("venda_data_inicio as data_compra, venda_data_finalizada as data_confirmacao,
-		    venda_valor as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
+             venda_valor_recebido as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
             'monetizze' as plataforma");
         $this->db->from("postback_monetizze");
         $this->db->like('venda_src', $var_array['src'], 'both'); 
@@ -1185,7 +1214,7 @@ class Metricas extends CI_Model{
         $retorno['cartao'] = $result->result();
 
         $this->db->select("venda_data_inicio as data_compra, venda_data_finalizada as data_confirmacao,
-		    venda_valor as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
+            venda_valor_recebido as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
             'monetizze' as plataforma");
         $this->db->from("postback_monetizze");
         $this->db->like('venda_src', $var_array['src'], 'both'); 
@@ -1404,7 +1433,7 @@ class Metricas extends CI_Model{
         //Busca somente os boleto impresso e que não estão na lista de pagos
         //$result = $this->db->query(
         $query1 =  "SELECT venda_data_inicio as data_compra, venda_data_finalizada as data_confirmacao,
-		    venda_valor as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
+		    venda_valor_recebido as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
             'monetizze' as plataforma, venda_src as src, 'Boleto Impresso' as tipo, postback_monetizze.venda_codigo as transaction
 FROM postback_monetizze join platform_users on postback_monetizze.chave_unica = platform_users.token
 WHERE venda_forma_pagamento = 'Boleto' and postback_monetizze.ad_status != 'OK' 
@@ -1417,7 +1446,7 @@ WHERE venda_status = 'Finalizada' and venda_forma_pagamento = 'Boleto')";
         //$retorno['boleto_impresso'] = $result->result();
 
         $this->db->select("venda_data_inicio as data_compra, venda_data_finalizada as data_confirmacao,
-		    venda_valor as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
+            venda_valor_recebido as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
             'monetizze' as plataforma, venda_src as src, 'Cartão' as tipo, postback_monetizze.venda_codigo as transaction");
         $this->db->from("postback_monetizze"); 
         $this->db->join("platform_users","postback_monetizze.chave_unica = platform_users.token");
@@ -1433,7 +1462,7 @@ WHERE venda_status = 'Finalizada' and venda_forma_pagamento = 'Boleto')";
         //$retorno['cartao'] = $result->result();
 
         $this->db->select("venda_data_inicio as data_compra, venda_data_finalizada as data_confirmacao,
-		    venda_valor as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
+            venda_valor_recebido as comissao, produto_nome as produto, postback_monetizze_id as id_plataforma,
             'monetizze' as plataforma, venda_src as src, 'Boleto Pago' as tipo, postback_monetizze.venda_codigo as transaction");
         $this->db->from("postback_monetizze");
         $this->db->join("platform_users","postback_monetizze.chave_unica = platform_users.token");
@@ -1506,27 +1535,62 @@ campaigns.name as campanha, accounts.name as conta");
 
         foreach($array_insert as $insert)
         {
-            $insert->data = $insert->data_compra;
-            unset($insert->data_compra);
-            unset($insert->data_confirmacao);
-
-            $this->db->where('plataforma', $insert['plataforma']);
-            $this->db->where('id_plataforma', $insert['id_plataforma']);
-            $result = $this->db->get('ads_vendas');
-
-            if($result->num_rows() > 0)
-                continue;
+            if(array_key_exists('id_plataforma',$insert))
+            {
+                $this->db->where('plataforma', $insert['plataforma']);
+                $this->db->where('id_plataforma', $insert['id_plataforma']);
+                $result = $this->db->get('ads_vendas');
+    
+                if($result->num_rows() > 0)
+                    continue;
+            }
+            
 
             $this->db->insert('ads_vendas', $insert);
 
             log_message('debug', 'Last Query: ' . $this->db->last_query());
 
-            $this->db->set("ad_status","OK");
-            $this->db->where("postback_" . strtolower($insert['plataforma']) . "_id", $insert['id_plataforma']);
-            $this->db->update("postback_" . strtolower($insert['plataforma']));
-
-            log_message('debug', 'Last Query: ' . $this->db->last_query());
+            if(array_key_exists('id_plataforma',$insert))
+            {
+                $this->db->set("ad_status","OK");
+                $this->db->where("postback_" . strtolower($insert['plataforma']) . "_id", $insert['id_plataforma']);
+                $this->db->update("postback_" . strtolower($insert['plataforma']));
+    
+                log_message('debug', 'Last Query: ' . $this->db->last_query());
+            }
         }
+    }
+
+    /**
+    * undo_ads_vendas
+    *
+    * Desassocia o ad com o postback inserindo na tabela ads_vendas
+    * @param    $ads_vendas_id: Id do ad a ser desassociado
+    * @return	-
+    */
+    public function undo_ads_vendas($ads_vendas_id)
+    {
+        log_message('debug', 'undo_ads_vendas');
+
+        $this->db->where('ads_vendas_id', $ads_vendas_id);
+        $result = $this->db->get('ads_vendas');
+
+        $plataforma = $result->row()->plataforma;
+        
+        if(isset($result->row()->id_plataforma))
+            $id_plataforma = $result->row()->id_plataforma;
+
+        $this->db->where('ads_vendas_id', $ads_vendas_id);
+        $result = $this->db->delete('ads_vendas');
+            
+        if(isset($id_plataforma))
+        {
+            $this->db->set("ad_status","0");
+            $this->db->where("postback_" . strtolower($plataforma) . "_id", $id_plataforma);
+            $this->db->update("postback_" . strtolower($plataforma));
+        }
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
     }
 
     /**
@@ -1680,6 +1744,31 @@ campaigns.name as campanha, accounts.name as conta");
         $this->db->from("platforms");
 
         $result = $this->db->get();
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        if($result->num_rows() > 0)
+            return $result->result();  
+        else
+            return false;   
+    }
+
+    /**
+    * getProdutos
+    *
+    * Traz lista de produtos cadastrados por plataforma
+    *
+    * @param $plataforma: Plataforma a ser pesquisada
+    *
+    * @return	
+    *    false se não encontrar nenhum produto
+    *    lista de produtos para a plataforma selecionada
+    */
+    public function getProdutos($plataforma){
+        log_message('debug', 'getProdutos');
+
+        $this->db->where("plataforma", $plataforma);
+        $result = $this->db->get("produtos");
 
         log_message('debug', 'Last Query: ' . $this->db->last_query());
 
@@ -1899,12 +1988,14 @@ campaigns.name as campanha, accounts.name as conta");
         if($id==0)
         {
             $ret = $this->db->get('profiles');
+            log_message('debug', 'Last Query: ' . $this->db->last_query());
             return $ret->result();
         }
         else
         {
             $this->db->where('profile_id', $id);
             $ret = $this->db->get('profiles');
+            log_message('debug', 'Last Query: ' . $this->db->last_query());
             return $ret->row();
         }   
     }

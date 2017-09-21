@@ -67,12 +67,14 @@
         var dados = [];
         var tipos = [];
         var tr_arr = [];
+        var src = [];
         $('.chkCartao').each(function(){
             if($(this).is(':checked'))
             {
                 dados.push($(this).attr('id'));
                 tipos.push($(this).data('tipo'));
                 tr_arr.push($(this).closest('tr'));
+                src.push($(this).data('src'));
             }
         });
 
@@ -83,6 +85,7 @@
         var form_data = { dados: dados,
                           ad_id: $('#cmbCartao').val(),
                           tipo: tipos,
+                          src: src,
                           plataforma: $('#hidPlataforma').val() };
 
         $.ajax({

@@ -1,10 +1,11 @@
 <html>
     <body>
-        <form action='fkhome' method='post'>
+        <form action='#' method='post'>
         <select name="usr_fk_home" id="cmbprofiles">
             <?php echo $retorno; ?>
         </select>
-        <input type="submit" id='btnLogin' value="Login"/>
+        <button type="submit" name="login" id="login" class="btn-primary-blue" formaction="fkhome">Login</button>
+        <button type="submit" name="login_db" id="login_db" class="btn-primary-blue" formaction="fkhome_dbonly">Login DB</button>
         </form>
     </body>
 

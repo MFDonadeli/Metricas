@@ -35,7 +35,18 @@ $page_nav = array(
 	"vendas" => array(
 		"title" => "Vendas na Plataforma",
 		"icon" => "fa-list-alt",
-		"url" => "associa_postback"
+		"sub" => array(
+			"associar_vendas" => array(
+				"title" => "Associar Vendas",
+				"icon" => "fa-list-alt",
+				"url" => "associa_postback"
+			),
+			"gerenciar_associacoes" => array(
+				"title" => "Gerenciar Vendas Atribuídas",
+				"icon" => "fa-list-alt",
+				"url" => "gerencia_postback"
+			)
+		)
 	),
 	"config" => array(
 		"title" => "Configurações",

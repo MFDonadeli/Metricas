@@ -735,6 +735,7 @@ class App extends CI_Controller {
 
     }
 
+
     /**
     * get_postback_data_to_assoc
     *
@@ -763,6 +764,59 @@ class App extends CI_Controller {
     }
 
     /**
+    * get_vendas_dia
+    *
+    * Lista as vendas do dia
+    */
+    public function get_vendas_dia()
+    {
+      log_message('debug', 'get_vendas_dia.'); 
+
+      if(isset($_POST['data']))
+      {
+        $data = $this->input->post('data');
+        $id = $this->input->post('ad_id');
+
+        $results = $this->metricas->dados_vendas_dia($data, $id, 'ad');
+
+        $html = "<table class='table table-striped table-bordered table-hover'>";
+        $html .= "<tr>";
+        $html .= "<td>Data</td>";
+        $html .= "<td>Produto</td>";
+        $html .= "<td>Comissao</td>";
+        $html .= "<td>Src</td>";
+        $html .= "<td>Tipo</td>";
+        $html .= "<td>Cancelar</td>";
+        $html .= "</tr>";
+
+        foreach($results as $result)
+        {
+          $html .= "<tr>";
+
+          $html .= "<td>" . $result->dt . "</td>";
+          $html .= "<td>" . $result->produto . "</td>";
+          $html .= "<td>" . $result->comissao . "</td>";
+          $html .= "<td>" . $result->src . "</td>";
+          
+          if($result->boletos_gerados == 1)
+            $tipo = 'Boleto Gerado'; 
+          else if($result->boletos_pagos == 1)
+            $tipo = 'Boleto Pago'; 
+          else if($result->cartoes == 1)
+            $tipo = 'Cartão'; 
+
+          $html .= "<td>" . $tipo . "</td>";
+
+          $html .= "<td><a class='btn btn-danger btn_cancelavenda' id='" . $result->ads_vendas_id .  " href='#'><i class='fa fa-remove'></i> Cancelar Associação</a></td>";
+          
+          $html .= "</tr>";
+        }
+
+        echo $html;
+      }
+    }
+
+    /**
     * grava_ad_venda
     *
     * grava no banco os dados de postback selecionado
@@ -774,6 +828,7 @@ class App extends CI_Controller {
       $pb = $this->input->post('dados');
       $ad = $this->input->post('ad_id');
       $tipo = $this->input->post('tipo');
+      $src = $this->input->post('src');
       $plataforma = $this->input->post('plataforma');
 
       $adset_id = $this->metricas->getAdSetFromAd($ad);
@@ -801,11 +856,138 @@ class App extends CI_Controller {
         $item['produto'] = $ret->produto;
         $item['comissao'] = $ret->comissao;
         $item['data'] = $ret->data;
+        $item['src'] = $src[$i];
         
         $array_insert[] = $item;
       }
 
       $this->metricas->insert_ads_vendas($array_insert);
+    }
+
+    /**
+    * grava_ad_venda_manual
+    *
+    * grava no banco os dados de venda digitado
+    */
+    public function grava_ad_venda_manual()
+    {
+      log_message('debug', 'grava_ad_venda_manual');  
+
+      $data = $this->input->post('data');
+      $ad = $this->input->post('ad_id');
+      $tipo = $this->input->post('tipo');
+      $plataforma = $this->input->post('plataforma');
+      $produto = $this->input->post('produto');
+      $comissao = $this->input->post('comissao');
+
+      $adset_id = $this->metricas->getAdSetFromAd($ad);
+      $campaign_id = $this->metricas->getCampaignFromAd($ad);
+
+      if($tipo == "Boleto Impresso")
+        $tp = "boletos_gerados";
+      else if($tipo == "Boleto Pagos")
+        $tp = "boletos_pagos";
+      else if($tipo == "Cartão")
+        $tp = "cartoes";
+
+      $item['ad_id'] = $ad;
+      $item['plataforma'] = $plataforma;
+      $item[$tp] = 1;
+      $item['adset_id'] = $adset_id;
+      $item['campaign_id'] = $campaign_id;
+      $item['produto'] = $produto;
+      $item['comissao'] = $comissao;
+      $item['data'] = $data;
+        
+      $array_insert[] = $item;
+
+      $this->metricas->insert_ads_vendas($array_insert);
+    }
+
+    /**
+    * cancela_associacao_postback
+    *
+    * Desfaz a associação de um postback ou lançamento manual
+    */
+    public function cancela_associacao_postback()
+    {
+      if(isset($_POST['id_ads_vendas']))
+      {
+        log_message('debug', 'cancela_associacao_postback');  
+
+        $this->metricas->undo_ads_vendas($this->input->post('id_ads_vendas'));
+      }
+    }
+
+    /**
+    * get_produtos_plataforma
+    *
+    * Traz uma lista de produtos de uma plataforma selecionada
+    */
+    public function get_produtos_plataforma()
+    {
+      $plataforma = $this->input->post('plataforma');
+      $resultados = $this->metricas->getProdutos($plataforma);
+
+      if(!$resultados)
+      {
+        $html = "<option value=-1>Nenhum produto cadastrado</option>";
+      }
+      else
+      {
+        $html = "<option value=-1>Selecione o produto</option>";
+
+        foreach($resultados as $resultado)
+        {
+          $html .= "<option value=" . $resultado->id_produtos . " data-comissao='" . $resultado->comissao . "'>" .
+             $resultado->nome . " - Comissão: " . $resultado->comissao . "</option>";
+        }
+      }
+
+      echo $html;
+
+    }
+
+    /**
+    * gerencia_postback
+    *
+    * Mostra a tela de gerenciamento dos postbacks com os anúncios já associados de acordo com o 
+    * anúncio. Pode também associar manualmente vendas que não geraram postbacks
+    */
+    public function gerencia_postback()
+    {
+      log_message('debug', 'gerencia_postback.'); 
+
+      $id = $this->metricas->getuserid($this->session->userdata('facebook_id'));
+      
+      $ads = $this->metricas->get_ads_ativos_30_dias($this->session->userdata('facebook_id'));
+      
+      $data['anuncios'] = $ads;
+
+      $html = $this->load->view('metricas/ger_assoc',$data);
+
+    }
+
+    /**
+    * show_vendas_assoc
+    * 
+    * Mostra as vendas associadas para o anúncio selecionado
+    */
+    public function show_vendas_assoc()
+    {
+      log_message('debug', 'show_vendas_assoc');
+
+      $id = $this->input->post('ad_id');
+      
+      $resultado = $this->metricas->dados_vendas($id, 'ad');
+      $plataformas = $this->metricas->getPlataformas();
+
+      $data['compras'] = $resultado;
+      $data['plataforms'] = $plataformas;
+
+      $html = $this->load->view('metricas/ger_assoc_vendas',$data, true);
+
+      echo $html;
     }
 
     /**
@@ -853,6 +1035,79 @@ class App extends CI_Controller {
         $ret = $this->metricas->get_profiles($this->input->post('usr_fk_home'));
         $this->session->set_userdata('fb_access_token', $ret->token);
         $this->home();
+      }
+    }
+
+    /**
+    *
+    */
+    public function fkhome_dbonly()
+    {
+      if(isset($_POST['usr_fk_home']))
+      {
+        $ret = $this->metricas->get_profiles($this->input->post('usr_fk_home'));
+        $this->session->set_userdata('fb_access_token', $ret->token);
+        
+        $a = json_encode($ret, true);
+        $b = json_decode($a);
+        $userProfile = json_decode(json_encode($ret), true);
+
+        if(!isset($userProfile['error']))
+        {
+          // Preparing data for database insertion
+          $userData['oauth_provider'] = 'facebook';
+          
+          $userData['oauth_uid'] = $userProfile['facebook_id'];
+          $userData['facebook_id'] = $userProfile['facebook_id'];
+            
+          if(array_key_exists('first_name', $userProfile))  
+            $userData['first_name'] = $userProfile['first_name'];
+
+          if(array_key_exists('last_name', $userProfile))  
+            $userData['last_name'] = $userProfile['last_name'];
+
+          if(array_key_exists('email', $userProfile))  
+            $userData['email'] = $userProfile['email'];
+
+          if(array_key_exists('gender', $userProfile))  
+            $userData['gender'] = $userProfile['gender'];
+
+          if(array_key_exists('locale', $userProfile))  
+            $userData['locale'] = $userProfile['locale'];
+
+          $userData['logged_in'] = true;
+
+          if(array_key_exists('picture', $userProfile))
+            $userData['picture'] = $userProfile['picture']['data']['url'];
+          
+          $userData['token'] = $this->session->userdata('fb_access_token');
+          $userData['token_expiration'] = $this->session->userdata('fb_expire');
+
+          $userID = $userProfile['facebook_id'];
+          $this->fb_id = $userID;
+
+          unset($userData['token']);
+          unset($userData['token_expiration']);
+
+          // Check user data insert or update status
+          if($userID){
+              $data['userData'] = $userData;
+              $this->session->set_userdata('userData',$userData);
+              $this->session->set_userdata('facebook_id',$userID);
+          }else{
+            $data['userData'] = array();
+          }
+
+          // Get logout URL
+          $data['logoutUrl'] = $this->facebook->logout_url();
+        }
+        else
+        {
+          $data['error'] = $userProfile['error'];
+        }
+
+        // Load login & profile view
+        $this->load->view('metricas/index',$data);
       }
     }
 

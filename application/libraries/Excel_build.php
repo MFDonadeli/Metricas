@@ -6,6 +6,7 @@ define('START_ROW',1);
 class Excel_build
 {
     private $linhas_planilhas = array();
+    private $geral = array();
     
     /**
     * generate_excel
@@ -118,7 +119,7 @@ class Excel_build
                         if($sem_dado_venda)
                         {
                             if(isset($dado->{"offsite_conversion.fb_pixel_purchase"}))
-                                $subst_vendas = $coluna_atual . $this->linhas_planilhas['fb_pixel_purchase'];
+                                $subst_vendas = $coluna_atual . $this->linhas_planilhas['conversoes']['fb_pixel_purchase'];
                             else
                                 $subst_vendas = 0;
                         }
@@ -193,6 +194,11 @@ class Excel_build
                             $objPHPExcel->getActiveSheet()->getCellByColumnAndRow($column, $row)->setValue('');                              
                     }     
                 }
+
+                if($dado->bydate != 1)
+                {
+                    $this->geral[] = $objPHPExcel->getActiveSheet()->getCellByColumnAndRow($column, $row)->getFormattedValue();
+                }
             }
 
             $dado->roi = $objPHPExcel->getActiveSheet()->getCellByColumnAndRow($column, $linha_roi)->getCalculatedValue();
@@ -262,25 +268,25 @@ class Excel_build
 
         $view_contents = $this->linhas_planilhas['fb_pixel_view_content'];
 
-        $kpi['ViewContents'] = "Métricas!" . $colGeral . $this->linhas_planilhas[$view_contents];
-        $kpi['Ultimo_ViewContent'] = "Métricas!" . $colUltima . $this->linhas_planilhas[$view_contents];
-        if(isset($colPrimeira7dias)) $kpi['ViewContent_7dias'] = "Métricas!" . $colPrimeira7dias . $this->linhas_planilhas[$view_contents];
-        if(isset($colPrimeira3dias)) $kpi['ViewContent_3dias'] = "Métricas!" . $colPrimeira3dias . $this->linhas_planilhas[$view_contents];
+        $kpi['ViewContents'] = "Métricas!" . $colGeral . $this->linhas_planilhas['conversoes'][$view_contents];
+        $kpi['Ultimo_ViewContent'] = "Métricas!" . $colUltima . $this->linhas_planilhas['conversoes'][$view_contents];
+        if(isset($colPrimeira7dias)) $kpi['ViewContent_7dias'] = "Métricas!" . $colPrimeira7dias . $this->linhas_planilhas['conversoes'][$view_contents];
+        if(isset($colPrimeira3dias)) $kpi['ViewContent_3dias'] = "Métricas!" . $colPrimeira3dias . $this->linhas_planilhas['conversoes'][$view_contents];
 
         if($sem_dado_venda)
         {
             if(array_key_exists('fb_pixel_purchase', $this->linhas_planilhas))
             {
                 $vendas = $this->linhas_planilhas['fb_pixel_purchase'];    
-                $kpi['Vendas'] = "Métricas!" . $colGeral . $this->linhas_planilhas[$vendas];
+                $kpi['Vendas'] = "Métricas!" . $colGeral . $this->linhas_planilhas['conversoes'][$vendas];
                 
                 if(isset($colPrimeira7dias))
-                    $kpi['Vendas_7dias'] = "Métricas!" . $colPrimeira7dias . $this->linhas_planilhas[$vendas] . ":" .
-                     $colUltima . $this->linhas_planilhas[$vendas];
+                    $kpi['Vendas_7dias'] = "Métricas!" . $colPrimeira7dias . $this->linhas_planilhas['conversoes'][$vendas] . ":" .
+                     $colUltima . $this->linhas_planilhas['conversoes'][$vendas];
                 
                 if(isset($colPrimeira3dias))
-                    $kpi['Vendas_3dias'] = "Métricas!" . $colPrimeira3dias . $this->linhas_planilhas[$vendas] . ":" .
-                        $colUltima . $this->linhas_planilhas[$vendas];
+                    $kpi['Vendas_3dias'] = "Métricas!" . $colPrimeira3dias . $this->linhas_planilhas['conversoes'][$vendas] . ":" .
+                        $colUltima . $this->linhas_planilhas['conversoes'][$vendas];
             }
             else
             {   
@@ -528,6 +534,7 @@ class Excel_build
         $row = $this->procura_valor('#TpConversao:', 0, $sheet)-1;
 
         //Adiciona as conversões
+        $conversoes = array();
         foreach($conversion_array as $key => $val)
         {
             $valor_b = "#".$key;
@@ -545,7 +552,7 @@ class Excel_build
                     $valor = str_replace('offsite_conversion.', '', $valor);
                 }
 
-                $this->linhas_planilhas[$valor] = $names->{$key};
+                $conversoes[$valor] = $names->{$key};
 
                 $color = $color_array[$row % count($color_array)];
                 $valor = $names->{$key};
@@ -571,11 +578,11 @@ class Excel_build
         for($i=1;$i<$sheet->getHighestRow();$i++)
         {
             $value = $sheet->getCell('A' . $i)->getValue();   
-            if($value != '')
-            {
-                $this->linhas_planilhas[$value] = $i;
-            } 
+            $this->linhas_planilhas[$value] = $i;
+            $this->linhas_planilhas[$i] = $value;
         }
+
+        $this->linhas_planilhas['conversoes'] = $conversoes;
 
     }
 

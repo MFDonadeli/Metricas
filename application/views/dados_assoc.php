@@ -52,6 +52,7 @@
 										<th></th>
 										<th></th>
 										<th></th>
+										<th></th>
 										<th class="hasinput" style="width:17%">
 											<select class="form-control">
 												<option></option>
@@ -60,6 +61,7 @@
 												<option>Boleto Pago</option>
 											</select>
 										</th>
+										<th></th>
 									</tr>
 									<tr>
 										<th>
@@ -80,7 +82,7 @@
                                     {
                                 ?>
                                         <tr>
-                                            <td><input type="checkbox" name='chkCartao' class="chkCartao" id="<?php echo $compra->id_plataforma ?>" data-tipo='<?php echo $compra->tipo; ?>'></td>
+                                            <td><input type="checkbox" name='chkCartao' class="chkCartao" id="<?php echo $compra->id_plataforma ?>" data-tipo='<?php echo $compra->tipo; ?>' data-src='<?php echo $compra->src; ?>'></td>
                                             <td><?php echo $compra->transaction; ?></td>
 											<td><?php echo $compra->data_compra; ?></td>
                                             <td><?php echo $compra->data_confirmacao; ?></td>
