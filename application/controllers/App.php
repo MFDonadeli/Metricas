@@ -1588,7 +1588,7 @@ class App extends CI_Controller {
       {
         foreach($contas_bd as $conta_user)
         {
-          echo $conta_user->name . "<br>";
+          echo $conta_user->account_id . "<br>";
           ob_flush();
 
           $conta_add = null;
