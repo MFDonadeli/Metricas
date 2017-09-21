@@ -1563,6 +1563,9 @@ class App extends CI_Controller {
         if(isset($accounts['error']))
          die('Erro. Tente novamete');
 
+        if(!array_key_exists('data', $detalhes))
+          continue;
+          
         $contas = $detalhes['data'];
 
         //Se existir paginamento de campanhas, processa para incluir no array
