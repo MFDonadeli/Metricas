@@ -1565,7 +1565,7 @@ class App extends CI_Controller {
 
         if(!array_key_exists('data', $detalhes))
           continue;
-          
+
         $contas = $detalhes['data'];
 
         //Se existir paginamento de campanhas, processa para incluir no array
@@ -1613,8 +1613,8 @@ class App extends CI_Controller {
             if(array_key_exists('funding_source_details', $conta))
             {
               $conta['funding_source_details_id'] = $conta['funding_source_details']['id'];
-              $conta['funding_source_details_display_string'] = $conta['funding_source_details']['display_string'];
-              $conta['funding_source_details_type'] = $conta['funding_source_details']['type'];
+              if(array_key_exists('display_string', $conta['funding_source_details'])) $conta['funding_source_details_display_string'] = $conta['funding_source_details']['display_string'];
+              if(array_key_exists('funding_source_details', $conta['funding_source_details'])) $conta['funding_source_details_type'] = $conta['funding_source_details']['type'];
               unset($conta['funding_source_details']);
             }
 
