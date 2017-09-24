@@ -620,7 +620,7 @@ class App extends CI_Controller {
         }
 
         //Chama a função de gerar planilha
-        $filename = $this->excel_build->generate_excel($retorno, $this->phpexcel, $sem_dado_venda, $comissao, $tipo);
+        $filename = $this->excel_build->generate_excel($retorno, $this->metricas, $sem_dado_venda, $comissao, $id, $tipo);
 
         $resumo = false;
 

@@ -66,9 +66,9 @@
                                             <select class="form-control" id='cmbplataforma' name='cmbplataforma'>
                                             <option value="-1">Selecione</option>
                                                 <?php 
-                                                    foreach($plataforms as $plataforma):
+                                                    foreach($plataforms as $plataforma): 
                                                 ?>
-                                                        <option value="<?php echo $plataforma->platform_id; ?>"><?php echo $plataforma->name; ?></option>
+                                            <option value="<?php echo $plataforma->platform_id; ?>"ß><?php echo $plataforma->name; ?></option>
                                                 <?php
                                                     endforeach;
                                                 ?>
@@ -98,7 +98,7 @@
                         <?php
                         if($compras):
                         ?>	
-                            <p>Produto: <?php echo $compras[0]->produto; ?></p>
+                            <p>Produto: <span id='nome_produto'><?php echo $compras[0]->produto; ?>  </span> </p>
                             <p>Plataforma: <?php echo $compras[0]->plataforma; ?></p>
 
                         <table id="dt_vendas_associadas" class="table table-striped table-bordered table-hover" width="100%">
@@ -158,3 +158,17 @@
 
 </section>
 <!-- end widget grid -->
+
+<script>
+$(document).ready(function(){
+
+    <?php
+        if($compras):
+    ?>
+        $("#cmbplataforma option:contains(<?php echo $compras[0]->plataforma; ?>)").attr('selected', true);
+        $('#cmbplataforma').trigger('change');
+    <?php
+        endif;
+    ?>
+});
+</script>

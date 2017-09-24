@@ -101,6 +101,15 @@
 
                 $('#cmbproduto').html(msg);
 
+                var produto = ($('#nome_produto').html()).trim();
+                if(produto != '')
+                {
+                    console.log('Produto: [' + produto + ']');
+                    var a = $("#cmbproduto option:contains(" + produto + ")").attr('selected', true);
+                    console.log(a);
+                    $('#cmbproduto').trigger('change');
+                }
+
             }
         });    
     });

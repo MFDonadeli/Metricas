@@ -724,6 +724,69 @@ class Metricas extends CI_Model{
     }
 
     /**
+    * saveGeral
+    *
+    * Salva a posição Geral de cada planilha gerada
+    *
+    * @param	colunas array: O nome das colunas do banco de dados
+    * @param    dados array: Array a ser inserido
+    * @param    conv_personalizada array: Array de posicoes das conversoes personalizadas
+    * @param    id: Id do tipo inserido
+    * @param    tipo: Tipo a ser inserido (ad, adset, campaign)
+    */
+    public function saveGeral($colunas, $dados, $conv_personalizada, $id, $tipo)
+    {
+        log_message('debug', 'saveGeral');   
+        
+        for($i=1; $i<count($dados); $i++)
+        {
+            if(strpos('Custo por', $colunas[$i]) !== false)
+                continue;
+
+            $cols[$i] = $colunas[$i];
+            if(array_search($cols[$i], $colunas['conversoes']) !== false)
+            {
+                foreach($colunas['conversoes'] as $key => $val)
+                {
+                    if($cols[$i] == $val)
+                    {
+                        $cols[$i] = $key;
+                        $i++;
+                        $cols[$i] = $key . '_cost';
+                    }
+                }
+            }  
+            
+            $cols[$i] = preg_replace("/&([a-z])[a-z]+;/i", "$1", htmlentities(trim($cols[$i])));
+            $cols[$i] = preg_replace('~[%#$:]~', ' ', $cols[$i]);
+            $cols[$i] = str_replace(' ', '', $cols[$i]);
+        }
+
+    
+        for($i=1; $i<count($dados); $i++)
+        {
+            if(array_search($i, $conv_personalizada) === false)
+                if($cols[$i] != '')    
+                    $arr[$cols[$i]] = $dados[$i];
+        }
+
+        $arr['tipo_id'] = $id;
+        $arr['tipo'] = $tipo;
+
+        $this->db->where('tipo_id', $id);
+        $result = $this->db->get('coluna_geral_planilha');
+
+        if($result->num_rows() > 0)
+        {
+            $this->db->where('tipo_id', $id);
+            $this->db->update('coluna_geral_planilha', $arr);
+        }
+        else
+            $this->db->insert('coluna_geral_planilha', $arr);
+
+    }
+
+    /**
     * getTableData
     *
     * Pega os dados necessários que serão exibidos na planilha

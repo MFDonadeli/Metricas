@@ -6,6 +6,7 @@ define('START_ROW',1);
 class Excel_build
 {
     private $linhas_planilhas = array();
+    private $linhas_conversoes_personalizadas = array();
     private $geral = array();
     
     /**
@@ -14,12 +15,12 @@ class Excel_build
     * Função que abre o template em Excel, escreve os dados e salva para mostrar
     * ao usuário
     * @param	$dados(array): Dados trazidos do banco de dados 
-    * @param    $excel(object): Library do Excel
+    * @param    $db_metricas(object): Library do Banco de Dados
     * @param    $sem_dado_venda(boolean): Caso não haja postback vinculado, usa dados do purchase
     * @param    $comissao(float): Valor da comissao padrão 
     * @return   string nome do arquivo gerado
     */
-    function generate_excel($dados, $excel, $sem_dado_venda, $comissao, $tipo)
+    function generate_excel($dados, $db_metricas, $sem_dado_venda, $comissao, $id, $tipo)
     {
         $diasemana = array('Dom', 'Seg', 'Ter', 'Quar', 'Qui', 'Sex', 'Sáb');
 
@@ -226,6 +227,8 @@ class Excel_build
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
         $objWriter->save($file_name);
 
+        $db_metricas->saveGeral($this->linhas_planilhas, $this->geral, $this->linhas_conversoes_personalizadas, $id, $tipo);
+
         return $raw_file_name;
     }
 
@@ -305,7 +308,7 @@ class Excel_build
         }
         else
         {
-            if(array_key_exists('fb_pixel_purchase', $this->linhas_planilhas))
+            if(array_key_exists('fb_pixel_purchase', $this->linhas_planilhas['conversoes']))
             {
                 $kpi['Cartoes'] = "Métricas!" . $colGeral . $this->linhas_planilhas['#Cartões:'];
                 $kpi['BoletosGerados'] = "Métricas!" . $colGeral . $this->linhas_planilhas['#Boletos Gerados:'];
@@ -535,6 +538,7 @@ class Excel_build
 
         //Adiciona as conversões
         $conversoes = array();
+        $i = 0;
         foreach($conversion_array as $key => $val)
         {
             $valor_b = "#".$key;
@@ -549,6 +553,12 @@ class Excel_build
                 $valor = $key;
                 if(strpos($valor, 'offsite_conversion.') !== false)
                 {
+                    if(strpos($valor, 'offsite_conversion.custom') !== false)
+                    {
+                        $this->linhas_conversoes_personalizadas[] = $row;
+                        $this->linhas_conversoes_personalizadas[] = $row+1;
+                    }
+
                     $valor = str_replace('offsite_conversion.', '', $valor);
                 }
 
