@@ -8,6 +8,7 @@ class Excel_build
     private $linhas_planilhas = array();
     private $linhas_conversoes_personalizadas = array();
     private $geral = array();
+    private $produto = '';
     
     /**
     * generate_excel
@@ -81,6 +82,8 @@ class Excel_build
                 {
                     $dado->date_start = "Geral";
                     $objPHPExcel->getActiveSheet()->getCellByColumnAndRow($column, $row)->setValue("Geral"); 
+                    if(isset($dado->produto))
+                        $this->produto = $dado->produto;
                 }
                 else
                 {
@@ -212,7 +215,10 @@ class Excel_build
         $this->formata_roi($qtde_colunas, $objPHPExcel->getActiveSheet());
 
         if($tipo == 'ad')
-            $this->processa_kpis($dados, $comissao, $sem_dado_venda, $objPHPExcel);
+        {
+            $vendendo = $db_metricas->get_dados_vendendo($this->produto);
+            $this->processa_kpis($dados, $comissao, $sem_dado_venda, $vendendo, $objPHPExcel);
+        }
         else
             $objPHPExcel->removeSheetByIndex(1);
 
@@ -241,14 +247,16 @@ class Excel_build
     * @param	$comissao: Valor da comissão
     * @param    $objPHPExcel: Excel sendo usado
     * @param    $sem_dado_venda: Caso não haja postback vinculado, usa dados do purchase 
+    * @param    $vendendo: Array de métricas que estão vendendo ou false se não houver
     * @return	-
     */
-    function processa_kpis($dados, $comissao, $sem_dado_venda, $objPHPExcel)
+    function processa_kpis($dados, $comissao, $sem_dado_venda, $vendendo, $objPHPExcel)
     {
         $colunas_7dias = array('I', 'J', 'K', 'L', 'M', 'N', 'O');
         $colunas_3dias = array('P', 'Q', 'R', 'S', 'T', 'U', 'V');
 
-        $linhas_2_calculo = array(11, 23);
+        $linhas_2_calculo = array(12, 24);
+        $linhas_vendendo = array(27, 38);
 
         $colGeral = $objPHPExcel->getActiveSheet()->getHighestColumn();
         $colNumber = PHPExcel_Cell::columnIndexFromString($colGeral);
@@ -356,6 +364,20 @@ class Excel_build
             }
 
         }
+
+        if($vendendo)
+        {
+            $kpi['cpv_venda'] = $vendendo->cpv;
+            $kpi['ctr_venda'] = $vendendo->ctr;
+            $kpi['cpc_venda'] = $vendendo->cpc;
+            $kpi['cpm_venda'] = $vendendo->cpm;
+            $kpi['roi_venda'] = $vendendo->roi;
+            $kpi['spend_venda'] = $vendendo->spend;
+            $kpi['boletos_venda'] = $vendendo->p_boletos;
+            $kpi['conv_boleto_venda'] = $vendendo->c_boletos;
+            $kpi['cartoes_venda'] = $vendendo->p_cartoes;
+            $kpi['clpv_venda'] = $vendendo->clpv;
+        }
         
 
         //Ultima_ViewContents
@@ -415,6 +437,14 @@ class Excel_build
         if($sem_dado_venda)
         {
             for($i=$linhas_2_calculo[0]; $i<=$linhas_2_calculo[1]; $i++)
+            {
+                $objPHPExcel->getActiveSheet()->getRowDimension($i)->setVisible(FALSE);       
+            }
+        }
+
+        if(!$vendendo)
+        {
+            for($i=$linhas_vendendo[0]; $i<=$linhas_vendendo[1]; $i++)
             {
                 $objPHPExcel->getActiveSheet()->getRowDimension($i)->setVisible(FALSE);       
             }

@@ -127,6 +127,32 @@ class Metricas extends CI_Model{
     }
 
     /**
+    * getContasInfo
+    *
+    * Traz nome e id das contas sincronizadas de um perfil do Facebook cadastrado no sistema
+    *
+    * @return	
+    *    false se não encontrar nenhum anúncio
+    *    lista de anúncios
+    */
+    public function getContasInfo(){
+        log_message('debug', 'getContasInfo');
+
+        $this->db->select("name, id, facebook_id");
+        $this->db->from("accounts_info");
+        $this->db->order_by("facebook_id");
+
+        $result = $this->db->get();
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        if($result->num_rows() > 0)
+            return $result->result();  
+        else
+            return false;   
+    }
+
+    /**
     * apaga_conta
     *
     * Elimina a conta das contas a serem sincronizadas e exibidas
@@ -576,6 +602,157 @@ class Metricas extends CI_Model{
             if(isset($arr_creative))
             {
                 if(!$this->db->insert('ad_creatives',$arr_creative))
+                    log_message('debug', 'Erro: ' . $this->db->error()->message);
+
+                log_message('debug', 'Last Query: ' . $this->db->last_query());
+                unset($arr_creative);
+            }
+        }
+    }
+
+    /**
+    * insertAdSetInfo
+    *
+    * Insere no banco de dados os dados de um conjunto após ser processado dos dados obtidos
+    * do Facebook
+    *
+    * @param	arr_adset array: Os conjuntos a serem inseridos no banco
+    * @return   -
+    */
+    public function insertAdSetInfo($arr_adset)
+    {
+        //Para cada conjunto
+        foreach($arr_adset as $array)
+        {
+            //Se tiver targeting no array, separa
+            if(array_key_exists('targeting',$array))
+            {
+                $arr_targeting = $array['targeting'];
+                unset($array['targeting']);
+            }
+
+            //Se tiver insights, separa
+            if(array_key_exists('insights',$array))
+            {
+                $arr_insights = $array['insights'];
+                if(array_key_exists('action', $arr_insights))
+                {
+                    $arr_insights_action = $arr_insights['action'];  
+                    unset($arr_insights['action']);                  
+                }
+                unset($array['insights']);
+            }
+
+            //Insere no banco
+            if(!$this->db->insert('adsets_info', $array))
+                log_message('debug', 'Erro: ' . $this->db->error()->message);
+
+            log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+            //Se tiver targeting. Insere
+            if(isset($arr_targeting))
+            {
+                if(!$this->db->insert('adset_targeting_info',$arr_targeting))
+                    log_message('debug', 'Erro: ' . $this->db->error()->message);
+
+                log_message('debug', 'Last Query: ' . $this->db->last_query());  
+                unset($arr_targeting);  
+            }
+
+            //Se tiver insights e actions. Insere
+            if(isset($arr_insights))
+            {
+                if(!$this->db->insert('adset_insights_info',$arr_insights))
+                    log_message('debug', 'Erro: ' . $this->db->error()->message);
+
+                log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+                $insert_id = $this->db->insert_id();
+
+                if(isset($arr_insights_action))
+                {
+                    foreach($arr_insights_action as $action)
+                    {
+                        $action['adset_insights_id'] = $insert_id;
+                        if(!$this->db->insert('adset_insights_actions_info', $action))
+                            log_message('debug', 'Erro: ' . $this->db->error()->message);
+                        log_message('debug', 'Last Query: ' . $this->db->last_query());
+                    }
+                    unset($arr_insights_action);
+                }
+                unset($arr_insights);
+            }
+        }
+    }
+
+    /**
+    * insertAdInfo
+    *
+    * Insere no banco de dados os dados das contas após ser processadas dos dados obtidos
+    * do Facebook
+    *
+    * @param	arr_ad array: Os anúncios a serem inseridos no banco
+    * @return	-
+    */
+    public function insertAdInfo($arr_ad)
+    {
+        //Para cada anúncio do array
+        foreach($arr_ad as $array)
+        {
+            //Se tiver insights. Separa.
+            if(array_key_exists('insights',$array))
+            {
+                $arr_insights = $array['insights'];
+                if(array_key_exists('action', $arr_insights))
+                {
+                    $arr_insights_action = $arr_insights['action'];  
+                    unset($arr_insights['action']);                  
+                }
+                unset($array['insights']);
+            }
+
+            //Se tiver dados do crative. Separa
+            if(array_key_exists('creative',$array))
+            {
+                $arr_creative = $array['creative'];
+                unset($array['creative']);
+            }
+
+            //Insere no banco
+            if(!$this->db->insert('ads_info', $array))
+                log_message('debug', 'Erro: ' . $this->db->error()->message);
+
+            log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+            //Se tiver insights e actions. Insere.
+            if(isset($arr_insights))
+            {
+                if(!$this->db->insert('ad_insights_info',$arr_insights))
+                    log_message('debug', 'Erro: ' . $this->db->error()->message);
+
+                log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+                $insert_id = $this->db->insert_id();
+
+                if(isset($arr_insights_action))
+                {
+                    foreach($arr_insights_action as $action)
+                    {
+                        $action['ad_insights_id'] = $insert_id;
+                        if(!$this->db->insert('ad_insights_actions_info', $action))
+                            log_message('debug', 'Erro: ' . $this->db->error()->message);
+
+                        log_message('debug', 'Last Query: ' . $this->db->last_query());
+                    }
+                    unset($arr_insights_action);
+                }
+                unset($arr_insights);
+            }
+
+            //Se tiver creative. Insere.
+            if(isset($arr_creative))
+            {
+                if(!$this->db->insert('ad_creatives_info',$arr_creative))
                     log_message('debug', 'Erro: ' . $this->db->error()->message);
 
                 log_message('debug', 'Last Query: ' . $this->db->last_query());
@@ -1072,6 +1249,50 @@ class Metricas extends CI_Model{
 
         return $result->row()->adset_id;  
       
+    }
+
+    /**
+    * get_dados_vendendo
+    *
+    * Traz os dados consolidados do que está vendendo com roi positivo e métricas
+    *
+    * @param	produto: Nome do produto que está sendo vendido
+    * @return	
+    *    lista consolidada para preenchimento da área "Métricas que estão vendendo para esse produto"
+    *     na planilha de métricas ou false se não tiver dados
+    */
+    function get_dados_vendendo($produto)
+    {
+        log_message('debug', 'get_dados_vendendo. Produto:' . $produto);
+
+        if($produto == '')
+            return false;
+
+        $result = $this->db->query("SELECT avg(ctr) as ctr, avg(cpc) as cpc, avg(cpm) as cpm, avg(roi) as roi, avg(spend) as spend,
+		avg(ifnull((ifnull(boletos_pagos,0) + ifnull(cartoes,0))/ifnull(cartoes,0),0)) as p_cartoes,
+        avg(ifnull((ifnull(boletos_pagos,0) + ifnull(cartoes,0))/ifnull(boletos_pagos,0),0)) as p_boletos,
+        avg(ifnull((ifnull(boletos_pagos,0) + ifnull(boletos_gerados,0))/ifnull(boletos_pagos,0),0)) as c_boletos,
+        avg(spend/(ifnull(boletos_pagos,0) + ifnull(cartoes,0))) as cpv,
+        avg(clicks/(ifnull(boletos_pagos,0) + ifnull(cartoes,0))) as clpv
+        FROM (
+SELECT ads_vendas.ad_id, accounts.facebook_id, spend, sum(boletos_gerados) as boletos_gerados, sum(boletos_pagos) as boletos_pagos, 
+            sum(cartoes) as cartoes, sum(boletos_pagos * comissao) as faturamento_boleto, 
+            sum(cartoes * comissao) as faturamento_cartao, produto, plataforma, 
+            ((((ifnull(sum(boletos_pagos * comissao),0) + ifnull(sum(cartoes * comissao),0))-spend) / spend) * 100) as ROI, inline_link_click_ctr as ctr, cost_per_inline_link_click as cpc,
+            cpm, clicks
+FROM ads_vendas
+JOIN ad_insights on ads_vendas.ad_id = ad_insights.ad_id
+JOIN accounts on ad_insights.account_id = accounts.id
+WHERE bydate is null
+GROUP BY ads_vendas.ad_id, plataforma, produto) a
+WHERE roi > 0 and produto = '" . $produto . "'" );
+
+        if($result->num_rows()>0)
+        {
+            return $result->row();
+        }
+        else
+            return false;
     }
 
     /**

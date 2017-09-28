@@ -223,4 +223,21 @@ $aaa = "?fields=" . $insights . "&time_range={'since':'" . $dt_inicio .
 
 }
 
+function get_param_contas_info()
+{
+    $accounts = str_replace("\n","",ACCOUNTS);
+    $campaigns = str_replace("\n","",CAMPAIGNS);
+    $insights = str_replace("\n","",INSIGHTS);
+    $adsets = str_replace("\n","",ADSETS);
+    $ads = str_replace("\n","",ADS);
+    $creative = str_replace("\n","",CREATIVES);
+
+    $aaa = '?fields=adsets{' . 
+        $adsets . '},ads{' . $ads . ',insights{' . $insights . '},creative{' . $creative .
+            '}}'; 
+
+    return $aaa;
+
+}
+
 ?>

@@ -207,38 +207,91 @@ class App extends CI_Controller {
     {
       log_message('debug', $this->input->raw_input_stream);
 
-      //Se o parâmetro conta vier do post (do ajax)
-      if(isset($_POST['conta']))
-      {
-        $conta = $this->input->post('conta');
-        //$conta = str_replace('div_','',$conta);
-      }
-      elseif($conta == null)
-      {
-        die('Erro. Sem acesso ao sistema');  
-      }
-      else
-      {
-        $conta = 'act_'.$conta;
-      }
-      
-      //Busca os dados a serem sincronizados no Facebook
-      $detalhes = $this->facebook->request('get',$conta.get_param_contas(),$this->usrtkn);
-      log_message('debug',json_encode($detalhes));
+      $results = $this->metricas->getContasInfo();
 
-      if(array_key_exists('error',$detalhes))
+      if($results)
       {
-        die('Erro');
+        $fb_id = "";
+        foreach($results as $res)
+        {
+          if($fb_id != $res->facebook_id)
+          {
+            $fb_id = $res->facebook_id;
+            $token = $this->metricas->getProfileToken($fb_id)->token;
+          }
+          $url_params = get_param_contas_info(); 
+
+          log_message('debug',$res->id.$url_params);
+          
+          $detalhes = $this->facebook->request('get',$res->id.$url_params,$token);
+          log_message('debug',json_encode($detalhes));
+
+          if(array_key_exists('error',$detalhes))
+          {
+            continue;
+          }
+
+          ////////PROCESSAMENTO DE RESPOSTAS
+
+          $ads = $detalhes['ads']['data'];
+          $adsets = $detalhes['adsets']['data'];
+    
+          //Se existir paginamento de conjuntos de anúncios, processa para incluir no array
+          if(array_key_exists('next', $detalhes['adsets']['paging']))
+          {
+            $next = $detalhes['adsets']['paging']['next'];
+            while($next != '')
+            {
+              $retorno = $this->process_pagination($next);
+              
+              if(array_key_exists('next', $retorno['paging']))
+                $next = $retorno['paging']['next'];
+              else
+                $next = '';
+    
+              $adsets = array_merge($adsets, $retorno['data']);
+            }
+          }
+    
+          //Se existir paginamento de anúncios, processa para incluir no array
+          if(array_key_exists('next', $detalhes['ads']['paging']))
+          {
+            $next = $detalhes['ads']['paging']['next'];
+            while($next != '')
+            {
+              $retorno = $this->process_pagination($next);
+              
+              if(array_key_exists('paging', $retorno))
+              {
+                if(array_key_exists('next', $retorno['paging']))
+                  $next = $retorno['paging']['next'];
+                else
+                  $next = '';
+    
+                $ads = array_merge($ads, $retorno['data']);
+              }
+            }
+          }
+          
+          unset($detalhes['ads']);
+          unset($detalhes['adsets']);
+    
+          //Processa array de conjunto de anúncios
+          $adsets = processa_adsets($adsets);
+          //Processa array de anúncios
+          $ads = processa_ads($ads);
+          
+
+          $this->metricas->insertAdSetInfo($adsets);
+          $this->metricas->insertAdInfo($ads);
+
+
+
+
+          ///////
+        }
       }
 
-      $this->grava_bd($detalhes, $completa); 
-
-      //Busca as conversões personalizadas
-      $detalhes = $this->facebook->request('get',$conta.'/customconversions?fields=id,name,custom_event_type,account_id',$this->usrtkn);
-      log_message('debug',json_encode($detalhes));
-
-      if(!empty($detalhes['data']))
-        $this->metricas->grava_custom_conversions($detalhes['data']);
     }
 
     /**
@@ -404,7 +457,7 @@ class App extends CI_Controller {
       if(!$dt_inicio)
         $dt_inicio = $this->metricas->getLastDateSync($id, $tipo);
 
-      $url_params = get_param_contas_data_simples($dt_inicio);
+      $url_params = get_param_contas_data_simples($dt_inicio);  
 
       //Faz a chamada no Facebook
       $detalhes = $this->facebook->request('get', $id.'/insights'.$url_params,$this->usrtkn);
@@ -577,6 +630,7 @@ class App extends CI_Controller {
             $dados->faturamento_boleto = $dados_vendas_geral->faturamento_boleto;
             $dados->faturamento_cartao = $dados_vendas_geral->faturamento_cartao;
             $comissao = $dados_vendas_geral->comissao;
+            $dados->produto = $venda->produto;
           }
 
           //Faz o cálculo de %PurchaseCheckout
