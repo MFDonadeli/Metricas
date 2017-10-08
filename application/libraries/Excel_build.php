@@ -98,7 +98,7 @@ class Excel_build
                             //Pega a coluna atual
                             $coluna_atual = PHPExcel_Cell::stringFromColumnIndex($column);
                             //Se for geral, troca pela fórmula que soma os dados por dia
-                            if($dado->bydate != 1)
+                            if($dado->bydate != 1 && $qtde_colunas > 1)
                             {
                                 $coluna_anterior = PHPExcel_Cell::stringFromColumnIndex($column-1);
                                 $value = "=SUM(B" . $row . ":" . $coluna_anterior . $row . ")";    
@@ -153,7 +153,7 @@ class Excel_build
                         $campo = str_replace('#', '', $value);  
 
                         //PROCESSA GERAL: É PROVISÓRIO. O GERAL VEM DA SOMA DAS DATAS
-                        if($dado->bydate != 1)
+                        if($dado->bydate != 1 && $qtde_colunas > 1)
                         {
                             $coluna_anterior = PHPExcel_Cell::stringFromColumnIndex($column-1);
                             $coluna_atual = PHPExcel_Cell::stringFromColumnIndex($column);
@@ -254,6 +254,7 @@ class Excel_build
     {
         $colunas_7dias = array('I', 'J', 'K', 'L', 'M', 'N', 'O');
         $colunas_3dias = array('P', 'Q', 'R', 'S', 'T', 'U', 'V');
+        $sogeral = false;
 
         $linhas_2_calculo = array(12, 24);
         $linhas_vendendo = array(27, 38);
@@ -269,6 +270,14 @@ class Excel_build
         
         if(count($dados) > 3)
             $colPrimeira3dias = PHPExcel_Cell::stringFromColumnIndex($colNumber-4);
+
+        if(count($dados) == 1)
+        {
+            $sogeral = true;
+            $colGeral = "B";
+            $colNumber = 2;
+            $colUltima = "B";
+        }
 
         $kpi['comissao'] = $comissao;
         $kpi['Geral'] = $colGeral;
@@ -286,7 +295,7 @@ class Excel_build
 
         if($sem_dado_venda)
         {
-            if(array_key_exists('fb_pixel_purchase', $this->linhas_planilhas))
+            if(array_key_exists('fb_pixel_purchase', $this->linhas_planilhas['conversoes']))
             {
                 $vendas = $this->linhas_planilhas['conversoes']['fb_pixel_purchase'];    
                 $kpi['Vendas'] = "Métricas!" . $colGeral . $this->linhas_planilhas[$vendas];
@@ -365,7 +374,7 @@ class Excel_build
 
         }
 
-        if($vendendo)
+        if($vendendo && ($vendendo->cpv != null))
         {
             $kpi['cpv_venda'] = $vendendo->cpv;
             $kpi['ctr_venda'] = $vendendo->ctr;
@@ -442,7 +451,7 @@ class Excel_build
             }
         }
 
-        if(!$vendendo)
+        if($vendendo || ($vendendo->cpv == null))
         {
             for($i=$linhas_vendendo[0]; $i<=$linhas_vendendo[1]; $i++)
             {

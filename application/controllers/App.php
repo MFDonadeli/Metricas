@@ -631,6 +631,7 @@ class App extends CI_Controller {
             $dados->faturamento_cartao = $dados_vendas_geral->faturamento_cartao;
             $comissao = $dados_vendas_geral->comissao;
             $dados->produto = $venda->produto;
+            $sem_dado_venda = false;
           }
 
           //Faz o cálculo de %PurchaseCheckout
@@ -943,7 +944,7 @@ class App extends CI_Controller {
 
         if($tipo[$i] == "Boleto Impresso")
           $tp = "boletos_gerados";
-        else if($tipo[$i] == "Boleto Pagos")
+        else if($tipo[$i] == "Boleto Pago")
           $tp = "boletos_pagos";
         else if($tipo[$i] == "Cartão")
           $tp = "cartoes";
@@ -1784,6 +1785,15 @@ class App extends CI_Controller {
       $this->load->view('show_activities',$data);  
     }
 
+    public function show_best_ads()
+    {
+      $ads = $this->metricas->get_best_ads();
+
+      $data['ads'] = $ads;
+
+      $this->load->view('show_best_ads',$data);  
+    }
+
     public function get_accounts_info()
     {
       if(isset($_POST['profile']))
@@ -2021,6 +2031,71 @@ class App extends CI_Controller {
 
         echo $msg;
       }
+    }
+
+    public function get_info_best_ad()
+    {
+      if(isset($_POST['ad_id']))
+      {
+        $ad_id = $this->input->post('ad_id');
+        $retorno = $this->metricas->get_info_best_ads($ad_id);
+
+        $detalhes = $this->facebook->request('get', $retorno['ad_creatives']->id . '/previews?ad_format=DESKTOP_FEED_STANDARD', $retorno['token']);
+
+        if(array_key_exists('error', $detalhes))
+          die();
+
+        $preview = $detalhes['data'][0]['body'];
+
+        $html = "<table>";
+        foreach($retorno['ad_creatives'] as $key => $val)
+        {
+          if($val != null)
+          {
+            $html .= "<tr>";
+            $html .= "<td>" . $key . "</td>";
+            $html .= "<td>" . $val . "</td>";
+            $html .= "</tr>";
+          }
+        }
+        $html .= "</table>";
+
+        $html .= "<table>";
+        foreach($retorno['adsets'] as $key => $val)
+        {
+          if($val != null)
+          {
+            $html .= "<tr>";
+            $html .= "<td>" . $key . "</td>";
+            $html .= "<td>" . $val . "</td>";
+            $html .= "</tr>";
+          }
+        }
+        $html .= "</table>";
+
+        $html .= "<table>";
+        if(!empty($retorno['adset_targeting']))
+        {
+          foreach($retorno['adset_targeting'] as $key => $val)
+          {
+            if($val != null)
+            {
+              $html .= "<tr>";
+              $html .= "<td>" . $key . "</td>";
+              $html .= "<td>" . $val . "</td>";
+              $html .= "</tr>";
+            }
+          }
+        }
+        
+        $html .= "</table>";
+
+        $ret = array("preview" => $preview,
+        "info" => $html);
+  
+        $js = json_encode($ret);
+      }
+      echo $js;
     }
     
 
