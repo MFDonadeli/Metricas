@@ -927,6 +927,8 @@ class App extends CI_Controller {
     {
       log_message('debug', 'grava_ad_venda.');  
 
+      $item = array();
+
       $pb = $this->input->post('dados');
       $ad = $this->input->post('ad_id');
       $tipo = $this->input->post('tipo');
@@ -961,6 +963,7 @@ class App extends CI_Controller {
         $item['src'] = $src[$i];
         
         $array_insert[] = $item;
+
       }
 
       $this->metricas->insert_ads_vendas($array_insert);
