@@ -927,7 +927,7 @@ class App extends CI_Controller {
     {
       log_message('debug', 'grava_ad_venda.');  
 
-      $item = array();
+      $item = [];
 
       $pb = $this->input->post('dados');
       $ad = $this->input->post('ad_id');
