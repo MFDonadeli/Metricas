@@ -12,8 +12,8 @@
 
 <div class="well">
     <div class='form-group'>
-        <label class='col-md-2 control-label' for="cmbCartao">Selecione um anúncio:</label>
-        <select class='form-control' id="cmbCartao">
+        <label class='col-md-2 control-label' for="cmbAnuncio">Selecione um anúncio:</label>
+        <select class='form-control' id="cmbAnuncio">
             <option value="-1">Selecione</option>
             <?php
                 foreach($anuncios as $anuncio)
@@ -39,9 +39,9 @@
     var id;
     var plataforma;
 
-    $('#cmbCartao').change(function (){
+    $('#cmbAnuncio').change(function (){
         var form_data = { dados: dados,
-            ad_id: $('#cmbCartao').val() };
+            ad_id: $('#cmbAnuncio').val() };
 
         $.ajax({
             url: '<?php echo base_url(); ?>app/show_vendas_assoc',
@@ -66,7 +66,7 @@
     $(document).on('click', '#btnsalvar', function(e)  {
         e.preventDefault();
         var form_data = { data: $('#dt_venda').val(),
-            ad_id: $('#cmbCartao').val(),
+            ad_id: $('#cmbAnuncio').val(),
             tipo: $('#cmbtipo').find(':selected').text(),
             plataforma: $('#cmbplataforma').find(':selected').text(),
             produto: $('#cmbproduto').find(':selected').text(),
@@ -123,14 +123,14 @@
             id_ads_vendas: $(this).attr('id')
         };
 
-        $.ajax({
+        $.ajax({ 
             url: '<?php echo base_url(); ?>app/cancela_associacao_postback',
             type: 'POST',
             data: form_data,
             global: false,
             async:true,
             success: function(msg) { 
-
+                
             }
         });    
     });
@@ -189,7 +189,7 @@
 
             var form_data = { 
                 data: aData[1],
-                ad_id: $('#cmbCartao').val()
+                ad_id: $('#cmbAnuncio').val()
             };
 
             $.ajax({

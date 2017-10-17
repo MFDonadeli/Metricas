@@ -1252,6 +1252,91 @@ class Metricas extends CI_Model{
     }
 
     /**
+    * get_best_ads
+    *
+    * Traz os anúncios com vendas cadastrados no sistema
+    *
+    * @param	produto: Nome do produto que está sendo vendido
+    * @return	
+    *    lista consolidada para preenchimento da área "Métricas que estão vendendo para esse produto"
+    *     na planilha de métricas ou false se não tiver dados
+    */
+    function get_best_ads()
+    {
+        log_message('debug', 'get_best_ads');
+
+        $sql = "SELECT ad_insights.ad_id, sum(ad_insights_actions.value) as qtde, inline_link_click_ctr as ctr, cost_per_inline_link_click as cpc,
+                        cpm, spend, (spend/sum(ad_insights_actions.value)) as cpv, 
+                        ads_vendas.produto, sum(ads_vendas.cartoes) as cartoes, sum(ads_vendas.boletos_pagos) as boletos_pagos,
+                        sum(boletos_pagos * comissao) as faturamento_boleto, sum(cartoes * comissao) as faturamento_cartao,
+                        ((((ifnull(sum(boletos_pagos * comissao),0) + ifnull(sum(cartoes * comissao),0))-spend) / spend) * 100) as ROI
+                FROM ad_insights JOIN ad_insights_actions 
+                ON ad_insights.ad_insights_id = ad_insights_actions.ad_insights_id
+                LEFT JOIN ads_vendas ON ads_vendas.ad_id = ad_insights.ad_id
+                WHERE bydate is NULL AND ad_insights_actions.action_type LIKE '%purchase%'
+                GROUP BY(ad_id)
+                ORDER BY qtde DESC";
+
+        $results = $this->db->query($sql);
+
+        return $results->result();
+    }
+
+    /**
+    * get_info_best_ads
+    *
+    * Traz as informações dos anúncios com vendas cadastrados no sistema
+    *
+    * @param	ad_id: Id do anuncio
+    * @return	
+    *    lista consolidada para preenchimento da área "Métricas que estão vendendo para esse produto"
+    *     na planilha de métricas ou false se não tiver dados
+    */
+    function get_info_best_ads($ad_id)
+    {
+        log_message('debug', 'get_best_ads');
+
+        $this->db->where('ad_id', $ad_id);
+        $results['ad_creatives'] = $this->db->get('ad_creatives')->row();
+
+        $adset_id = $this->getAdSetFromAd($ad_id);
+        $fb_id = $this->get_fbid_ad($ad_id);
+
+        $results['token'] = $this->getProfileToken($fb_id)->token;
+
+        $this->db->where('id', $adset_id);
+        $results['adsets'] = $this->db->get('adsets')->row();
+
+        $this->db->where('id', $adset_id);
+        $results['adset_targeting'] = $this->db->get('adset_targeting')->row();
+
+        return $results;
+    }
+
+    /**
+    * get_fbid_ad
+    *
+    * Traz o ID do Facebook dono do anúncio
+    *
+    * @param	ad_id: Id do anuncio
+    * @return	
+    *    Id do Facebook dono do anúncio
+    */
+    function get_fbid_ad($ad_id)
+    {
+        log_message('debug', 'get_fbid_ad');   
+        
+        $this->db->select('facebook_id');
+        $this->db->from('accounts');
+        $this->db->join('ads', 'ads.account_id = accounts.id');
+        $this->db->where('ads.id', $ad_id);
+
+        $res = $this->db->get();
+
+        return $res->row()->facebook_id;
+    }
+
+    /**
     * get_dados_vendendo
     *
     * Traz os dados consolidados do que está vendendo com roi positivo e métricas

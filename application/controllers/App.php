@@ -927,8 +927,6 @@ class App extends CI_Controller {
     {
       log_message('debug', 'grava_ad_venda.');  
 
-      $item = [];
-
       $pb = $this->input->post('dados');
       $ad = $this->input->post('ad_id');
       $tipo = $this->input->post('tipo');
@@ -950,6 +948,8 @@ class App extends CI_Controller {
           $tp = "boletos_pagos";
         else if($tipo[$i] == "Cartão")
           $tp = "cartoes";
+
+        $item = [];
 
         $item['ad_id'] = $ad;
         $item['plataforma'] = $plataforma;
@@ -1069,7 +1069,7 @@ class App extends CI_Controller {
       
       $data['anuncios'] = $ads;
 
-      $html = $this->load->view('metricas/ger_assoc',$data);
+      $this->load->view('metricas/ger_assoc',$data);
 
     }
 
