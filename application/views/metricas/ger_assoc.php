@@ -40,8 +40,7 @@
     var plataforma;
 
     $('#cmbAnuncio').change(function (){
-        var form_data = { dados: dados,
-            ad_id: $('#cmbAnuncio').val() };
+        var form_data = { ad_id: $('#cmbAnuncio').val() };
 
         $.ajax({
             url: '<?php echo base_url(); ?>app/show_vendas_assoc',
