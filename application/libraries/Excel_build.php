@@ -256,8 +256,8 @@ class Excel_build
         $colunas_3dias = array('P', 'Q', 'R', 'S', 'T', 'U', 'V');
         $sogeral = false;
 
-        $linhas_2_calculo = array(12, 24);
-        $linhas_vendendo = array(27, 38);
+        $linhas_2_calculo = array(14, 29);
+        $linhas_vendendo = array(32, 44);
 
         $colGeral = $objPHPExcel->getActiveSheet()->getHighestColumn();
         $colNumber = PHPExcel_Cell::columnIndexFromString($colGeral);
@@ -451,7 +451,17 @@ class Excel_build
             }
         }
 
-        if($vendendo || ($vendendo->cpv == null))
+        if($vendendo)
+        {
+            if(($vendendo->cpv == null))
+            {
+                for($i=$linhas_vendendo[0]; $i<=$linhas_vendendo[1]; $i++)
+                {
+                    $objPHPExcel->getActiveSheet()->getRowDimension($i)->setVisible(FALSE);       
+                }
+            }
+        }
+        else
         {
             for($i=$linhas_vendendo[0]; $i<=$linhas_vendendo[1]; $i++)
             {

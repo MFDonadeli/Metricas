@@ -40,6 +40,7 @@
     var plataforma;
 
     $('#cmbAnuncio').change(function (){
+
         var form_data = { ad_id: $('#cmbAnuncio').val() };
 
         $.ajax({
@@ -103,9 +104,7 @@
                 var produto = ($('#nome_produto').html()).trim();
                 if(produto != '')
                 {
-                    console.log('Produto: [' + produto + ']');
                     var a = $("#cmbproduto option:contains(" + produto + ")").attr('selected', true);
-                    console.log(a);
                     $('#cmbproduto').trigger('change');
                 }
 
@@ -118,20 +117,35 @@
     });
 
     $(document).on('click', '.btn_cancelavenda', function (e){
-        var form_data = { 
-            id_ads_vendas: $(this).attr('id')
-        };
+        var btn = $(this);
 
-        $.ajax({ 
-            url: '<?php echo base_url(); ?>app/cancela_associacao_postback',
-            type: 'POST',
-            data: form_data,
-            global: false,
-            async:true,
-            success: function(msg) { 
-                
-            }
-        });    
+        $.SmartMessageBox({
+				title : "Alerta!",
+				content : "Deseja realmente cancelar o postback relacionado? Esta ação não pode ser desfeita.",
+				buttons : '[No][Yes]'
+			}, function(ButtonPressed) {
+                if (ButtonPressed === "Yes") {
+					
+                    var form_data = { 
+                        id_ads_vendas: $(this).attr('id')
+                    };
+
+					$.ajax({ 
+                        url: '<?php echo base_url(); ?>app/cancela_associacao_postback',
+                        type: 'POST',
+                        data: form_data,
+                        global: false,
+                        async:true,
+                        success: function(msg) {
+                            btn.closest("td").html('<strong>Cancelado</strong>');           
+                        }
+                    });
+				}
+				if (ButtonPressed === "No") {
+	
+				}
+	
+			});    
     });
 
     var responsiveHelper_dt_vendas_associadas;
@@ -157,12 +171,15 @@
 
         $(document).on("click", "#dt_vendas_associadas a i[data-toggle='row-detail']", function (e) {
             var nTr = $(this).parents("tr")[0];
+
             if ( table_dt_vendas_associadas.fnIsOpen(nTr) )
             {
                 /* This row is already open - close it */
                 $(this).removeClass("fa-chevron-down").addClass("fa-chevron-right");
                 this.title = "Show Details";
                 table_dt_vendas_associadas.fnClose( nTr );
+                console.log('Fechou');
+                console.log(table_dt_vendas_associadas.fnIsOpen(nTr));
             }
             else
             {
@@ -170,6 +187,8 @@
                 $(this).removeClass("fa-chevron-right").addClass("fa-chevron-down");
                 this.title = "Hide Details";
                 table_dt_vendas_associadas.fnOpen( nTr, fnFormatDetails(table_dt_vendas_associadas, nTr), "details" );
+                console.log('Abriu');
+                console.log(table_dt_vendas_associadas.fnIsOpen(nTr));
             }
             return false;
         });
