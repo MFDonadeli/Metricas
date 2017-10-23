@@ -169,7 +169,9 @@
             return "left";
         }
 
-        $(document).on("click", "#dt_vendas_associadas a i[data-toggle='row-detail']", function (e) {
+        $(document).on("click", "#dt_vendas_associadas a i[data-toggle='row-detail']", function (evt) {
+            evt.stopImmediatePropagation();
+            
             var nTr = $(this).parents("tr")[0];
 
             if ( table_dt_vendas_associadas.fnIsOpen(nTr) )
