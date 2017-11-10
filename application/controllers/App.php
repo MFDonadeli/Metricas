@@ -444,12 +444,14 @@ class App extends CI_Controller {
         $detalhes = $this->facebook->request('get', $id.'/insights'.$url_params,$this->usrtkn);
 
         if(isset($datalhes['error']))
-          die('Erro. Tente novamente');
-
-        log_message('debug', 'Resposta insight por data ' . json_encode($detalhes));
-
-        //Chama a função para processamento do insight
-        $this->processa_resposta_insight($detalhes, $tipo, true);
+          log_message('debug','Erro. Tente novamente');
+        else
+        {
+          log_message('debug', 'Resposta insight por data ' . json_encode($detalhes));
+          
+          //Chama a função para processamento do insight
+          $this->processa_resposta_insight($detalhes, $tipo, true);
+        }
       }
 
       $dt_inicio = $this->metricas->getFirstDate($id, $tipo);
@@ -463,12 +465,14 @@ class App extends CI_Controller {
       $detalhes = $this->facebook->request('get', $id.'/insights'.$url_params,$this->usrtkn);
 
       if(isset($detalhes['error']))
-        die('Error');
-
-      log_message('debug','Resposta insight ' . json_encode($detalhes));
-
-      //Chama a função para processamento do insight
-      $this->processa_resposta_insight($detalhes, $tipo);
+        log_message('debug','Erro. Tente novamente');
+      else
+      {
+        log_message('debug','Resposta insight ' . json_encode($detalhes));
+        
+        //Chama a função para processamento do insight
+        $this->processa_resposta_insight($detalhes, $tipo);
+      }
       
       //Se true, chama a função para iniciar a criação da planilha em Excel
       if($gera_planilha)

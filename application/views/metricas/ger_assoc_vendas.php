@@ -171,4 +171,13 @@ $(document).ready(function(){
         endif;
     ?>
 });
+
+$( "#dt_venda" ).datepicker({
+    	dateFormat : 'yy-mm-dd',
+        prevText : '<i class="fa fa-chevron-left"></i>',
+		nextText : '<i class="fa fa-chevron-right"></i>',
+		onSelect : function(selectedDate) {
+			$('#finishdate').datepicker('option', 'minDate', selectedDate);
+		}
+    });
 </script>

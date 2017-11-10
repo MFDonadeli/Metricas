@@ -39,6 +39,7 @@
     var id;
     var plataforma;
 
+
     $('#cmbAnuncio').change(function (){
 
         var form_data = { ad_id: $('#cmbAnuncio').val() };
@@ -127,7 +128,7 @@
                 if (ButtonPressed === "Yes") {
 					
                     var form_data = { 
-                        id_ads_vendas: $(this).attr('id')
+                        id_ads_vendas: btn.attr('id')
                     };
 
 					$.ajax({ 

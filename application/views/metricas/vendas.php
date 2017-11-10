@@ -1,6 +1,17 @@
 
 <?php require_once("inc/init.php"); ?>
 
+<style>
+
+/* Style the tab content */
+.resposta {
+    display: none;
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-top: none;
+}
+</style>
+
 <div class="row">
 	<div class="col-xs-12 col-sm-7 col-md-7 col-lg-4">
 		<h1 class="page-title txt-color-blueDark">
@@ -19,43 +30,35 @@
             echo "<h1>Sem postbacks configurados. Configure os postbacks em Configurações -> Gerenciar Postbacks</h1>";
         else:
         ?>
-        <ul>
-            
+        <h2 id='msg_inicial'>Escolha uma plataforma para continuar:</h2>
             <?php
                 foreach($plataformas as $key => $val)
                 {
             ?>
-            <li>
-                <a class='btn_plataforma' href="#tab<?php echo $val; ?>"><?php echo $key; ?></a>
-            </li>
+                <button class='btn_plataforma btn-primary' id="btn<?php echo $val; ?>"><?php echo $key; ?></button>
             <?php
                 }
             ?>
-        </ul>
+           <div id="resposta">
 
-        <?php
-            foreach($plataformas as $key => $val)
-            {
-        ?>
-            <div id="tab<?php echo $val; ?>">
-                <div id="resposta<?php echo $key; ?>">
-
-                </div>
-            </div>
-        <?php
-            }
-        ?>
+           </div>
         <?php endif; ?>
     </div>
 </div>
-
 <script>
+
     var id;
     var plataforma;
 
     $('.btn_plataforma').click(function (){
-        id = $(this).attr('href');
-        id = id.replace("#tab","");
+        id = $(this).attr('id');
+        id = id.replace("btn","");
+
+        $("#resposta").show();
+        $(".btn_plataforma").removeClass("active");
+        $(this).addClass("active");
+
+        $('#msg_inicial').hide();
 
         plataforma = $(this).text();
 
@@ -130,7 +133,7 @@
 
         $("table[id*=dt_cartao]").remove();
 
-        $('#resposta'+plataforma).html(resp);
+        $('#resposta').html(resp);
 
         setUpGrids();
     }

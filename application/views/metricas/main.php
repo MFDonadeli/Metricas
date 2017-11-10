@@ -475,7 +475,7 @@
                 console.log(msg);
                 var obj = $.parseJSON(msg);
                 processa_retorno(obj);
-                $('#numeros-content').html("<iframe width='100%' height='600 px' src='https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>template/" + obj.filename.trim() + "'>");
+                $('#numeros-content').html("<a class='btn btn-primary btn-lg' href='<?php echo base_url(); ?>template/" + obj.filename.trim() + "'>Baixar Planilha</a><br><br><iframe width='100%' height='600 px' src='https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>template/" + obj.filename.trim() + "'>");
                 $('#grafico').show();
                 
                 if(val_anuncio == -1 || val_anuncio === null)
