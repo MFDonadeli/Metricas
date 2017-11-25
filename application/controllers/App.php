@@ -1117,6 +1117,183 @@ class App extends CI_Controller {
     }
 
     /**
+    * desempenho_produto
+    *
+    * Carrega página que mostra um resumo consolidado dos dados de postback por produto
+    *  e seu próprio desempenho comparando com outros anunciantes.
+    */
+    public function desempenho_produto()
+    {
+      log_message('debug', 'desempenho_produto'); 
+
+      $id = $this->metricas->getuserid($this->session->userdata('facebook_id'));
+      
+      $result = $this->metricas->getProdutosByUser($id);
+
+      $data['produtos'] = $result;
+
+      $this->load->view('metricas/desempenho_produto',$data);
+
+    }
+
+    /**
+    * get_desempenho_produto
+    *
+    * Carrega informações do resumo consolidado dos dados de postback por produto
+    *  e seu próprio desempenho comparando com outros anunciantes.
+    */
+    public function get_desempenho_produto()
+    {
+      log_message('debug', 'get_desempenho_produto  '); 
+
+      if(isset($_POST['produto']))
+      {
+        $produto = $this->input->post('produto');
+        $val = $this->input->post('val');
+        $plataforma = $this->input->post('plataforma');
+
+        $vendas_user_cartao = $this->metricas->get_vendas_plataforma($this->session->userdata('facebook_id'), $plataforma, false, $produto, 'Cartão');
+        $vendas_user_bimpresso = $this->metricas->get_vendas_plataforma($this->session->userdata('facebook_id'), $plataforma, false, $produto, 'Boleto Impresso');
+        $vendas_user_bpago = $this->metricas->get_vendas_plataforma($this->session->userdata('facebook_id'), $plataforma, false, $produto, 'Boleto Pago');
+        $vendas_user_devolvida = $this->metricas->get_vendas_plataforma($this->session->userdata('facebook_id'), $plataforma, false, $produto, 'Devolvida');
+
+        $vendas_outros_cartao = $this->metricas->get_vendas_plataforma($this->session->userdata('facebook_id'), $plataforma, false, $produto, 'Cartão', true);
+        $vendas_outros_bimpresso = $this->metricas->get_vendas_plataforma($this->session->userdata('facebook_id'), $plataforma, false, $produto, 'Boleto Impresso', true);
+        $vendas_outros_bpago = $this->metricas->get_vendas_plataforma($this->session->userdata('facebook_id'), $plataforma, false, $produto, 'Boleto Pago', true);
+        $vendas_outros_devolvida = $this->metricas->get_vendas_plataforma($this->session->userdata('facebook_id'), $plataforma, false, $produto, 'Devolvida', true);
+
+        $user_cartao = count($vendas_user_cartao);
+        $user_bimpresso = count($vendas_user_bimpresso);
+        $user_bpago = count($vendas_user_bpago);
+        $user_devolvida = count($vendas_user_devolvida);
+
+        $user_vendas = $user_cartao + $user_bpago - $user_devolvida;
+        $user_conversao = $user_bpago == 0 ? 0 : ($user_bpago / ($user_bimpresso + $user_bpago)) * 100;
+
+        $primeira_data_user[] = $user_cartao == 0 ? null : $vendas_user_cartao[0]->data_compra;
+        $primeira_data_user[] = $user_bpago == 0 ? null : $vendas_user_bpago[0]->data_compra;
+
+        $today = date('Y-m-d');
+        //$today = '2017-08-22 14:46:56';
+        $sete_dias = date('Y-m-d',strtotime($today . "-7 days"));
+        $tres_dias = date('Y-m-d',strtotime($today . "-3 days"));
+
+        $intervalo = 0;
+        if($user_vendas > 0)
+        {
+          $primeira_venda = min(array_filter($primeira_data_user));
+          
+          $dt1 = new DateTime($primeira_venda);
+          $dt2 = new DateTime('today');
+          $intervalo = $dt2->diff($dt1)->format('%a');  
+        }
+
+        $user_comissao_cartao = 0;
+        $user_comissao_boleto = 0;
+        $user_comissao_devolvida = 0;
+        $user_venda_7dias = 0;
+        $user_venda_3dias = 0;
+        $user_venda_cartao_7dias = 0;
+        $user_venda_cartao_3dias = 0;
+        $user_venda_bpago_7dias = 0;
+        $user_venda_bpago_3dias = 0;
+        $user_venda_bimpresso_7dias = 0;
+        $user_venda_bimpresso_3dias = 0;
+
+        foreach($vendas_user_cartao as $venda)
+        {
+          if($venda->data_compra >= $sete_dias)
+          {
+            $user_venda_7dias++;
+            $user_venda_cartao_7dias++;
+          }
+
+          if($venda->data_compra >= $tres_dias)
+          {
+            $user_venda_3dias++;
+            $user_venda_cartao_3dias++;
+          }
+
+          $user_comissao_cartao += $venda->comissao;          
+        }
+
+        $comissao_boleto = 0;
+        foreach($vendas_user_bpago as $venda)
+        {
+          if($venda->data_compra >= $sete_dias)
+          {
+            $user_venda_7dias++;
+            $user_venda_bpago_7dias++;
+          }
+
+          if($venda->data_compra >= $tres_dias)
+          {
+            $user_venda_3dias++;
+            $user_venda_bpago_3dias++;
+          }
+
+          $user_comissao_boleto += $venda->comissao;          
+        }
+
+        foreach($vendas_user_bimpresso as $venda)
+        {
+          if($venda->data_compra >= $sete_dias)
+          {
+            $user_venda_bimpresso_7dias++;
+          }
+
+          if($venda->data_compra >= $tres_dias)
+          {
+            $user_venda_bimpresso_7dias++;
+          }
+
+          $comissao_boleto += $venda->comissao;          
+        }
+
+        $comissao_devolvida = 0;
+        foreach($vendas_user_devolvida as $venda)
+        {
+          $comissao_devolvida += $venda->comissao; 
+          
+          if($venda->data_compra >= $sete_dias)
+          {
+            $user_venda_7dias--;
+          }
+
+          if($venda->data_compra >= $tres_dias)
+          {
+            $user_venda_3dias--;
+          }
+
+          $user_comissao_devolvida += $venda->comissao; 
+        }
+       
+        $media_vendas_user = $intervalo == 0 ? 0 : $user_vendas / $intervalo;
+        $media_vendas_7dias_user = $user_venda_7dias / 7;
+        $media_vendas_3dias_user = $user_venda_3dias / 3;
+        $user_comissao = $user_comissao_cartao + $user_comissao_boleto - $user_comissao_devolvida;
+
+        $data['user_vendas'] = $user_vendas;
+        $data['media_vendas_user'] = sprintf("%.2f", $media_vendas_user);
+        $data['user_comissao'] = sprintf("%.2f", $user_comissao);
+        $data['user_cartao'] = $user_cartao;
+        $data['user_bpago'] = $user_bpago;
+        $data['user_bimpresso'] = $user_bimpresso;
+        $data['user_conversao'] = sprintf("%.2f", $user_conversao);
+        $data['user_devolvida'] = $user_devolvida;
+        $data['user_venda_7dias'] = $user_venda_7dias;
+        $data['media_vendas_7dias_user'] = sprintf("%.2f", $media_vendas_7dias_user);
+        $data['user_venda_3dias'] = $user_venda_3dias;
+        $data['media_vendas_3dias_user'] = sprintf("%.2f", $media_vendas_3dias_user);
+
+        $html = $this->load->view('metricas/apresenta_desempenho',$data, true);
+
+        echo $html;
+      }
+
+    }
+
+    /**
     *
     */
     public function login_as_other_user()
