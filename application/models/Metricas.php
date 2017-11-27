@@ -1971,7 +1971,7 @@ WHERE venda_status = 'Finalizada' and venda_forma_pagamento = 'Boleto')";
 
         if($id_diferente)
         {
-            $this->db->select("count(*) as num_vendas, sum(comissao), min(data_compra), user_id");
+            $this->db->select("count(*) as num_vendas, sum(comissao), min(data_compra), user_id, data_compra");
             $this->db->where("user_id != ", $user_id);
             $this->db->group_by("user_id");
         }
