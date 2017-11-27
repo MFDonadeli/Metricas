@@ -1980,6 +1980,8 @@ WHERE venda_status = 'Finalizada' and venda_forma_pagamento = 'Boleto')";
             $this->db->where("user_id", $user_id);
         }
 
+
+        $plataforma = strtolower($plataforma);
         $result = $this->db->get("lista_vendas_".$plataforma);
         
         log_message('debug', 'Num_rows: ' . $result->num_rows() . ' Last Query: ' . $this->db->last_query());
