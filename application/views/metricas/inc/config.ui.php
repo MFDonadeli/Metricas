@@ -45,7 +45,12 @@ $page_nav = array(
 				"title" => "Gerenciar Vendas Atribuídas",
 				"icon" => "fa-list-alt",
 				"url" => "gerencia_postback"
-			)
+			),
+			"desempenho_vendas" => array(
+				"title" => "Desempenho por Produto",
+				"icon" => "fa-list-alt",
+				"url" => "desempenho_produto"
+			),
 		)
 	),
 	"config" => array(
