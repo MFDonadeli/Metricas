@@ -641,6 +641,8 @@ class Excel_build
             $this->linhas_planilhas[$i] = $value;
         }
 
+        echo print_r($this->linhas_planilhas, true);
+
         $this->linhas_planilhas['conversoes'] = $conversoes;
 
     }
