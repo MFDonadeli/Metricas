@@ -214,7 +214,7 @@ class Excel_build
         //Coloca formatação condicional no ROI
         $this->formata_roi($qtde_colunas, $objPHPExcel->getActiveSheet());
 
-        if($tipo == 'ad' && array_key_exists('conversoes', $linhas_planilhas))
+        if($tipo == 'ad' && array_key_exists('conversoes', $this->linhas_planilhas))
         {
             $vendendo = $db_metricas->get_dados_vendendo($this->produto);
             $this->processa_kpis($dados, $comissao, $sem_dado_venda, $vendendo, $objPHPExcel);
