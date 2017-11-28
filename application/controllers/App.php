@@ -728,9 +728,12 @@ class App extends CI_Controller {
       $header .="<th>CPC</th>";
       $header .="<th>CTR</th>";
       $header .="<th>CPM</th>";
-      foreach($translate as $key => $val)
+      if($translate)
       {
-        $header .="<th>".$val."</th>";
+        foreach($translate as $key => $val)
+        {
+          $header .="<th>".$val."</th>";
+        }
       }
       $header .= "<tr>";
 
@@ -742,12 +745,15 @@ class App extends CI_Controller {
         $body .= "<td>" . $ret['cpc'] . "</td>";
         $body .= "<td>" . $ret['ctr'] . "</td>";
         $body .= "<td>" . $ret['cpm'] . "</td>";
-        foreach($translate as $key => $val)
+        if($translate)
         {
-          if(isset($ret[$key]))
-            $body .="<td>".$ret[$key]."</td>";
-          else
-            $body .="<td>-</td>";
+          foreach($translate as $key => $val)
+          {
+            if(isset($ret[$key]))
+              $body .="<td>".$ret[$key]."</td>";
+            else
+              $body .="<td>-</td>";
+          }
         }
         $body .= "</tr>";
       }   

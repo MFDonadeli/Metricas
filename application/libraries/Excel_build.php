@@ -571,6 +571,14 @@ class Excel_build
         if($conversion_array == null)
         {
             $sheet->removeRow($row-1, 3);
+
+            for($i=1;$i<$sheet->getHighestRow();$i++)
+            {
+                $value = $sheet->getCell('A' . $i)->getValue();   
+                $this->linhas_planilhas[$value] = $i;
+                $this->linhas_planilhas[$i] = $value;
+            }
+            
             return;
         }
 
@@ -640,8 +648,6 @@ class Excel_build
             $this->linhas_planilhas[$value] = $i;
             $this->linhas_planilhas[$i] = $value;
         }
-
-        echo print_r($this->linhas_planilhas, true);
 
         $this->linhas_planilhas['conversoes'] = $conversoes;
 

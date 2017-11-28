@@ -921,18 +921,21 @@ class Metricas extends CI_Model{
                 continue;
 
             $cols[$i] = $colunas[$i];
-            if(array_search($cols[$i], $colunas['conversoes']) !== false)
+            if(array_key_exists('conversoes', $colunas))
             {
-                foreach($colunas['conversoes'] as $key => $val)
+                if(array_search($cols[$i], $colunas['conversoes']) !== false)
                 {
-                    if($cols[$i] == $val)
+                    foreach($colunas['conversoes'] as $key => $val)
                     {
-                        $cols[$i] = $key;
-                        $i++;
-                        $cols[$i] = $key . '_cost';
+                        if($cols[$i] == $val)
+                        {
+                            $cols[$i] = $key;
+                            $i++;
+                            $cols[$i] = $key . '_cost';
+                        }
                     }
-                }
-            }  
+                }  
+            }
             
             $cols[$i] = preg_replace("/&([a-z])[a-z]+;/i", "$1", htmlentities(trim($cols[$i])));
             $cols[$i] = preg_replace('~[%#$:]~', ' ', $cols[$i]);
@@ -1971,7 +1974,7 @@ WHERE venda_status = 'Finalizada' and venda_forma_pagamento = 'Boleto')";
 
         if($id_diferente)
         {
-            $this->db->select("count(*) as num_vendas, sum(comissao), min(data_compra), user_id, data_compra");
+            $this->db->select("count(*) as num_vendas, sum(comissao), min(data_compra), user_id");
             $this->db->where("user_id != ", $user_id);
             $this->db->group_by("user_id");
         }
