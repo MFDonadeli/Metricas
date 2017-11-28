@@ -214,7 +214,7 @@ class Excel_build
         //Coloca formatação condicional no ROI
         $this->formata_roi($qtde_colunas, $objPHPExcel->getActiveSheet());
 
-        if($tipo == 'ad')
+        if($tipo == 'ad' && array_key_exists('conversoes', $linhas_planilhas))
         {
             $vendendo = $db_metricas->get_dados_vendendo($this->produto);
             $this->processa_kpis($dados, $comissao, $sem_dado_venda, $vendendo, $objPHPExcel);
@@ -286,8 +286,9 @@ class Excel_build
         if(isset($colPrimeira3dias)) $kpi['Primeiro_3dias'] = $colPrimeira3dias;
         $kpi['Primeira'] = 'B';
 
+        
         $view_contents = $this->linhas_planilhas['conversoes']['fb_pixel_view_content'];
-
+        
         $kpi['ViewContents'] = "Métricas!" . $colGeral . $this->linhas_planilhas[$view_contents];
         $kpi['Ultimo_ViewContent'] = "Métricas!" . $colUltima . $this->linhas_planilhas[$view_contents];
         if(isset($colPrimeira7dias)) $kpi['ViewContent_7dias'] = "Métricas!" . $colPrimeira7dias . $this->linhas_planilhas[$view_contents];
@@ -578,7 +579,7 @@ class Excel_build
                 $this->linhas_planilhas[$value] = $i;
                 $this->linhas_planilhas[$i] = $value;
             }
-            
+
             return;
         }
 
