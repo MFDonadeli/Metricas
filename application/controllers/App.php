@@ -134,7 +134,7 @@ class App extends CI_Controller {
       
       //Busca os dados a serem sincronizados no Facebook
       $detalhes = $this->facebook->request('get',$conta.get_param_contas(),$this->usrtkn);
-      log_message('debug',json_encode($detalhes));
+      log_message('debug','In ' . __LINE__ . " : " . json_encode($detalhes));
 
       if(array_key_exists('error',$detalhes))
       {

@@ -108,6 +108,7 @@ Class Facebook
      */
     public function request($method, $endpoint, $params = [], $access_token = null){
         try{
+            log_message('debug', $endpoint . ' params: ' . print_r($params, true));
             $response = $this->fb->{strtolower($method)}($endpoint, $params, $access_token);
             return $response->getDecodedBody();
         }catch(FacebookResponseException $e){
