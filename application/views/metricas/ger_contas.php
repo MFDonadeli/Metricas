@@ -361,16 +361,20 @@
 					$('#modal-text').html('<h1 class="ajax-loading-animation"><i class="fa fa-cog fa-spin"></i> Sincronizando ' + id_conta +  '</h1>');
 				},
 				success: function(msg) { 
-					if(i == contas.length - 1)
+					console.log(msg);
+					if(msg != "Error")
 					{
-						$('#modal_contas').modal('hide');
-						location.reload();
-					}
-					else
-					{
-						i++;
-						$('#progress_contas').css("width", ((i / contas.length) * 100) + "%");
-						sync_conta(i);
+						if(i == contas.length - 1)
+						{
+							$('#modal_contas').modal('hide');
+							location.reload();
+						}
+						else
+						{
+							i++;
+							$('#progress_contas').css("width", ((i / contas.length) * 100) + "%");
+							sync_conta(i);
+						}
 					}		 
 				}
 			});

@@ -138,6 +138,7 @@ class App extends CI_Controller {
 
       if(array_key_exists('error',$detalhes))
       {
+        echo "Error";
         die('Erro');
       }
 
