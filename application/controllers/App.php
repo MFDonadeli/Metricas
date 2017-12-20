@@ -16,6 +16,7 @@ class App extends CI_Controller {
         $this->load->library('phpexcel');
 
         $this->load->library('excel_build');
+        $this->load->library('table_build');
 
         $this->load->helper('constants_helper');
         $this->load->helper('data_process_helper');    
@@ -328,12 +329,15 @@ class App extends CI_Controller {
         {
           $retorno = $this->process_pagination($next);
 
-          if(array_key_exists('next', $retorno['paging']))
-            $next = $retorno['paging']['next'];
-          else
-            $next = '';
+          if($retorno)
+          {
+            if(array_key_exists('next', $retorno['paging']))
+              $next = $retorno['paging']['next'];
+            else
+              $next = '';
 
-          $campaigns = array_merge($campaigns, $retorno['data']);
+            $campaigns = array_merge($campaigns, $retorno['data']);
+          }
         }
       }
 
@@ -345,12 +349,15 @@ class App extends CI_Controller {
         {
           $retorno = $this->process_pagination($next);
           
-          if(array_key_exists('next', $retorno['paging']))
-            $next = $retorno['paging']['next'];
-          else
-            $next = '';
+          if($retorno)
+          {
+            if(array_key_exists('next', $retorno['paging']))
+              $next = $retorno['paging']['next'];
+            else
+              $next = '';
 
-          $adsets = array_merge($adsets, $retorno['data']);
+            $adsets = array_merge($adsets, $retorno['data']);
+          }
         }
       }
 
@@ -362,14 +369,17 @@ class App extends CI_Controller {
         {
           $retorno = $this->process_pagination($next);
           
-          if(array_key_exists('paging', $retorno))
+          if($retorno)
           {
-            if(array_key_exists('next', $retorno['paging']))
-              $next = $retorno['paging']['next'];
-            else
-              $next = '';
+            if(array_key_exists('paging', $retorno))
+            {
+              if(array_key_exists('next', $retorno['paging']))
+                $next = $retorno['paging']['next'];
+              else
+                $next = '';
 
-            $ads = array_merge($ads, $retorno['data']);
+              $ads = array_merge($ads, $retorno['data']);
+            }
           }
         }
       }
@@ -681,6 +691,7 @@ class App extends CI_Controller {
 
         //Chama a função de gerar planilha
         $filename = $this->excel_build->generate_excel($retorno, $this->metricas, $sem_dado_venda, $comissao, $id, $tipo);
+        //$filename = $this->table_build->generate_table($retorno, $this->metricas, $sem_dado_venda, $comissao, $id, $tipo);        
 
         $resumo = false;
 
@@ -1562,7 +1573,7 @@ class App extends CI_Controller {
     public function process_pagination($url)
     {
       
-        $str = "https://graph.facebook.com/v2.9/";
+        $str = "https://graph.facebook.com/v2.11/";
         $next = str_replace($str, '', $url);
         $detalhes = $this->facebook->request('get', $next, $this->usrtkn);
 
