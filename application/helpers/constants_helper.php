@@ -5,7 +5,7 @@ account_status,
 amount_spent,
 created_time,age');
 
-define('CAMPAIGNS', 'campaigns,
+define('CAMPAIGNS', '
 status,
 id,
 name,
