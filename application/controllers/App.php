@@ -16,7 +16,7 @@ class App extends CI_Controller {
         $this->load->library('phpexcel');
 
         $this->load->library('excel_build');
-        $this->load->library('table_build');
+        //$this->load->library('table_build');
 
         $this->load->helper('constants_helper');
         $this->load->helper('data_process_helper');    
