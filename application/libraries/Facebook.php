@@ -105,10 +105,11 @@ Class Facebook
      * @param null  $access_token
      *
      * @return array
-     */
+     */ 
     public function request($method, $endpoint, $params = [], $access_token = null){
         try{
-            log_message('debug', $endpoint . ' params: ' . print_r($params, true));
+            log_message('debug', $endpoint . ' params: ' . print_r($params, true) . ' file: ' .
+             realpath(dirname(__FILE__)));
             $response = $this->fb->{strtolower($method)}($endpoint, $params, $access_token);
             return $response->getDecodedBody();
         }catch(FacebookResponseException $e){
