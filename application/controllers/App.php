@@ -656,8 +656,8 @@ class App extends CI_Controller {
             if($dados->conversao->{"offsite_conversion.fb_pixel_initiate_checkout"} != "")
             {
               $dados->purchase_checkout = 
-                ($dados->conversao->{"offsite_conversion.fb_pixel_purchase"} /
-                $dados->conversao->{"offsite_conversion.fb_pixel_initiate_checkout"}) * 100;
+                ((int)$dados->conversao->{"offsite_conversion.fb_pixel_purchase"} /
+                (int)$dados->conversao->{"offsite_conversion.fb_pixel_initiate_checkout"}) * 100;
             }
           }
 
@@ -668,8 +668,8 @@ class App extends CI_Controller {
             if($dados->conversao->{"offsite_conversion.fb_pixel_view_content"} != "")
             {
               $dados->checkout_view = 
-                ($dados->conversao->{"offsite_conversion.fb_pixel_initiate_checkout"} /
-                $dados->conversao->{"offsite_conversion.fb_pixel_view_content"}) * 100;
+                ((int)$dados->conversao->{"offsite_conversion.fb_pixel_initiate_checkout"} /
+                (int)$dados->conversao->{"offsite_conversion.fb_pixel_view_content"}) * 100;
             }
           }
 
@@ -680,8 +680,8 @@ class App extends CI_Controller {
             if($dados->conversao->{"offsite_conversion.fb_pixel_view_content"} != "")
             {
               $dados->purchase_view = 
-                ($dados->conversao->{"offsite_conversion.fb_pixel_purchase"} /
-                $dados->conversao->{"offsite_conversion.fb_pixel_view_content"}) * 100;
+                ((int)$dados->conversao->{"offsite_conversion.fb_pixel_purchase"} /
+                (int)$dados->conversao->{"offsite_conversion.fb_pixel_view_content"}) * 100;
             }
           }
 
@@ -690,7 +690,7 @@ class App extends CI_Controller {
         }
 
         //Chama a função de gerar planilha
-        $filename = $this->excel_build->generate_excel($retorno, $this->metricas, $sem_dado_venda, $comissao, $id, $tipo);
+        $filename = $this->excel_build->generate_excel($retorno, $this->metricas, $sem_dado_venda, $comissao, 1, $id, $tipo);
         //$filename = $this->table_build->generate_table($retorno, $this->metricas, $sem_dado_venda, $comissao, $id, $tipo);        
 
         $resumo = false;
@@ -1703,14 +1703,17 @@ class App extends CI_Controller {
     {
       $id = $this->session->userdata('facebook_id');
       $results = $this->metricas->getConfig($id);
+
+      $config_planilha = $this->metricas->getConfigPlanilha(1);
       
       $data['config'] = $results;
+      $data['config_planilha'] = $config_planilha;
 
       $this->load->view('metricas/config',$data);  
     }
 
     /**
-    * config
+    * save_config
     *
     * Salva configurações no banco. Chamado através de ajax do view config
     */
@@ -1724,6 +1727,26 @@ class App extends CI_Controller {
         $id = $this->session->userdata('facebook_id');
 
         $this->metricas->saveConfig($sync_time, $postback_enabled, $id);
+      }
+    }
+
+    /**
+    * save_config_planilha
+    *
+    * Salva configurações da planilha no banco. Chamado através de ajax do view config
+    */
+    public function save_config_planilha()
+    {
+      if(isset($_POST['meta1']))
+      {
+        $meta[] = $this->input->post('meta1');  
+        $meta[] = $this->input->post('meta2');  
+        $meta[] = $this->input->post('meta3');  
+        $meta[] = $this->input->post('meta4');  
+
+        $id = $this->session->userdata('facebook_id');
+
+        $this->metricas->saveConfigPlanilha($meta, $id);
       }
     }
 

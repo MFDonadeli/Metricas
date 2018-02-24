@@ -33,8 +33,49 @@
 	</div> <!-- col-sm-12 -->
 </div><!-- row -->
 
+<div class="row">
+	<div class="col-sm-12">
+		<div class="well">
+			<h4>Configuração de Metas de KPIs para Anúncios</h4>
+			<label for="txtmeta1">Meta 1:</label>
+			<input type="text" name="txtmeta1" id="txtmeta1" value="<?php if(isset($config_planilha[0])) echo $config_planilha[0]->porcentagem; ?>">
+			<label for="txtmeta2">Meta 2:</label>
+			<input type="text" name="txtmeta2" id="txtmeta2" value="<?php if(isset($config_planilha[1])) echo $config_planilha[1]->porcentagem; ?>"><br>
+			<label for="txtmeta1">Meta 3:</label>
+			<input type="text" name="txtmeta3" id="txtmeta3" value="<?php if(isset($config_planilha[2])) echo $config_planilha[2]->porcentagem; ?>">
+			<label for="txtmeta2">Meta 4:</label>
+			<input type="text" name="txtmeta4" id="txtmeta4" value="<?php if(isset($config_planilha[3])) echo $config_planilha[3]->porcentagem; ?>"><br>
+
+		   	<div class='form-group'>
+                <button class='btn btn-default' id="btnsalvarplanilha">Salvar</button>
+            </div>
+		   
+		</div> <!-- well -->
+	</div> <!-- col-sm-12 -->
+</div><!-- row -->
+
 <script type="text/javascript">
 
+
+$('#btnsalvarplanilha').click(function(){
+	
+    var form_data = { meta1: $("#txtmeta1").val(),
+		meta2: $("#txtmeta2").val(),
+		meta3: $("#txtmeta3").val(),
+		meta4: $("#txtmeta4").val()
+	 };
+
+    var resp = $.ajax({
+        url: '<?php echo base_url(); ?>app/save_config_planilha',
+        type: 'POST',
+        data: form_data,
+        global: false,
+        async:false,
+        success: function(msg) { 
+            resp = msg; 
+        }
+    }).responseText;
+});
 
 $('#btnsalvar').click(function(){
 	var postback = 0;

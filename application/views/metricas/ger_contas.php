@@ -362,19 +362,16 @@
 				},
 				success: function(msg) { 
 					console.log(msg);
-					if(msg != "Error")
+					if(i == contas.length - 1)
 					{
-						if(i == contas.length - 1)
-						{
-							$('#modal_contas').modal('hide');
-							location.reload();
-						}
-						else
-						{
-							i++;
-							$('#progress_contas').css("width", ((i / contas.length) * 100) + "%");
-							sync_conta(i);
-						}
+						$('#modal_contas').modal('hide');
+						location.reload();
+					}
+					else
+					{
+						i++;
+						$('#progress_contas').css("width", ((i / contas.length) * 100) + "%");
+						sync_conta(i);
 					}		 
 				}
 			});

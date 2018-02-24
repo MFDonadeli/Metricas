@@ -19,11 +19,17 @@ class Excel_build
     * @param    $db_metricas(object): Library do Banco de Dados
     * @param    $sem_dado_venda(boolean): Caso não haja postback vinculado, usa dados do purchase
     * @param    $comissao(float): Valor da comissao padrão 
+    * @param    $preset(int): Modelo da planilha a ser gerada
+    * @param    $id: Do tipo pesquisado
+    * @param    $tipo: Tipo pesquisado (ad, adset, campaign)
     * @return   string nome do arquivo gerado
     */
-    function generate_excel($dados, $db_metricas, $sem_dado_venda, $comissao, $id, $tipo)
+    function generate_excel($dados, $db_metricas, $sem_dado_venda, $comissao, $preset, $id, $tipo)
     {
+
         $diasemana = array('Dom', 'Seg', 'Ter', 'Quar', 'Qui', 'Sex', 'Sáb');
+
+        $config = $db_metricas->getConfigPlanilha($preset);
 
         //Pega o caminho do template
         $file_name_old = FCPATH."template/Template.xlsx";
@@ -217,7 +223,7 @@ class Excel_build
         if($tipo == 'ad' && array_key_exists('conversoes', $this->linhas_planilhas))
         {
             $vendendo = $db_metricas->get_dados_vendendo($this->produto);
-            $this->processa_kpis($dados, $comissao, $sem_dado_venda, $vendendo, $objPHPExcel);
+            $this->processa_kpis($dados, $comissao, $sem_dado_venda, $vendendo, $objPHPExcel, $config);
         }
         else
             $objPHPExcel->removeSheetByIndex(1);
@@ -248,9 +254,10 @@ class Excel_build
     * @param    $objPHPExcel: Excel sendo usado
     * @param    $sem_dado_venda: Caso não haja postback vinculado, usa dados do purchase 
     * @param    $vendendo: Array de métricas que estão vendendo ou false se não houver
+    * @param    $config: Qual configuração a planilha vai usar (metas)
     * @return	-
     */
-    function processa_kpis($dados, $comissao, $sem_dado_venda, $vendendo, $objPHPExcel)
+    function processa_kpis($dados, $comissao, $sem_dado_venda, $vendendo, $objPHPExcel, $config_planilha)
     {
         $colunas_7dias = array('I', 'J', 'K', 'L', 'M', 'N', 'O');
         $colunas_3dias = array('P', 'Q', 'R', 'S', 'T', 'U', 'V');
@@ -278,6 +285,27 @@ class Excel_build
             $colNumber = 2;
             $colUltima = "B";
         }
+
+        if(isset($config_planilha[0])) 
+            $kpi['Meta1'] = $config_planilha[0]->porcentagem . '%';
+        else
+            $kpi['Meta1'] = 0;
+
+        if(isset($config_planilha[1])) 
+            $kpi['Meta2'] = $config_planilha[1]->porcentagem . '%';
+        else
+            $kpi['Meta2'] = 0;
+
+        if(isset($config_planilha[2])) 
+            $kpi['Meta3'] = $config_planilha[2]->porcentagem . '%';
+        else
+            $kpi['Meta3'] = 0;
+
+        if(isset($config_planilha[3])) 
+            $kpi['Meta4'] = $config_planilha[3]->porcentagem . '%';
+        else
+            $kpi['Meta4'] = 0;
+            
 
         $kpi['comissao'] = $comissao;
         $kpi['Geral'] = $colGeral;

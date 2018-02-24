@@ -22,52 +22,62 @@ ex:
 
 */
 $page_nav = array(
+	"principal" => array(
+		"title" => "Painel Principal",
+		"icon" => "fa-home",
+		"url" => "painel"
+	),
 	"inicio" => array(
 		"title" => "Métricas",
-		"icon" => "fa-home",
-		"url" => "main"
-	),
-	"contas" => array(
-		"title" => "Gerenciar Contas",
-		"icon" => "fa-pencil-square-o",
-		"url" => "ger_contas"
-	),
-	"vendas" => array(
-		"title" => "Vendas na Plataforma",
 		"icon" => "fa-list-alt",
-		"sub" => array(
-			"associar_vendas" => array(
-				"title" => "Associar Vendas",
-				"icon" => "fa-list-alt",
-				"url" => "associa_postback"
-			),
-			"gerenciar_associacoes" => array(
-				"title" => "Gerenciar Vendas Atribuídas",
-				"icon" => "fa-list-alt",
-				"url" => "gerencia_postback"
-			),
-			"desempenho_vendas" => array(
-				"title" => "Desempenho por Produto",
-				"icon" => "fa-list-alt",
-				"url" => "desempenho_produto"
-			),
-		)
+		"url" => "main"
 	),
 	"config" => array(
 		"title" => "Configurações",
 		"icon" => "fa-gear",
 		"sub" => array(
-			"geral" => array(
-				"title" => "Geral",
+			"contas" => array(
+				"title" => "1. Configure suas contas",
 				"icon" => "fa-list-alt",
-				"url" => "config"
+				"url" => "ger_contas"
 			),
 			"postback" => array(
-				"title" => "Gerenciar Postback",
+				"title" => "2. Configure os postbacks",
 				"icon" => "fa-globe",
 				"url" => "postback"
+			),
+			"geral" => array(
+				"title" => "3. Configure o comportamento do sistema",
+				"icon" => "fa-globe",
+				"url" => "config"
 			)
 		)
+	),
+	"vendas" => array(
+		"title" => "Gerenciamento de Vendas",
+		"icon" => "fa-list-alt",
+		"sub" => array(
+			"associar_vendas" => array(
+				"title" => "Associar vendas da plataforma com os anúncios Facebook",
+				"icon" => "fa-list-alt",
+				"url" => "associa_postback"
+			),
+			"gerenciar_associacoes" => array(
+				"title" => "Gerenciar vendas associadas",
+				"icon" => "fa-list-alt",
+				"url" => "gerencia_postback"
+			),
+			"desempenho_vendas" => array(
+				"title" => "Desempenho dos seus produtos",
+				"icon" => "fa-list-alt",
+				"url" => "desempenho_produto"
+			)
+		)
+	),
+	"tutorial" => array(
+		"title" => "Tutoriais",
+		"icon" => "fa-gear",
+		"url" => "tutorial"
 	)
 );
 

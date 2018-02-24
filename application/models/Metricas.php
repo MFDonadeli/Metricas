@@ -2461,6 +2461,57 @@ campaigns.name as campanha, accounts.name as conta");
     }
 
     /**
+    * saveConfigPlanilha
+    *
+    * Salva configurações da planilha do usuário
+    * @param    $metas: Metas
+    * @param    $id: facebook_id do usuario logado
+    * @return	-
+    */
+    public function saveConfigPlanilha($metas, $id)
+    {
+        log_message('debug', 'saveConfigPlanilha');
+
+        $user_id = $this->getuserid($id);    
+
+        $this->db->where("idplanilhacampospreset", "1");
+        $this->db->delete("planilhacamposmetas");
+
+        foreach($metas as $meta)
+        {
+            $arr_data = array("idplanilhacampospreset" => "1",
+                                "porcentagem" => $meta);
+
+            $this->db->insert('planilhacamposmetas', $arr_data);
+        }
+
+
+    }
+
+    /**
+    * getConfigPlanilha
+    *
+    * Pega dados da configuração da Planilha
+    * @param    $preset: facebook_id do usuario logado
+    * @return	-
+    */
+    public function getConfigPlanilha($id)
+    {
+        log_message('debug', 'getConfigPlanilha');
+
+        $this->db->select('porcentagem');
+        $this->db->from('planilhacamposmetas');
+        $this->db->join('planilhacampospreset','planilhacampospreset.idplanilhacampospreset = planilhacamposmetas.idplanilhacampospreset');
+        
+        $this->db->where('planilhacampospreset.idplanilhacampospreset', $id);  
+
+        $result = $this->db->get();
+
+        return $result->result();
+
+    }
+
+    /**
     * salva_data_resync
     *
     * Salva data da última resincronização
