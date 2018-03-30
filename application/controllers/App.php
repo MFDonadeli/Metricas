@@ -1816,6 +1816,41 @@ class App extends CI_Controller {
       echo $ret; 
     }
 
+    /**
+    * painel
+    *
+    * Traz os tokens para o usuario logado
+    */
+    public function painel()
+    {
+      $id = $this->session->userdata('facebook_id');
+
+      $tokens = $this->metricas->getUserTokens($id);
+
+      if(!$tokens)
+        $data['token_msg'] = "Você não tem nenhum postback configurado!";
+
+      $vendas = $this->metricas->get_best_ads($id);
+
+      if(!$vendas)
+        $data['ads_msg'] = "Não existem anúncios com vendas na sua conta";
+      else
+      {
+        foreach($vendas as $venda)
+        {
+          if(empty($venda->tipo_id))
+          {
+            $data['ads_msg'] = "Existem anúncios que não foram acessadas as métricas, por favor gere as métricas para todos os anúncios das contas cadastradas para ter o seu resultado completo!";
+          }
+        } 
+      }
+
+      $data['vendas'] = $vendas;
+
+      $this->load->view('metricas/painel',$data); 
+      
+    }
+
     public function get_activities()
     {
       ob_start();

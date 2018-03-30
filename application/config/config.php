@@ -24,7 +24,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |
 */
 //$config['base_url'] = 'http://localhost/~mfdonadeli/metricas/';
-$config['base_url'] = 'http://superadmetrics.com/metricas/';
+$config['base_url'] = 'https://superadmetrics.com/metricas/';
 
 
 /*

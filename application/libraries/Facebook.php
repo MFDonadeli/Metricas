@@ -130,10 +130,14 @@ Class Facebook
             return '';
         }
         // Get login url
-        return $this->helper->getLoginUrl(
+        $ret = $this->helper->getLoginUrl(
             base_url() . $this->config->item('facebook_login_redirect_url'),
             $this->config->item('facebook_permissions')
         );
+
+        log_message('debug', 'login_url: ' . $ret);
+
+        return $ret;
     }
     
     /**
@@ -199,6 +203,8 @@ Class Facebook
                     'error_reason'      => $this->helper->getErrorReason(),
                     'error_description' => $this->helper->getErrorDescription()
                 );
+
+                log_message('debug', 'Authentication error: ' . print_r($error, true));
                 return $error;
             }
         }
