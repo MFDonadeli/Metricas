@@ -67,6 +67,7 @@ Class Facebook
                 break;
             case 'web':
                 $this->helper = $this->fb->getRedirectLoginHelper();
+                $this->session->set_userdata('FBRLH_state',$_GET['state']);
                 break;
         }
         if ($this->config->item('facebook_auth_on_load') === TRUE){

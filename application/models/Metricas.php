@@ -947,7 +947,7 @@ class Metricas extends CI_Model{
         {
             if(array_search($i, $conv_personalizada) === false)
                 if($cols[$i] != '')    
-                    $arr[$cols[$i]] = $dados[$i];
+                    $arr[$cols[$i]] = $dados[$i-1];
         }
 
         $arr['tipo_id'] = $id;
@@ -1146,7 +1146,7 @@ class Metricas extends CI_Model{
                 $dados['cpm'] = $val->cpm;
 
                 $actions = $this->getTableDataActions($val->id, $val->tipo);
-                foreach($actions as $action)
+                foreach($actions as $action)    
                 {
                     if($action->action_type == 'offsite_conversion.fb_pixel_custom')
                         continue;
@@ -1259,30 +1259,46 @@ class Metricas extends CI_Model{
     *
     * Traz os anúncios com vendas cadastrados no sistema
     *
-    * @param	produto: Nome do produto que está sendo vendido
+    * @param	$id: Id do Facebook para trazer os anúncios
     * @return	
     *    lista consolidada para preenchimento da área "Métricas que estão vendendo para esse produto"
     *     na planilha de métricas ou false se não tiver dados
     */
-    function get_best_ads()
+    function get_best_ads($id = false)
     {
         log_message('debug', 'get_best_ads');
 
-        $sql = "SELECT ad_insights.ad_id, sum(ad_insights_actions.value) as qtde, inline_link_click_ctr as ctr, cost_per_inline_link_click as cpc,
-                        cpm, spend, (spend/sum(ad_insights_actions.value)) as cpv, 
-                        ads_vendas.produto, sum(ads_vendas.cartoes) as cartoes, sum(ads_vendas.boletos_pagos) as boletos_pagos,
-                        sum(boletos_pagos * comissao) as faturamento_boleto, sum(cartoes * comissao) as faturamento_cartao,
-                        ((((ifnull(sum(boletos_pagos * comissao),0) + ifnull(sum(cartoes * comissao),0))-spend) / spend) * 100) as ROI
-                FROM ad_insights JOIN ad_insights_actions 
-                ON ad_insights.ad_insights_id = ad_insights_actions.ad_insights_id
-                LEFT JOIN ads_vendas ON ads_vendas.ad_id = ad_insights.ad_id
-                WHERE bydate is NULL AND ad_insights_actions.action_type LIKE '%purchase%'
-                GROUP BY(ad_id)
-                ORDER BY qtde DESC";
+        $sql = "SELECT ad_insights.ad_id, ads.name as anuncio, adsets.name as conjunto, campaigns.name as campanha, accounts.name as conta, coluna_geral_planilha.tipo_id, accounts.facebook_id,coluna_geral_planilha.roi, sum(ad_insights_actions.value) as qtde, inline_link_click_ctr as ctr, cost_per_inline_link_click as cpc,
+        ad_insights.cpm, ad_insights.spend, (spend/sum(ad_insights_actions.value)) as cpv, 
+        ads_vendas.produto, sum(ads_vendas.cartoes) as cartoes, sum(ads_vendas.boletos_pagos) as boletos_pagos,
+        sum(ads_vendas.boletos_pagos * ads_vendas.comissao) as faturamento_boleto, sum(ads_vendas.cartoes * ads_vendas.comissao) as faturamento_cartao,
+        ((((ifnull(sum(ads_vendas.boletos_pagos * comissao),0) + ifnull(sum(ads_vendas.cartoes * comissao),0))-ad_insights.spend) / ad_insights.spend) * 100) as ROI
+        FROM ad_insights JOIN ad_insights_actions 
+            ON ad_insights.ad_insights_id = ad_insights_actions.ad_insights_id
+            JOIN ads on ads.id = ad_insights.ad_id
+            JOIN adsets on ads.adset_id = adsets.id
+            JOIN campaigns on ads.campaign_id = campaigns.id
+            JOIN accounts on ads.account_id = accounts.id
+            LEFT JOIN ads_vendas ON ads_vendas.ad_id = ad_insights.ad_id
+            LEFT JOIN coluna_geral_planilha ON coluna_geral_planilha.tipo_id = ad_insights.ad_id
+            WHERE bydate is NULL AND ad_insights_actions.action_type LIKE '%purchase%' ";
+
+        if($id)
+        {
+            $sql .= "AND facebook_id = '" . $id . "' ";
+        }
+
+        $sql .= "GROUP BY(ad_id)
+            ORDER BY qtde DESC";
 
         $results = $this->db->query($sql);
 
-        return $results->result();
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        if($results->num_rows() > 0)
+            return $results->result();
+        else
+            return false;
     }
 
     /**
