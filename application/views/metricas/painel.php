@@ -33,7 +33,7 @@
                     if($venda->tipo_id)
                     {
 						var_dump($venda);
-						if(isset($venda->roi))
+						if($venda->roi != "")
 						{
 							if($venda->roi == '0%')
 							{
