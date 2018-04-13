@@ -32,7 +32,6 @@
                 {
                     if($venda->tipo_id)
                     {
-						var_dump($venda);
 						if($venda->roi != "")
 						{
 							if($venda->roi == '0%')
