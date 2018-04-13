@@ -32,24 +32,27 @@
                 {
                     if($venda->tipo_id)
                     {
-                        if($venda->roi == '0%')
-                        {
-                            echo "<div class='alert alert-info fade in box'>";    
-                        }
-                        else if($venda->roi[0] == '-')
-                        {
-                            echo "<div class='alert alert-danger fade in box'>";     
-                        }
-                        else
-                            echo "<div class='alert alert-success fade in box'>";   
-                            
-                        echo "<strong>Conta: </strong>" . $venda->conta . "<br>";
-                        echo "<strong>Anúncio: </strong>" . $venda->anuncio . "<br>";
-                        echo "<strong>Conjunto: </strong>" . $venda->conjunto . "<br>";
-                        echo "<strong>Campanha: </strong>" . $venda->campanha . "<br>";
-                        echo "<strong>ROI:</strong> <h4>$venda->roi</h4>";
+						if(isset($venda->roi))
+						{
+							if($venda->roi == '0%')
+							{
+								echo "<div class='alert alert-info fade in box'>";    
+							}
+							else if($venda->roi[0] == '-')
+							{
+								echo "<div class='alert alert-danger fade in box'>";     
+							}
+							else
+								echo "<div class='alert alert-success fade in box'>";   
+								
+							echo "<strong>Conta: </strong>" . $venda->conta . "<br>";
+							echo "<strong>Anúncio: </strong>" . $venda->anuncio . "<br>";
+							echo "<strong>Conjunto: </strong>" . $venda->conjunto . "<br>";
+							echo "<strong>Campanha: </strong>" . $venda->campanha . "<br>";
+							echo "<strong>ROI:</strong> <h4>$venda->roi</h4>";
 
-                        echo "</div>";
+							echo "</div>";
+						}
                     }
                 }
                     
