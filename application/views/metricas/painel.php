@@ -32,6 +32,7 @@
                 {
                     if($venda->tipo_id)
                     {
+						print_r($venda);
 						if(isset($venda->roi))
 						{
 							if($venda->roi == '0%')
