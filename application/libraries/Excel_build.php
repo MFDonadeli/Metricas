@@ -1,6 +1,10 @@
 <?php
 
-require_once APPPATH . '/libraries/PHPExcel/IOFactory.php';
+require __DIR__ . '/PHPSpreadSheets/autoload.php';
+
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+
 define('START_ROW',1);
 
 class Excel_build
@@ -39,27 +43,27 @@ class Excel_build
         $file_name = FCPATH."template/".$raw_file_name;
 
         //Copia o novo arquivo
-        copy($file_name_old, $file_name);
+        $res_copy = copy($file_name_old, $file_name);
 
         //Abre o arquivo
-        $objPHPExcel = PHPExcel_IOFactory::load($file_name);
+        $objPHPExcel = IOFactory::load($file_name);
         $objPHPExcel->setActiveSheetIndex(0);
 
-        $column = 1;
+        $column = 2;
 
         if(isset($dados[0]->conversao))
             $item_conversoes = $dados[0]->conversao;
         else
             $item_conversoes = null;
 
-        $linha_faturamento = $this->procura_valor("#faturamento_boleto", 1, $objPHPExcel->getActiveSheet());
+        $linha_faturamento = $this->procura_valor("#faturamento_boleto", 2, $objPHPExcel->getActiveSheet());
 
         //Coloca as conversões na planilha
         $this->inserirConversoes($item_conversoes, $objPHPExcel->getActiveSheet());
 
         $qtde_colunas = count($dados);
 
-        $linha_faturamento = $this->procura_valor("#faturamento_boleto", 1, $objPHPExcel->getActiveSheet());
+        $linha_faturamento = $this->procura_valor("#faturamento_boleto", 2, $objPHPExcel->getActiveSheet());
 
         $linha_roi = $this->linhas_planilhas["%ROI:"];
         $linha_cpv = $this->linhas_planilhas["\$CPV:"];
@@ -68,7 +72,7 @@ class Excel_build
         foreach($dados as $dado)
         {
             //Cria uma nova coluna se não for a última
-            if($column != $qtde_colunas)
+            if($column != $qtde_colunas+1)
                 $this->duplicate_column($column, $objPHPExcel->getActiveSheet());
 
             //Coloca as conversões no primeiro nível do array
@@ -102,11 +106,11 @@ class Excel_build
                         if($row == $linha_faturamento)
                         {
                             //Pega a coluna atual
-                            $coluna_atual = PHPExcel_Cell::stringFromColumnIndex($column);
+                            $coluna_atual = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($column);
                             //Se for geral, troca pela fórmula que soma os dados por dia
                             if($dado->bydate != 1 && $qtde_colunas > 1)
                             {
-                                $coluna_anterior = PHPExcel_Cell::stringFromColumnIndex($column-1);
+                                $coluna_anterior = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($column-1);
                                 $value = "=SUM(B" . $row . ":" . $coluna_anterior . $row . ")";    
                             }
                             //Se for um dia, pega os dados do purchase
@@ -125,7 +129,7 @@ class Excel_build
 
                     if($row == $linha_cpv)
                     {
-                        $coluna_atual = PHPExcel_Cell::stringFromColumnIndex($column);
+                        $coluna_atual = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($column);
                         if($sem_dado_venda)
                         {
                             if(isset($dado->{"offsite_conversion.fb_pixel_purchase"}))
@@ -154,15 +158,19 @@ class Excel_build
                     }
 
                     //Se for um valor que começa com #. Serve para identificar um campo a ser alterado no template
-                    if($value[0] == '#')
+                    if($value == '')
+                    {
+
+                    }
+                    else if($value[0] == '#')
                     {
                         $campo = str_replace('#', '', $value);  
 
                         //PROCESSA GERAL: É PROVISÓRIO. O GERAL VEM DA SOMA DAS DATAS
                         if($dado->bydate != 1 && $qtde_colunas > 1)
                         {
-                            $coluna_anterior = PHPExcel_Cell::stringFromColumnIndex($column-1);
-                            $coluna_atual = PHPExcel_Cell::stringFromColumnIndex($column);
+                            $coluna_anterior = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($column-1);
+                            $coluna_atual = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($column);
                             if($value == '#inline_link_click_ctr' || $value == '#cost_per_inline_link_click'
                             || $value == '#cpm' || $value == '#relevance_score_score' || 
                             strpos($value, "Custo por") !== false || $value == '#checkout_view' ||
@@ -236,12 +244,65 @@ class Excel_build
         $objPHPExcel->getActiveSheet()->setSelectedCell('A1'); 
 
         //Salva o arquivo
-        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+        $objWriter = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($objPHPExcel, 'Xlsx');
         $objWriter->save($file_name);
 
         $db_metricas->saveGeral($this->linhas_planilhas, $this->geral, $this->linhas_conversoes_personalizadas, $id, $tipo);
 
         return $raw_file_name;
+    }
+
+    function inicia_kpi_array()
+    {
+        $kpi['Meta1'] = '';
+        $kpi['Meta2'] = '';
+        $kpi['Meta3'] = '';
+        $kpi['Meta4'] = '';
+
+        $kpi['comissao'] = '';
+        $kpi['Geral'] = '';
+        $kpi['Ultima'] = '';
+        $kpi['Primeiro_7dias'] = 'ZZ';
+        $kpi['Primeiro_3dias'] = 'ZZ';
+        $kpi['Primeira'] = '';
+
+        $kpi['ViewContents'] = '';
+        $kpi['Ultimo_ViewContent'] = '';
+        $kpi['ViewContent_7dias'] = 'ZZ';
+        $kpi['ViewContent_3dias'] = 'ZZ';
+
+        $kpi['Vendas'] = '';
+        $kpi['Vendas_7dias'] = 'ZZ';
+        $kpi['Vendas_3dias'] = 'ZZ';
+
+        $kpi['Cartoes'] = '1';
+        $kpi['BoletosGerados'] = '1';
+        $kpi['BoletosPagos'] = '1';
+        $kpi['BoletosTotais'] = '1';
+        
+        $kpi['Cartao_7dias'] = '1';
+        $kpi['BoletosGerado_7dias'] = 'ZZ';
+        $kpi['BoletosPago_7dias'] = 'ZZ';
+        $kpi['BoletosTotal_7dias'] = 'ZZ';
+
+        $kpi['Cartao_3dias'] = '1';
+        $kpi['BoletosGerado_3dias'] = 'ZZ';
+        $kpi['BoletosPago_3dias'] = 'ZZ';
+        $kpi['BoletosTotal_3dias'] = 'ZZ';
+
+        $kpi['cpv_venda'] = '';
+        $kpi['ctr_venda'] = '';
+        $kpi['cpc_venda'] = '';
+        $kpi['cpm_venda'] = '';
+        $kpi['roi_venda'] = '';
+        $kpi['spend_venda'] = '';
+        $kpi['boletos_venda'] = '';
+        $kpi['conv_boleto_venda'] = '';
+        $kpi['cartoes_venda'] = '';
+        $kpi['clpv_venda'] = '';
+
+        return $kpi;
+
     }
 
     /**
@@ -263,20 +324,22 @@ class Excel_build
         $colunas_3dias = array('P', 'Q', 'R', 'S', 'T', 'U', 'V');
         $sogeral = false;
 
-        $linhas_2_calculo = array(14, 29);
-        $linhas_vendendo = array(32, 44);
+        $kpi = $this->inicia_kpi_array();
+
+        $linhas_2_calculo = array(14, 31);
+        $linhas_vendendo = array(31, 45);
 
         $colGeral = $objPHPExcel->getActiveSheet()->getHighestColumn();
-        $colNumber = PHPExcel_Cell::columnIndexFromString($colGeral);
+        $colNumber = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($colGeral);
 
         if($colNumber > 1)
-            $colUltima = PHPExcel_Cell::stringFromColumnIndex($colNumber-2);
+            $colUltima = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colNumber-2);
         
         if(count($dados) > 7)
-            $colPrimeira7dias = PHPExcel_Cell::stringFromColumnIndex($colNumber-8);
+            $colPrimeira7dias = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colNumber-8);
         
         if(count($dados) > 3)
-            $colPrimeira3dias = PHPExcel_Cell::stringFromColumnIndex($colNumber-4);
+            $colPrimeira3dias = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colNumber-4);
 
         if(count($dados) == 1)
         {
@@ -458,44 +521,32 @@ class Excel_build
         
         if(!isset($colPrimeira3dias))
         {
-            foreach($colunas_3dias as $coluna)
-            {
-                $objPHPExcel->getActiveSheet()->getColumnDimension($coluna)->setVisible(FALSE);    
-            }
+            $objPHPExcel->getActiveSheet()->removeColumn($colunas_3dias[0], count($colunas_3dias));    
         }
 
         if(!isset($colPrimeira7dias))
         {
-            foreach($colunas_7dias as $coluna)
-            {
-                $objPHPExcel->getActiveSheet()->getColumnDimension($coluna)->setVisible(FALSE);    
-            }
+            $objPHPExcel->getActiveSheet()->removeColumn($colunas_7dias[0], count($colunas_7dias)); 
         }
 
         if($sem_dado_venda)
         {
-            for($i=$linhas_2_calculo[0]; $i<=$linhas_2_calculo[1]; $i++)
-            {
-                $objPHPExcel->getActiveSheet()->getRowDimension($i)->setVisible(FALSE);       
-            }
+            $objPHPExcel->getActiveSheet()->removeRow($linhas_2_calculo[0], 
+                $linhas_2_calculo[1] - $linhas_2_calculo[0]); 
         }
 
         if($vendendo)
         {
             if(($vendendo->cpv == null))
             {
-                for($i=$linhas_vendendo[0]; $i<=$linhas_vendendo[1]; $i++)
-                {
-                    $objPHPExcel->getActiveSheet()->getRowDimension($i)->setVisible(FALSE);       
-                }
+                $objPHPExcel->getActiveSheet()->removeRow($linhas_vendendo[0], 
+                    $linhas_vendendo[1] - $linhas_vendendo[0]); 
             }
         }
         else
         {
-            for($i=$linhas_vendendo[0]; $i<=$linhas_vendendo[1]; $i++)
-            {
-                $objPHPExcel->getActiveSheet()->getRowDimension($i)->setVisible(FALSE);       
-            }
+            $objPHPExcel->getActiveSheet()->removeRow($linhas_vendendo[0], 
+                $linhas_vendendo[1] - $linhas_vendendo[0]); 
         }
 
         $objPHPExcel->getActiveSheet()->setSelectedCell('A1'); 
@@ -519,25 +570,25 @@ class Excel_build
     function formata_roi($colunas, $sheet)
     {
         //Formatação condicional para ROI Negativo
-        $objConditional1 = new PHPExcel_Style_Conditional();
-        $objConditional1->setConditionType(PHPExcel_Style_Conditional::CONDITION_CELLIS)
-                        ->setOperatorType(PHPExcel_Style_Conditional::OPERATOR_LESSTHAN)
+        $objConditional1 = new \PhpOffice\PhpSpreadsheet\Style\Conditional();
+        $objConditional1->setConditionType(\PhpOffice\PhpSpreadsheet\Style\Conditional::CONDITION_CELLIS)
+                        ->setOperatorType(\PhpOffice\PhpSpreadsheet\Style\Conditional::OPERATOR_LESSTHAN)
                         ->addCondition('0');
-        $objConditional1->getStyle()->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getEndColor()->setARGB(PHPExcel_Style_Color::COLOR_RED);   
+        $objConditional1->getStyle()->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getEndColor()->setARGB(\PhpOffice\PhpSpreadsheet\Style\Color::COLOR_RED);   
 
         //Formatação condicional para ROI Positivo
-        $objConditional2 = new PHPExcel_Style_Conditional();
-        $objConditional2->setConditionType(PHPExcel_Style_Conditional::CONDITION_CELLIS)
-                        ->setOperatorType(PHPExcel_Style_Conditional::OPERATOR_GREATERTHANOREQUAL)
+        $objConditional2 = new \PhpOffice\PhpSpreadsheet\Style\Conditional();
+        $objConditional2->setConditionType(\PhpOffice\PhpSpreadsheet\Style\Conditional::CONDITION_CELLIS)
+                        ->setOperatorType(\PhpOffice\PhpSpreadsheet\Style\Conditional::OPERATOR_GREATERTHANOREQUAL)
                         ->addCondition('0');
-        $objConditional2->getStyle()->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getEndColor()->setARGB(PHPExcel_Style_Color::COLOR_GREEN);   
+        $objConditional2->getStyle()->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getEndColor()->setARGB(\PhpOffice\PhpSpreadsheet\Style\Color::COLOR_GREEN);   
 
-        $linha_faturamento = $this->procura_valor("%ROI:", 0, $sheet)-1;
+        $linha_faturamento = $this->procura_valor("%ROI:", 1, $sheet)-1;
 
         //Adiciona formatação condicional em cada célula
         for($col = 1; $col <= $colunas; $col++)
         {
-            $celula = PHPExcel_Cell::stringFromColumnIndex($col).$linha_faturamento;
+            $celula = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col).$linha_faturamento;
             $conditionalStyles = $sheet->getStyle($celula)->getConditionalStyles();
             array_push($conditionalStyles, $objConditional1);
             array_push($conditionalStyles, $objConditional2);
@@ -562,9 +613,9 @@ class Excel_build
             $value = $sheet->getCellByColumnAndRow($col, $row)->getValue();
             $style = $sheet->getStyleByColumnAndRow($col, $row);
             $conditional = $style->getConditionalStyles();
-            $orgCellColumn = '$'.PHPExcel_Cell::stringFromColumnIndex($col);
-            $dstCellColumn = '$'.PHPExcel_Cell::stringFromColumnIndex($col+1);
-            $dstCell = PHPExcel_Cell::stringFromColumnIndex($col+1) . (string)($row);
+            $orgCellColumn = '$'.\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col);
+            $dstCellColumn = '$'.\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col+1);
+            $dstCell = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col+1) . (string)($row);
             if(!empty($value))
             {
                 if($value[0] == '=')
@@ -594,7 +645,7 @@ class Excel_build
         $color_array=array("E4DFEC", "D9EAD3", "DDD9C4", "FCE9D9");
 
         //Procura onde vai adicionar as conversões
-        $row = $this->procura_valor('#TpConversao:', 0, $sheet);
+        $row = $this->procura_valor('#TpConversao:', 1, $sheet);
 
         //Se não tiver conversões, remove do template
         if($conversion_array == null)
@@ -620,7 +671,7 @@ class Excel_build
             $sheet->insertNewRowBefore($row+1, count(get_object_vars($conversion_array)) - 2);
 
         //Após adicionar o TpConversão sobe, então procura de novo
-        $row = $this->procura_valor('#TpConversao:', 0, $sheet)-1;
+        $row = $this->procura_valor('#TpConversao:', 1, $sheet)-1;
 
         //Adiciona as conversões
         $conversoes = array();
@@ -659,11 +710,11 @@ class Excel_build
             $sheet->setCellValue("B".$row, $valor_b);
             $sheet->getStyle('A'.$row.':B'.$row)->applyFromArray(
             array('fill' 	=> array(
-                                        'type'		=> PHPExcel_Style_Fill::FILL_SOLID,
+                                        'type'		=> \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
                                         'color'		=> array('argb' => $color)
                                     ),
                 'borders' => array(
-                                        'allborders'	=> array('style' => PHPExcel_Style_Border::BORDER_THIN)
+                                        'allborders'	=> array('style' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN)
                                     )
                 )
             );
@@ -694,9 +745,9 @@ class Excel_build
     */
     function procura_valor($valor, $col, $sheet)
     {
-        $row = 0;
+        $row = 1;
         $value = $sheet->getCellByColumnAndRow($col, $row)->getValue();
-        for($row=0; $row<=$sheet->getHighestRow(); $row++)
+        for($row=1; $row<=$sheet->getHighestRow(); $row++)
         {
             if($value == $valor)
                 return $row;
@@ -709,7 +760,7 @@ class Excel_build
 
     function build_chart($qtde_colunas, $titulo, $sheet)
     {
-        $row = $this->procura_valor($titulo, 0, $sheet);
+        $row = $this->procura_valor($titulo, 1, $sheet);
         $lastCol = PHPExcel_Cell::stringFromColumnIndex($qtde_colunas-1);
         //	Set the Labels for each data series we want to plot
         //		Datatype

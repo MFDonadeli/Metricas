@@ -12,8 +12,7 @@ class App extends CI_Controller {
 
         // Load facebook library
         $this->load->library('facebook');
-        // Load phpexcel library
-        $this->load->library('phpexcel');
+        
 
         $this->load->library('excel_build');
         //$this->load->library('table_build');
@@ -79,8 +78,11 @@ class App extends CI_Controller {
 
       log_message('debug',json_encode($accounts));
 
-      if(isset($accounts['error']))
-        die('Erro. Tente novamete');
+      if(array_key_exists('error',$accounts))
+      {
+        log_message('error', print_r($detalhes, true));
+        die('Erro. Tente novamente!');
+      }
         
       $contas = $accounts['data'];
       $ret = '';
@@ -116,7 +118,7 @@ class App extends CI_Controller {
     */
     public function sync_contas($conta = null, $completa = false)
     {
-      log_message('debug', $this->input->raw_input_stream);
+      log_message('debug', 'Sync_contas' . $this->input->raw_input_stream);
 
       //Se o parâmetro conta vier do post (do ajax)
       if(isset($_POST['conta']))
@@ -139,8 +141,8 @@ class App extends CI_Controller {
 
       if(array_key_exists('error',$detalhes))
       {
-        echo "Error";
-        die('');
+        log_message('error', print_r($detalhes, true));
+        return false;
       }
 
       $this->grava_bd($detalhes, $completa); 
@@ -230,6 +232,7 @@ class App extends CI_Controller {
 
           if(array_key_exists('error',$detalhes))
           {
+            log_message('error', print_r($detalhes, true));
             continue;
           }
 
@@ -383,6 +386,8 @@ class App extends CI_Controller {
           }
         }
       }
+
+      log_message('debug', 'COMPLETO: ' . print_r($detalhes, true));
       
       //Se existir insights de contas, separa
       if(array_key_exists('insights',$detalhes))
@@ -441,6 +446,7 @@ class App extends CI_Controller {
       }
       elseif($id == null && $tipo == null)
       {
+        log_message('error', 'Sem acesso ao sistema');
         die('Erro. Sem acesso ao sistema');
       }
 
@@ -454,8 +460,10 @@ class App extends CI_Controller {
         //Faz a chamada no Facebook
         $detalhes = $this->facebook->request('get', $id.'/insights'.$url_params,$this->usrtkn);
 
-        if(isset($datalhes['error']))
-          log_message('debug','Erro. Tente novamente');
+        if(array_key_exists('error',$detalhes))
+        {
+            log_message('error', print_r($detalhes, true));
+        }
         else
         {
           log_message('debug', 'Resposta insight por data ' . json_encode($detalhes));
@@ -475,8 +483,10 @@ class App extends CI_Controller {
       //Faz a chamada no Facebook
       $detalhes = $this->facebook->request('get', $id.'/insights'.$url_params,$this->usrtkn);
 
-      if(isset($detalhes['error']))
-        log_message('debug','Erro. Tente novamente');
+      if(array_key_exists('error',$detalhes))
+      {
+        log_message('error', print_r($detalhes, true));
+      }
       else
       {
         log_message('debug','Resposta insight ' . json_encode($detalhes));
@@ -814,7 +824,9 @@ class App extends CI_Controller {
         foreach($results as $result)
         {
           //Sincroniza as contas
-          $this->sync_contas($result->account_id, $completa);
+          if(!$this->sync_contas($result->account_id, $completa))
+            continue;
+          
           foreach($tipos as $tipo)
           {
             $results_tipo = $this->metricas->getFromConta($result->account_id, $tipo);
@@ -1356,7 +1368,7 @@ class App extends CI_Controller {
         $b = json_decode($a);
         $userProfile = json_decode(json_encode($ret), true);
 
-        if(!isset($userProfile['error']))
+        if(!array_key_exists('error',$userProfile))
         {
           // Preparing data for database insertion
           $userData['oauth_provider'] = 'facebook';
@@ -1408,6 +1420,7 @@ class App extends CI_Controller {
         else
         {
           $data['error'] = $userProfile['error'];
+          log_message('error', print_r($userProfile, true));
         }
 
         // Load login & profile view
@@ -1429,7 +1442,7 @@ class App extends CI_Controller {
             $userProfile = $this->facebook->request('get', '/me?fields=id,first_name,last_name,email,gender,locale,picture{url}',$this->usrtkn);
             log_message('debug',json_encode($userProfile));
 
-            if(!isset($userProfile['error']))
+            if(!array_key_exists('error',$userProfile))
             {
               // Preparing data for database insertion
               $userData['oauth_provider'] = 'facebook';
@@ -1485,6 +1498,7 @@ class App extends CI_Controller {
             }
             else
             {
+              log_message('error', print_r($userProfile, true));
               $data['error'] = $userProfile['error'];
             }
 
@@ -1509,8 +1523,11 @@ class App extends CI_Controller {
       $result = $this->facebook->request('get', $id,$this->usrtkn);
       log_message('debug',json_encode($accounts));
 
-      if(isset($result['error']))
+      if(array_key_exists('error',$detalhes))
+      {
+        log_message('error', print_r($detalhes, true));
         die('Erro. Tente novamente');
+      }
 
       echo json_encode($result);
       
@@ -1577,8 +1594,11 @@ class App extends CI_Controller {
         $next = str_replace($str, '', $url);
         $detalhes = $this->facebook->request('get', $next, $this->usrtkn);
 
-        if(isset($detalhes['error']))
+        if(array_key_exists('error',$detalhes))
+        {
+          log_message('error', print_r($detalhes, true));
           return false;
+        }
 
         return $detalhes;
         //$contas = array_merge($contas, $accounts['data']);
@@ -1875,8 +1895,11 @@ class App extends CI_Controller {
           'me/adaccounts?fields=account_id,account_status,age,amount_spent,balance,business_city,business_country_code,business_name,business_state,business_street,business_street2,business_zip,can_create_brand_lift_study,created_time,currency,disable_reason,funding_source,funding_source_details,has_migrated_permissions,id,is_attribution_spec_system_default,is_direct_deals_enabled,is_notifications_enabled,is_personal,is_prepay_account,is_tax_id_required,min_campaign_group_spend_cap,min_daily_budget,name,offsite_pixels_tos_accepted,owner,spend_cap,tax_id,tax_id_status,tax_id_type,timezone_id,timezone_name,timezone_offset_hours_utc,user_role',
           $this->usrtkn);
 
-        if(isset($accounts['error']))
-         die('Erro. Tente novamete');
+        if(array_key_exists('error',$accounts))
+        {
+          log_message('error', print_r($detalhes, true));
+          continue;
+        }
 
         if(!array_key_exists('data', $detalhes))
           continue;
@@ -1917,8 +1940,11 @@ class App extends CI_Controller {
           '?fields=account_id,account_status,age,amount_spent,balance,business_city,business_country_code,business_name,business_state,business_street,business_street2,business_zip,can_create_brand_lift_study,created_time,currency,disable_reason,funding_source,funding_source_details,has_migrated_permissions,id,is_attribution_spec_system_default,is_direct_deals_enabled,is_notifications_enabled,is_personal,is_prepay_account,is_tax_id_required,min_campaign_group_spend_cap,min_daily_budget,name,offsite_pixels_tos_accepted,owner,spend_cap,tax_id,tax_id_status,tax_id_type,timezone_id,timezone_name,timezone_offset_hours_utc,user_role',
           $this->usrtkn);
 
-          if(isset($detalhes['error']))
-            die('Erro. Tente novamete');
+          if(array_key_exists('error',$detalhes))
+          {
+            log_message('error', print_r($detalhes, true));
+            continue;
+          }
 
           $conta = $detalhes;
           $conta['facebook_id'] = $this->fb_id;
@@ -1958,7 +1984,7 @@ class App extends CI_Controller {
             $activities = false;
 
 
-            if(!isset($detalhes['error']))
+            if(!array_key_exists('error',$detalhes))
             {
               $k = 30;
               while(array_key_exists('paging', $detalhes))
@@ -1970,8 +1996,12 @@ class App extends CI_Controller {
                 $k /= 2;
               }  
             }
+            else
+            {
+              log_message('error', print_r($detalhes, true));
+            }
 
-            if(!isset($detalhes['error']))
+            if(!array_key_exists('error',$detalhes))
             {
 
               $activities = $detalhes['data'];
@@ -2302,8 +2332,11 @@ class App extends CI_Controller {
 
         $detalhes = $this->facebook->request('get', $retorno['ad_creatives']->id . '/previews?ad_format=DESKTOP_FEED_STANDARD', $retorno['token']);
 
-        if(array_key_exists('error', $detalhes))
-          die();
+        if(array_key_exists('error',$detalhes))
+        {
+          log_message('error', print_r($detalhes, true));
+          return;
+        }    
 
         $preview = $detalhes['data'][0]['body'];
 

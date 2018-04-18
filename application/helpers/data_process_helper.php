@@ -299,7 +299,8 @@ function processa_insights($insights, $tipo)
           {
             unset($spec['action.type']);
             $key = key($spec);
-            $ad['tracking_specs_'.$key] = $spec[$key][0];
+            if($key != '')
+              $ad['tracking_specs_'.$key] = $spec[$key][0];
           }
 
           unset($ad['tracking_specs']); 
@@ -376,6 +377,17 @@ function processa_insights($insights, $tipo)
             }
             unset($ad['creative']['object_story_spec']); 
           } 
+
+          if(array_key_exists('object_story_spec_photo_data',$ad['creative']))
+          {
+            if(array_key_exists('caption', $ad['creative']['object_story_spec_photo_data']))
+            {
+              $ad['creative']['object_story_spec_photo_data_caption'] = 
+                $ad['creative']['object_story_spec_photo_data']['caption'];
+
+              unset($ad['creative']['object_story_spec_photo_data']);
+            }
+          }
           //unset($ad['creative']);
         }
 
