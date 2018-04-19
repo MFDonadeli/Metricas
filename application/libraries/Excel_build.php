@@ -69,6 +69,8 @@ class Excel_build
         $linha_roi = $this->linhas_planilhas["%ROI:"];
         $linha_cpv = $this->linhas_planilhas["\$CPV:"];
 
+        log_message('debug','Vai processar dados');
+
         //Para cada dado a ser inserido
         foreach($dados as $dado)
         {
