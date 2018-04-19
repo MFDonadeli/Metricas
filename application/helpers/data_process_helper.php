@@ -45,6 +45,9 @@ function translate_conversions($conversions,$db)
 */
 function processa_campaigns($campaigns)
 {
+    if($campaigns == null)
+      return null;
+    
     for($i=0; $i<count($campaigns); $i++)
       {
         $campaigns[$i]['metrics_imported_at'] = date("Y-m-d H:i:s");
@@ -75,7 +78,7 @@ function processa_insights($insights, $tipo)
       //Itens cujos dados são obtidos de modo semelhante
       $arr_items = array("video_10_sec_watched_actions", "video_15_sec_watched_actions",
           "video_30_sec_watched_actions", "video_avg_percent_watched_actions",
-          "video_avg_time_watched_actions", "video_p100_watched_actions",
+          "video_avg_time_watched_actions", "video_p100_watched_actions", "canvas_component_avg_pct_view",
           "video_p25_watched_actions", "video_p50_watched_actions", "video_p75_watched_actions",
           "video_p95_watched_actions","website_ctr","website_purchase_roas","cost_per_10_sec_video_view");
 
@@ -250,6 +253,9 @@ function processa_insights($insights, $tipo)
     */
     function processa_ads($ads)
     {
+      if($ads == null)
+        return null;
+
       foreach($ads as $ad)
       {
         unset($ad['campaign']);
@@ -304,6 +310,11 @@ function processa_insights($insights, $tipo)
           }
 
           unset($ad['tracking_specs']); 
+        }
+
+        if(array_key_exists('bid_info', $ad))
+        {
+          $ad['bid_info'] = $ad['bid_info']['ACTIONS'];
         }
 
         if(array_key_exists('insights',$ad))
@@ -408,7 +419,9 @@ function processa_insights($insights, $tipo)
     */
     function processa_adsets($adsets)
     {
-      
+      if($adsets == null)
+        return null;
+
       foreach($adsets as $adset)
       {
         //Atribuição: janela, schedule e pacing do conjunto
@@ -434,6 +447,11 @@ function processa_insights($insights, $tipo)
             $adset['promoted_object_'.$key] = $val;
           }
           unset($adset['promoted_object']); 
+        }
+
+        if(array_key_exists('bid_info', $adset))
+        {
+          $adset['bid_info'] = $adset['bid_info']['ACTIONS'];
         }
 
         if(array_key_exists('insights',$adset))

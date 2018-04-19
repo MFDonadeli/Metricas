@@ -245,6 +245,7 @@ class Excel_build
 
         //Salva o arquivo
         $objWriter = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($objPHPExcel, 'Xlsx');
+        $objWriter->setPreCalculateFormulas(false);
         $objWriter->save($file_name);
 
         $db_metricas->saveGeral($this->linhas_planilhas, $this->geral, $this->linhas_conversoes_personalizadas, $id, $tipo);
@@ -272,8 +273,8 @@ class Excel_build
         $kpi['ViewContent_3dias'] = 'ZZ';
 
         $kpi['Vendas'] = '';
-        $kpi['Vendas_7dias'] = 'ZZ';
-        $kpi['Vendas_3dias'] = 'ZZ';
+        $kpi['Venda_7dias'] = 'ZZ';
+        $kpi['Venda_3dias'] = 'ZZ';
 
         $kpi['Cartoes'] = '1';
         $kpi['BoletosGerados'] = '1';
@@ -393,18 +394,18 @@ class Excel_build
                 $kpi['Vendas'] = "Métricas!" . $colGeral . $this->linhas_planilhas[$vendas];
                 
                 if(isset($colPrimeira7dias))
-                    $kpi['Vendas_7dias'] = "Métricas!" . $colPrimeira7dias . $this->linhas_planilhas[$vendas] . ":" .
+                    $kpi['Venda_7dias'] = "Métricas!" . $colPrimeira7dias . $this->linhas_planilhas[$vendas] . ":" .
                      $colUltima . $this->linhas_planilhas[$vendas];
                 
                 if(isset($colPrimeira3dias))
-                    $kpi['Vendas_3dias'] = "Métricas!" . $colPrimeira3dias . $this->linhas_planilhas[$vendas] . ":" .
+                    $kpi['Venda_3dias'] = "Métricas!" . $colPrimeira3dias . $this->linhas_planilhas[$vendas] . ":" .
                         $colUltima . $this->linhas_planilhas[$vendas];
             }
             else
             {   
                 $kpi['Vendas'] = 0;
-                $kpi['Vendas_7dias'] = 0;
-                $kpi['Vendas_3dias'] = 0;
+                $kpi['Venda_7dias'] = 0;
+                $kpi['Venda_3dias'] = 0;
 
                 if($kpi['ViewContents'] < 200)
                     $kpi['ViewContents'] = 200;
@@ -452,8 +453,8 @@ class Excel_build
             else
             {  
                 $kpi['Vendas'] = 0;
-                $kpi['Vendas_7dias'] = 0;
-                $kpi['Vendas_3dias'] = 0;
+                $kpi['Venda_7dias'] = 0;
+                $kpi['Venda_3dias'] = 0;
 
                 if($kpi['ViewContents'] < 200)
                     $kpi['ViewContents'] = 200;

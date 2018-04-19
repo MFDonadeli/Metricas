@@ -364,6 +364,9 @@ class Metricas extends CI_Model{
     */
     public function insertCampaign($arr_campaign)
     {
+        if($arr_campaign == null)
+            return; 
+
         //Para cada campanha no array
         foreach($arr_campaign as $array)
         {
@@ -437,6 +440,7 @@ class Metricas extends CI_Model{
             if($bydate)
                 $array['bydate'] = 1;
 
+            log_message('debug', 'Array to Insert: ' . print_r($array, true));    
             if(!$this->db->insert($tipo.'_insights',$array))
                 log_message('debug', 'Erro: ' . $this->db->error()->message);
             
@@ -446,6 +450,7 @@ class Metricas extends CI_Model{
 
             if(isset($arr_action))
             {
+                log_message('debug', 'Array to Insert: ' . print_r($arr_action, true));
                 foreach($arr_action as $action)
                 {
                     $action[$tipo.'_insights_id'] = $insert_id;
@@ -470,6 +475,9 @@ class Metricas extends CI_Model{
     */
     public function insertAdSet($arr_adset)
     {
+        if($arr_adset == null)
+            return; 
+        
         //Para cada conjunto
         foreach($arr_adset as $array)
         {
@@ -493,6 +501,7 @@ class Metricas extends CI_Model{
             }
 
             //Insere no banco
+            log_message('debug', 'Array to Insert: ' . print_r($array, true));
             if(!$this->db->insert('adsets', $array))
                 log_message('debug', 'Erro: ' . $this->db->error()->message);
 
@@ -501,6 +510,7 @@ class Metricas extends CI_Model{
             //Se tiver targeting. Insere
             if(isset($arr_targeting))
             {
+                log_message('debug', 'Array to Insert: ' . print_r($arr_targeting, true));
                 if(!$this->db->insert('adset_targeting',$arr_targeting))
                     log_message('debug', 'Erro: ' . $this->db->error()->message);
 
@@ -511,6 +521,8 @@ class Metricas extends CI_Model{
             //Se tiver insights e actions. Insere
             if(isset($arr_insights))
             {
+                log_message('debug', 'Array to Insert: ' . print_r($arr_insights, true));
+
                 if(!$this->db->insert('adset_insights',$arr_insights))
                     log_message('debug', 'Erro: ' . $this->db->error()->message);
 
@@ -545,6 +557,9 @@ class Metricas extends CI_Model{
     */
     public function insertAd($arr_ad)
     {
+        if($arr_ad == null)
+            return;
+
         //Para cada anúncio do array
         foreach($arr_ad as $array)
         {
@@ -568,6 +583,7 @@ class Metricas extends CI_Model{
             }
 
             //Insere no banco
+            log_message('debug', 'Array to Insert: ' . print_r($array, true));
             if(!$this->db->insert('ads', $array))
                 log_message('debug', 'Erro: ' . $this->db->error()->message);
 
@@ -576,6 +592,7 @@ class Metricas extends CI_Model{
             //Se tiver insights e actions. Insere.
             if(isset($arr_insights))
             {
+                log_message('debug', 'Array to Insert: ' . print_r($arr_insights, true));
                 if(!$this->db->insert('ad_insights',$arr_insights))
                     log_message('debug', 'Erro: ' . $this->db->error()->message);
 
@@ -601,6 +618,7 @@ class Metricas extends CI_Model{
             //Se tiver creative. Insere.
             if(isset($arr_creative))
             {
+                log_message('debug', 'Array to Insert: ' . print_r($arr_creative, true));
                 if(!$this->db->insert('ad_creatives',$arr_creative))
                     log_message('debug', 'Erro: ' . $this->db->error()->message);
 

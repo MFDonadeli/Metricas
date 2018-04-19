@@ -316,78 +316,95 @@ class App extends CI_Controller {
         $fb_id = $this->session->userdata('facebook_id');
       }
       
+      $campaigns = null;
+      $ads = null;
+      $adsets = null;
       //Apaga os dados antes de inserir novamente
       $this->metricas->deleteToNewSync(str_replace('act_','',$detalhes['id']), $completa);
 
       //Separa os arrays
-      $campaigns = $detalhes['campaigns']['data'];
-      $ads = $detalhes['ads']['data'];
-      $adsets = $detalhes['adsets']['data'];
+      if(array_key_exists('campaigns', $detalhes))
+        $campaigns = $detalhes['campaigns']['data'];
+
+      if(array_key_exists('ads', $detalhes))  
+        $ads = $detalhes['ads']['data'];
+
+      if(array_key_exists('adsets', $detalhes))  
+        $adsets = $detalhes['adsets']['data'];
 
       //Se existir paginamento de campanhas, processa para incluir no array
-      if(array_key_exists('next', $detalhes['campaigns']['paging']))
+      if(array_key_exists('campaigns', $detalhes))
       {
-        $next = $detalhes['campaigns']['paging']['next'];
-        while($next != '')
+        if(array_key_exists('next', $detalhes['campaigns']['paging']))
         {
-          $retorno = $this->process_pagination($next);
-
-          if($retorno)
+          $next = $detalhes['campaigns']['paging']['next'];
+          while($next != '')
           {
-            if(array_key_exists('next', $retorno['paging']))
-              $next = $retorno['paging']['next'];
-            else
-              $next = '';
+            $retorno = $this->process_pagination($next);
 
-            $campaigns = array_merge($campaigns, $retorno['data']);
-          }
-        }
-      }
-
-      //Se existir paginamento de conjuntos de anúncios, processa para incluir no array
-      if(array_key_exists('next', $detalhes['adsets']['paging']))
-      {
-        $next = $detalhes['adsets']['paging']['next'];
-        while($next != '')
-        {
-          $retorno = $this->process_pagination($next);
-          
-          if($retorno)
-          {
-            if(array_key_exists('next', $retorno['paging']))
-              $next = $retorno['paging']['next'];
-            else
-              $next = '';
-
-            $adsets = array_merge($adsets, $retorno['data']);
-          }
-        }
-      }
-
-      //Se existir paginamento de anúncios, processa para incluir no array
-      if(array_key_exists('next', $detalhes['ads']['paging']))
-      {
-        $next = $detalhes['ads']['paging']['next'];
-        while($next != '')
-        {
-          $retorno = $this->process_pagination($next);
-          
-          if($retorno)
-          {
-            if(array_key_exists('paging', $retorno))
+            if($retorno)
             {
               if(array_key_exists('next', $retorno['paging']))
                 $next = $retorno['paging']['next'];
               else
                 $next = '';
 
-              $ads = array_merge($ads, $retorno['data']);
+              $campaigns = array_merge($campaigns, $retorno['data']);
             }
           }
         }
       }
 
-      log_message('debug', 'COMPLETO: ' . print_r($detalhes, true));
+      //Se existir paginamento de conjuntos de anúncios, processa para incluir no array
+      if(array_key_exists('adsets', $detalhes))
+      {
+        if(array_key_exists('next', $detalhes['adsets']['paging']))
+        {
+          $next = $detalhes['adsets']['paging']['next'];
+          while($next != '')
+          {
+            $retorno = $this->process_pagination($next);
+            
+            if($retorno)
+            {
+              if(array_key_exists('next', $retorno['paging']))
+                $next = $retorno['paging']['next'];
+              else
+                $next = '';
+
+              $adsets = array_merge($adsets, $retorno['data']);
+            }
+          }
+        }
+      }
+
+      //Se existir paginamento de anúncios, processa para incluir no array
+      if(array_key_exists('ads', $detalhes))
+      {
+        if(array_key_exists('next', $detalhes['ads']['paging']))
+        {
+          $next = $detalhes['ads']['paging']['next'];
+          while($next != '')
+          {
+            $retorno = $this->process_pagination($next);
+            
+            if($retorno)
+            {
+              if(array_key_exists('paging', $retorno))
+              {
+                if(array_key_exists('next', $retorno['paging']))
+                  $next = $retorno['paging']['next'];
+                else
+                  $next = '';
+
+                $ads = array_merge($ads, $retorno['data']);
+              }
+            }
+          }
+        }
+      }
+
+      //log_message('debug', 'COMPLETO: ' . print_r($detalhes, true));
       
       //Se existir insights de contas, separa
       if(array_key_exists('insights',$detalhes))
