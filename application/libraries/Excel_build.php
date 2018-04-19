@@ -30,6 +30,7 @@ class Excel_build
     */
     function generate_excel($dados, $db_metricas, $sem_dado_venda, $comissao, $preset, $id, $tipo)
     {
+        log_message('debug', 'generate_excel');
 
         $diasemana = array('Dom', 'Seg', 'Ter', 'Quar', 'Qui', 'Sex', 'Sáb');
 
@@ -225,6 +226,7 @@ class Excel_build
 
         }
 
+        log_message('debug', 'ja processou planilha');
         //Coloca formatação condicional no ROI
         $this->formata_roi($qtde_colunas, $objPHPExcel->getActiveSheet());
 
@@ -246,6 +248,9 @@ class Excel_build
         //Salva o arquivo
         $objWriter = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($objPHPExcel, 'Xlsx');
         $objWriter->setPreCalculateFormulas(false);
+
+        log_message('debug', 'vai gravar' . var_export($objWriter));
+
         $objWriter->save($file_name);
 
         $db_metricas->saveGeral($this->linhas_planilhas, $this->geral, $this->linhas_conversoes_personalizadas, $id, $tipo);
