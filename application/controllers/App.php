@@ -598,8 +598,6 @@ class App extends CI_Controller {
     */
     public function show_table($id, $tipo, $comissao)
     {
-      	
-$this->output->enable_profiler(TRUE);
 
       //Comissão tem que ser número
       if(!is_numeric($comissao)) $comissao = 0;
