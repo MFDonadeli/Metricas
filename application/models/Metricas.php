@@ -80,7 +80,7 @@ class Metricas extends CI_Model{
         $this->db->select("accounts.id, accounts.name, accounts.updated_time, 
                 sum(if(ads.effective_status = 'ACTIVE', 1, 0)) as anuncios_ativos");
         $this->db->from("accounts");
-        $this->db->join("ads","accounts.id = ads.account_id");
+        $this->db->join("ads","accounts.id = ads.account_id", "left");
         
         //Traz somente os anúncios realmente ativos
         $this->db->where("accounts.account_status > 0");
