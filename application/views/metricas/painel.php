@@ -4,9 +4,30 @@
 .box{
 	display: inline-block;
 	vertical-align: top;
-	width:25%; 
+	width:25%;
+  	min-width: 200px;
 	margin:10px;
+  	border: 1px solid;
 }
+
+#index-container{
+	height:100%;
+	overflow:hidden;
+}
+
+#index-main-content{
+	float:left;     
+}
+
+#right-side-bar{
+	width: 75%;
+	float:right; 
+}
+
+.w20{
+  width: 25%;
+}
+
 </style>
 
 <div class="row">
@@ -30,6 +51,9 @@
 
 				if($vendas)
 				{
+					echo "<div id='index-container'>";
+					echo "<div id='index-main-content'>";
+
 					foreach($vendas as $venda)
 					{
 						if($venda->tipo_id)
@@ -38,14 +62,14 @@
 							{
 								if($venda->roi == '0%')
 								{
-									echo "<div class='alert alert-info fade in box'>";    
+									echo "<div id='div_" . $venda->ad_id . "' class='alert alert-info fade in box'>";    
 								}
 								else if($venda->roi[0] == '-')
 								{
-									echo "<div class='alert alert-danger fade in box'>";     
+									echo "<div id='div_" . $venda->ad_id . "' class='alert alert-danger fade in box'>";     
 								}
 								else
-									echo "<div class='alert alert-success fade in box'>";   
+									echo "<div id='div_" . $venda->ad_id . "' class='alert alert-success fade in box'>";   
 									
 								echo "<strong>Conta: </strong>" . $venda->conta . "<br>";
 								echo "<strong>Anúncio: </strong>" . $venda->anuncio . "<br>";
@@ -57,6 +81,10 @@
 							}
 						}
 					}
+
+					echo "</div>"; //index-main-content
+					echo "<div id='right-side-bar'></div>";
+					echo "</div>"; 	//index-container
 				}
                     
             ?>
@@ -65,6 +93,8 @@
 		</div> <!-- well -->
 	</div> <!-- col-sm-12 -->
 </div><!-- row -->
+
+<input type="hidden" id="ad_id">
 
 </section>
 
@@ -137,7 +167,7 @@
 	
 	// run pagefunction
 	var pagefunction = function() {
-        
+		$('#right-side-bar').hide();
     }
 
     var pagedestroy = function(){
@@ -150,5 +180,42 @@
 			root.console.log("✔ Chart.js charts destroyed");
 		} 
 	}
+
+	$('.box').click(function(){
+		var val = $(this).attr('id');
+		var id = val.replace("div_", "");
+
+		var val_cmp = $("#ad_id").val();
+
+		if(val == val_cmp)
+		{
+			$('#right-side-bar').hide();
+			$('#index-main-content').removeClass('w20');
+			$("#ad_id").val("");
+
+			return;
+		}
+		else
+		{
+			$('#right-side-bar').show();
+			$('#index-main-content').addClass('w20');
+			$("#ad_id").val(val);
+		}
+
+		var form_data = { id: id };
+
+
+        var resp = $.ajax({
+            url: '<?php echo base_url(); ?>app/resumo_funil',
+            type: 'POST',
+            data: form_data,
+            global: false,
+            async: true,
+            success: function(msg) { 
+                $('#right-side-bar').html(msg);
+            }
+        }).responseText;
+
+	});
 	
 </script>

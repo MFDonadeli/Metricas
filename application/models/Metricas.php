@@ -919,6 +919,32 @@ class Metricas extends CI_Model{
     }
 
     /**
+    * saveKpis
+    *
+    * Salva os kpis da planilha gerada
+    *
+    * @param	kpi array: Os KPIs
+    * @param    id: Id do ad inserido
+    */
+    public function saveKpis($kpi, $id)
+    {
+        log_message('debug', 'saveKpis');   
+
+        $kpi['ad_id'] = $id;
+
+        $this->db->where('ad_id', $id);
+        $result = $this->db->get('kpi_planilha');
+
+        if($result->num_rows() > 0)
+        {
+            $this->db->where('ad_id', $id);
+            $this->db->update('kpi_planilha', $kpi);
+        }
+        else
+            $this->db->insert('kpi_planilha', $kpi);    
+    }
+
+    /**
     * saveGeral
     *
     * Salva a posição Geral de cada planilha gerada
@@ -1270,6 +1296,32 @@ class Metricas extends CI_Model{
 
         return $result->row()->adset_id;  
       
+    }
+
+    /**
+    * get_info_funil
+    *
+    * Traz infos do funil. Estas infos são das planilhas geradas.
+    *
+    * @param	$id: Id do ad para trazer as infos
+    * @return	
+    *    lista consolidada para preenchimento da área "Métricas que estão vendendo para esse produto"
+    *     na planilha de métricas ou false se não tiver dados
+    */
+    function get_info_funil($id)
+    {
+        log_message('debug', 'get_info_funil');   
+        
+        $this->db->select('coluna_geral_planilha.*, kpi_planilha.*');
+        $this->db->from('coluna_geral_planilha');
+        $this->db->join('kpi_planilha', 'kpi_planilha.ad_id = coluna_geral_planilha.tipo_id');
+        $this->db->where('coluna_geral_planilha.tipo_id', $id);
+
+        $result = $this->db->get();
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        return $result->row();
     }
 
     /**

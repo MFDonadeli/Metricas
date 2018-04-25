@@ -223,7 +223,9 @@ class Excel_build
         if($tipo == 'ad' && array_key_exists('conversoes', $this->linhas_planilhas))
         {
             $vendendo = $db_metricas->get_dados_vendendo($this->produto);
-            $this->processa_kpis($dados, $comissao, $sem_dado_venda, $vendendo, $objPHPExcel, $config);
+            $kpi = $this->processa_kpis($dados, $comissao, $sem_dado_venda, $vendendo, $objPHPExcel, $config);
+
+            $db_metricas->saveKpis($kpi, $id);
         }
         else
             $objPHPExcel->removeSheetByIndex(1);
@@ -270,13 +272,22 @@ class Excel_build
         $colNumber = PHPExcel_Cell::columnIndexFromString($colGeral);
 
         if($colNumber > 1)
+        {
             $colUltima = PHPExcel_Cell::stringFromColumnIndex($colNumber-2);
+            $kpi['Dias'] = count($dados);
+        }
         
         if(count($dados) > 7)
+        {
             $colPrimeira7dias = PHPExcel_Cell::stringFromColumnIndex($colNumber-8);
+            $kpi['7dias'] = 1;
+        }
         
         if(count($dados) > 3)
+        {
             $colPrimeira3dias = PHPExcel_Cell::stringFromColumnIndex($colNumber-4);
+            $kpi['3dias'] = 1;
+        }
 
         if(count($dados) == 1)
         {
@@ -314,6 +325,12 @@ class Excel_build
         if(isset($colPrimeira3dias)) $kpi['Primeiro_3dias'] = $colPrimeira3dias;
         $kpi['Primeira'] = 'B';
 
+        if(isset($colPrimeira7dias)) $kpi['CTR_7dias'] = "Métricas!" . $colPrimeira7dias . $this->linhas_planilhas['%CTR:'];
+        if(isset($colPrimeira3dias)) $kpi['CTR_3dias'] = "Métricas!" . $colPrimeira3dias . $this->linhas_planilhas['%CTR:'];
+        if(isset($colPrimeira7dias)) $kpi['CPM_7dias'] = "Métricas!" . $colPrimeira7dias . $this->linhas_planilhas['$CPM:'];
+        if(isset($colPrimeira3dias)) $kpi['CPM_3dias'] = "Métricas!" . $colPrimeira3dias . $this->linhas_planilhas['$CPM:'];
+        if(isset($colPrimeira7dias)) $kpi['CPC_7dias'] = "Métricas!" . $colPrimeira7dias . $this->linhas_planilhas['$CPC:'];
+        if(isset($colPrimeira3dias)) $kpi['CPC_3dias'] = "Métricas!" . $colPrimeira3dias . $this->linhas_planilhas['$CPC:'];
         
         $view_contents = $this->linhas_planilhas['conversoes']['fb_pixel_view_content'];
         
@@ -321,6 +338,26 @@ class Excel_build
         $kpi['Ultimo_ViewContent'] = "Métricas!" . $colUltima . $this->linhas_planilhas[$view_contents];
         if(isset($colPrimeira7dias)) $kpi['ViewContent_7dias'] = "Métricas!" . $colPrimeira7dias . $this->linhas_planilhas[$view_contents];
         if(isset($colPrimeira3dias)) $kpi['ViewContent_3dias'] = "Métricas!" . $colPrimeira3dias . $this->linhas_planilhas[$view_contents];
+        
+        if(array_key_exists('fb_pixel_initiate_checkout', $this->linhas_planilhas['conversoes']))
+        {
+            $initiate_checkout = $this->linhas_planilhas['conversoes']['fb_pixel_initiate_checkout'];
+        
+            $kpi['InitiateCheckout'] = "Métricas!" . $colGeral . $this->linhas_planilhas[$initiate_checkout];
+            $kpi['Ultimo_InitiateCheckout'] = "Métricas!" . $colUltima . $this->linhas_planilhas[$initiate_checkout];
+            if(isset($colPrimeira7dias)) $kpi['InitiateCheckout_7dias'] = "Métricas!" . $colPrimeira7dias . $this->linhas_planilhas[$initiate_checkout];
+            if(isset($colPrimeira3dias)) $kpi['InitiateCheckout_3dias'] = "Métricas!" . $colPrimeira3dias . $this->linhas_planilhas[$initiate_checkout];
+        }
+
+        if(array_key_exists('fb_pixel_lead', $this->linhas_planilhas['conversoes']))
+        {
+            $lead = $this->linhas_planilhas['conversoes']['fb_pixel_lead'];
+        
+            $kpi['Lead'] = "Métricas!" . $colGeral . $this->linhas_planilhas[$lead];
+            $kpi['Ultimo_Lead'] = "Métricas!" . $colUltima . $this->linhas_planilhas[$lead];
+            if(isset($colPrimeira7dias)) $kpi['Lead_7dias'] = "Métricas!" . $colPrimeira7dias . $this->linhas_planilhas[$lead];
+            if(isset($colPrimeira3dias)) $kpi['Lead_3dias'] = "Métricas!" . $colPrimeira3dias . $this->linhas_planilhas[$lead];
+        }
 
         if($sem_dado_venda)
         {
@@ -330,18 +367,18 @@ class Excel_build
                 $kpi['Vendas'] = "Métricas!" . $colGeral . $this->linhas_planilhas[$vendas];
                 
                 if(isset($colPrimeira7dias))
-                    $kpi['Vendas_7dias'] = "Métricas!" . $colPrimeira7dias . $this->linhas_planilhas[$vendas] . ":" .
+                    $kpi['Venda_7dias'] = "Métricas!" . $colPrimeira7dias . $this->linhas_planilhas[$vendas] . ":" .
                      $colUltima . $this->linhas_planilhas[$vendas];
                 
                 if(isset($colPrimeira3dias))
-                    $kpi['Vendas_3dias'] = "Métricas!" . $colPrimeira3dias . $this->linhas_planilhas[$vendas] . ":" .
+                    $kpi['Venda_3dias'] = "Métricas!" . $colPrimeira3dias . $this->linhas_planilhas[$vendas] . ":" .
                         $colUltima . $this->linhas_planilhas[$vendas];
             }
             else
             {   
                 $kpi['Vendas'] = 0;
-                $kpi['Vendas_7dias'] = 0;
-                $kpi['Vendas_3dias'] = 0;
+                $kpi['Venda_7dias'] = 0;
+                $kpi['Venda_3dias'] = 0;
 
                 if($kpi['ViewContents'] < 200)
                     $kpi['ViewContents'] = 200;
@@ -389,8 +426,8 @@ class Excel_build
             else
             {  
                 $kpi['Vendas'] = 0;
-                $kpi['Vendas_7dias'] = 0;
-                $kpi['Vendas_3dias'] = 0;
+                $kpi['Venda_7dias'] = 0;
+                $kpi['Venda_3dias'] = 0;
 
                 if($kpi['ViewContents'] < 200)
                     $kpi['ViewContents'] = 200;
@@ -499,6 +536,17 @@ class Excel_build
         }
 
         $objPHPExcel->getActiveSheet()->setSelectedCell('A1'); 
+
+        foreach($kpi as $key => $val)
+        {
+            $objPHPExcel->getActiveSheet()->getCell("ZZ1")->setValue("=" . $val);
+
+            $kpi[$key] = $objPHPExcel->getActiveSheet()->getCell("ZZ1")->getCalculatedValue(true);
+        }
+
+        $objPHPExcel->getActiveSheet()->getCell("ZZ1")->setValue("");
+
+        return $kpi;
 
     }
 

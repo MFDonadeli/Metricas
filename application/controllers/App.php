@@ -1854,6 +1854,19 @@ class App extends CI_Controller {
       echo $ret; 
     }
 
+    public function resumo_funil()
+    {
+      log_message('debug', 'resumo_funil'); 
+      $id = $this->input->post('id');
+      $result = $this->metricas->get_info_funil($id);
+
+      $data['resumo'] = $result;
+
+      $ret = $this->load->view('metricas/resumo_funil',$data, true); 
+
+      echo $ret;
+    }
+
     /**
     * painel
     *
