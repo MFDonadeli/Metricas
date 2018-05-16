@@ -1346,7 +1346,14 @@ class App extends CI_Controller {
     */
     public function login_as_other_user()
     {
+      log_message('debug', 'login_as_other_user'); 
+      $executionStartTime = microtime(true);
+
       $profiles = $this->metricas->get_profiles(); 
+
+      $executionEndTime = microtime(true);
+      $seconds = $executionEndTime - $executionStartTime;
+      log_message('debug', '"This script is taking $seconds to execute."');
 
       $retorno = ''; 
       foreach($profiles as $profile)
@@ -1355,8 +1362,16 @@ class App extends CI_Controller {
           " Token expira em: " . date('d/m/Y',$profile->token_expiration) . "</option>"; 
       }
 
+      $executionEndTime = microtime(true);
+      $seconds = $executionEndTime - $executionStartTime;
+      log_message('debug', '"This script is taking $seconds to execute."');
+
       $data['retorno'] = $retorno;
       $this->load->view('laou',$data);
+
+      $executionEndTime = microtime(true);
+      $seconds = $executionEndTime - $executionStartTime;
+      log_message('debug', '"This script took $seconds to execute."');
     }
 
     /**
