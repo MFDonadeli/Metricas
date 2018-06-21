@@ -1,5 +1,21 @@
 <?php require_once("inc/init.php"); ?>
 
+<style>
+    .table-xtra-condensed > thead > tr > th,
+    .table-xtra-condensed > tbody > tr > th,
+    .table-xtra-condensed > tfoot > tr > th,
+    .table-xtra-condensed > thead > tr > td,
+    .table-xtra-condensed > tbody > tr > td,
+    .table-xtra-condensed > tfoot > tr > td {
+      padding: 2px;
+    }
+
+    .table-xtra-condensed{
+      font-size: small;
+    }
+
+</style>
+
 <div class="row">
 	<div class="col-sm-12">
 		
@@ -18,46 +34,29 @@
                     </div>
                 <?php
                 else: ?>
-                    <fieldset>
-                        <div class="form-group" id="div_select_contas" style='width:15%;float: left;margin:1px;'>
-                            <label class='col-md-2 control-label' for="contas">Conta:</label><br>
-                            <select class='form-control' name="contas" id="cmbcontas">
-                                <option value="-1">Selecione</option>
-                                <?php 
-                                    foreach($contas as $conta):
-                                ?>
-                                        <option value="<?php echo $conta->account_id; ?>"><?php echo $conta->account_name; ?></option>
+                    <div id="conteudo_contas">
+                        <table class="table table-bordered table-striped table-condensed table-hover">
+                            <?php
+                                foreach($contas as $conta):
+                            ?>
+                            <tr>
+                                <td width="10px"><button class="btn_campanhas" id="<?php echo $conta->id; ?>">+</button></td>
+                                <td><?php echo $conta->name; ?></td>
                                 <?php
-                                    endforeach;
+                                    if($conta->account_status == 1)
+                                        echo "<td>Anúncios Ativos: " . $conta->anuncios_ativos . "</td>";
+                                    else
+                                        echo "<td>INATIVA OU BLOQUEADA</td>";
                                 ?>
-                            </select>
-                        </div> <!-- div_select_contas -->
-                        <div class='form-group' id="div_select_campanhas" style='width:15%;float: left;margin:1px;'>
-                            <label class='col-md-2 control-label' for="campanhas">Campanha:</label><br>
-                                <select class='form-control' name="campanhas" id="cmbcampanhas">
-                                </select>
-                        </div>
-                        <div class='form-group' id="div_select_conjuntos" style='width:15%;float: left;margin:1px;'>
-                            <label class='col-md-2 control-label' for="conjunto">Conjunto:</label><br>
-                            <select class='form-control' name="conjunto" id="cmbconjunto">
-                            </select>
-                        </div>
-                        <div class='form-group' id="div_select_anuncios" style='width:15%;float: left;margin:1px;'>
-                            <label class='col-md-2 control-label' for="anuncios">Anúncio:</label><br>
-                            <select class='form-control' name="anuncios" id="cmbanuncios">
-                            </select>
-                            <div id='link_anuncio'></div>
-                        </div>
-                        <div class='form-group' style='width:15%;float: left;margin:1px;'>
-                            <label class='col-md-2 control-label' for='txtcomissao'>Comissão:</label><br>
-                            <input class='form-control' type="text" name="txtcomissao" id="txtcomissao">
-                        </div>
-                        <div class='form-group' style='width:15%;float: left;margin:1px;'>
-                            <label class='col-md-2 control-label'></label><br>
-                            <button class='btn btn-default' id="btnvernumeros">Ver Números</button>
-                        </div>
-                    </fieldset>
-            
+                            </tr>
+                            <tr class="campanhas" id="tr_<?php echo $conta->id; ?>">
+                                <td id="td_<?php echo $conta->id; ?>" colspan=3></td>
+                            </tr>
+                            <?php
+                                endforeach;
+                            ?>
+                        </table>    
+                    </div>            
                 <?php 
                 endif;    
                 ?>
@@ -135,74 +134,6 @@
 </div>
 <!-- end contas -->
 
-<div id='resumo'>
-    <!-- row -->
-    <div class="row">
-
-        <!-- a blank row to get started -->
-        <div class="col-sm-12">
-        
-            <!-- your contents here -->
-            <!-- Widget ID (each widget will need unique ID)-->
-                <div class="jarviswidget" id="wid-id-2" data-widget-editbutton="false" data-widget-colorbutton="false">
-                    <!-- widget options:
-                        usage: <div class="jarviswidget" id="wid-id-0" data-widget-editbutton="false">
-                        
-                        data-widget-colorbutton="false"	
-                        data-widget-editbutton="false"
-                        data-widget-togglebutton="false"
-                        data-widget-deletebutton="false"
-                        data-widget-fullscreenbutton="false"
-                        data-widget-custombutton="false"
-                        data-widget-collapsed="true" 
-                        data-widget-sortable="false"
-                        
-                    -->
-                    <header>
-                        <span class="widget-icon"> <i class="fa fa-arrows-v"></i> </span>
-                        <h2 class="font-md"><strong>Resumo </strong><span id='resumo_titulo'></span></h2>				
-                    </header>
-
-                    <!-- widget div-->
-                    <div>
-                        
-                        <!-- widget edit box -->
-                        <div class="jarviswidget-editbox">
-                            <!-- This area used as dropdown edit box -->
-
-                        </div>
-                        <!-- end widget edit box -->
-                        
-                        <!-- widget content -->
-                        <div class="widget-body">
-                            <div class="table-responsive">
-						
-                                <table id="table_resumo" class="table table-bordered table-striped table-condensed table-fixed table-hover smart-form">
-                                    <thead>
-                                        
-                                    </thead>
-                                    <tbody>
-                                        
-                                    </tbody>
-                                </table>
-                                
-                            </div>        
-                        </div>
-                        <!-- end widget content -->
-                        
-                    </div>
-                    <!-- end widget div -->
-                    
-                </div>
-                <!-- end widget -->
-        </div>
-        <!-- end col-sm-12 -->
-            
-    </div>
-    <!-- end row -->
-</div>
-<!-- end resumo -->
-
 <div id='numeros'>
     <!-- row -->
     <div class="row">
@@ -242,7 +173,7 @@
                         <!-- end widget edit box -->
                         
                         <!-- widget content -->
-                        <div class="widget-body" id='numeros-content'>
+                        <div class="widget-body" id='numeros-content' style="overflow: scroll;">
                             
                             
                         </div>
@@ -332,14 +263,74 @@
         $('#grafico').hide();
         $('#btnvernumeros').hide();
         $('#contas').hide();
-        $('#resumo').hide();
+        $('.campanhas').hide();
 
         $('#div_select_campanhas').hide();
         $('#div_select_conjuntos').hide();
         $('#div_select_anuncios').hide();
     });
 
-    function ajax_fill_combo(id, tipo)
+    //Botão + da conta
+    $('.btn_campanhas').click(function(e){
+      e.preventDefault();
+
+      valor = $(this).val();
+      id = $(this).attr('id');
+
+      if(valor == "+")
+      {
+        $(this).val('-');
+        ajax_get_details(id, 'campanha');
+        $("#tr_" + id).show();
+      }
+      else
+      {
+        $(this).val('+');
+        $("#tr_" + id).hide();
+      }
+    });
+
+    //Botão + da campanha
+    $(document).on('click', '.btn_conjuntos', function(e){
+      e.preventDefault();
+
+      valor = $(this).val();
+      id = $(this).attr('id');
+
+      if(valor == "+")
+      {
+        $(this).val('-');
+        ajax_get_details(id, 'conjunto');
+        $("#tr_" + id).show();
+      }
+      else
+      {
+        $(this).val('+');
+        $("#tr_" + id).hide();
+      }
+    });
+
+    //Botão + da conjunto
+    $(document).on('click', '.btn_anuncios', function(e){
+      e.preventDefault();
+
+      valor = $(this).val();
+      id = $(this).attr('id');
+
+      if(valor == "+")
+      {
+        $(this).val('-');
+        ajax_get_details(id, 'anuncio');
+        $("#tr_" + id).show();
+      }
+      else
+      {
+        $(this).val('+');
+        $("#tr_" + id).hide();
+      }
+    });
+
+    function ajax_get_details(id, tipo)
     {
         var form_data = { id: id,
                           tipo: tipo };
@@ -352,7 +343,8 @@
             global: false,
             async:false,
             success: function(msg) { 
-                resp = msg; 
+                console.log(msg);
+                $('#td_' + id).html(msg);    
             }
         }).responseText;
 
@@ -390,8 +382,6 @@
             $('#btnvernumeros').show();
 
             var text = $('#cmbcampanhas').find(':selected').text();
-
-            $('#resumo_titulo').html('dos conjuntos de ' + text);
         }
         
     });
@@ -408,9 +398,6 @@
 
             $('#cmbanuncios').empty();
             $('#cmbanuncios').append(retorno);
-
-            var text = $('#cmbcampanhas').find(':selected').text();
-            $('#resumo_titulo').html('dos anúncios de ' + text);
         }
         
     });
@@ -422,44 +409,22 @@
         {
             $('#link_anuncio').html("<a href='https://facebook.com/" + story + "' target='_blank'>Ver Anúncio</a>");
         }
-
-        $('#resumo').hide();
         
     });
 
-    $('#btnvernumeros').click(function(e){
+    $(document).on('click', '.btnvernumeros', function(e){
         e.preventDefault();
 
-        var val;
-        var tipo;
+        console.log('teste');
 
-        divid = this.parentElement.id;
-        id = divid.replace("div","");
+        var id = $(this).attr('id');
+        var res = id.split("_");
 
-        var val_conta = $('#cmbcontas').val();
-        var val_campanha = $('#cmbcampanhas').val();
-        var val_conjunto = $('#cmbconjunto').val();
-        var val_anuncio = $('#cmbanuncios').val();
-
-        if(val_anuncio != -1 && val_anuncio !== null)
-        {
-            val = $('#cmbanuncios').val();
-            tipo = 'ad';
-        }
-        else if(val_conjunto != -1 && val_conjunto !== null)
-        {
-            val = $('#cmbconjunto').val();
-            tipo = 'adset';
-        }
-        else if(val_campanha != -1 && val_campanha !== null)
-        {
-            val = $('#cmbcampanhas').val();
-            tipo = 'campaign';
-        }
+        console.log(id);
         
-        var form_data = { tipo: tipo,
-                          val: val,
-                          comissao: $('#txtcomissao').val() };
+        var form_data = { tipo: res[0],
+                          val: res[1],
+                          comissao: 0 };
 
         $.ajax({
             url: '<?php echo base_url(); ?>app/sync_metricas',
@@ -475,32 +440,49 @@
                 console.log(msg);
                 var obj = $.parseJSON(msg);
                 processa_retorno(obj);
-                $('#numeros-content').html("<a class='btn btn-primary btn-lg' href='<?php echo base_url(); ?>template/" + obj.filename.trim() + "'>Baixar Planilha</a><br><br><iframe width='100%' height='600 px' src='https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>template/" + obj.filename.trim() + "'>");
+                //Exibe em Excel
+                //$('#numeros-content').html("<a class='btn btn-primary btn-lg' href='<?php echo base_url(); ?>template/" + obj.filename.trim() + "'>Baixar Planilha</a><br><br><iframe width='100%' height='600 px' src='https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>template/" + obj.filename.trim() + "'>");
+                $('#numeros-content').html(obj.filename.content);
                 $('#grafico').show();
-                
-                if(val_anuncio == -1 || val_anuncio === null)
-                {
-                    if(obj.resumo != 'Nenhum')
-                    {
-                        $('#resumo').show();
-                        $('#table_resumo thead').html(obj.resumo.header);
-                        $('#table_resumo tbody').html(obj.resumo.body);
-                    }
-                }
-                var redirectWindow = window.open('https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>template/' + obj.filename.trim(),'_blank');
+                //var redirectWindow = window.open('https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>template/' + obj.filename.trim(),'_blank');
 
-                $.ajax({
-                    type: 'POST',
-                    url: '/echo/json/',
-                    success: function (data) {
-                        redirectWindow.location;
-                    }
-                });
                 //$("#wid-id-3").wrap("<div id='jarviswidget-fullscreen-mode'></div>")
             }
         });
 
     });
+
+    $(document).on('mouseenter', '.table-numeros td', function(e){
+    	var classList = $(this).attr('class').split(/\s+/);
+        var col;
+        var row;
+        $.each(classList, function(index, item) {
+            if (item.indexOf("col_") > -1) {
+                col = item;
+            }
+            else if (item.indexOf("row_") > -1) {
+                row = item;
+            }
+        });
+        $('.' + col).css("background-color", "yellow");
+        $('.' + row).css("background-color", "yellow");
+    });   
+
+    $(document).on('mouseleave', '.table-numeros td', function(e){
+    	var classList = $(this).attr('class').split(/\s+/);
+        var col;
+        var row;
+        $.each(classList, function(index, item) {
+            if (item.indexOf("col_") > -1) {
+                col = item;
+            }
+            else if (item.indexOf("row_") > -1) {
+                row = item;
+            }
+        });
+        $('.' + col).css("background-color", "white");
+        $('.' + row).css("background-color", "white");
+    });   
 
     function processa_retorno(obj)
     {
