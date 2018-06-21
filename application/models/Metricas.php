@@ -77,7 +77,7 @@ class Metricas extends CI_Model{
     public function getContasDetalhes($id){
         log_message('debug', 'getContas');
 
-        $this->db->select("accounts.id, accounts.name, accounts.updated_time, 
+        $this->db->select("accounts.id, accounts.name, accounts.updated_time, accounts.account_status, 
                 sum(if(ads.effective_status = 'ACTIVE', 1, 0)) as anuncios_ativos");
         $this->db->from("accounts");
         $this->db->join("ads","accounts.id = ads.account_id", "left");
@@ -88,6 +88,10 @@ class Metricas extends CI_Model{
         $this->db->where('accounts.facebook_id',$id);
 
         $this->db->group_by("accounts.name");
+
+        $this->db->order_by("account_status");
+        $this->db->order_by("updated_time", "DESC");
+
         $result = $this->db->get();
 
         log_message('debug', 'Last Query: ' . $this->db->last_query());
@@ -1055,15 +1059,17 @@ class Metricas extends CI_Model{
     {
         $tipo1 = $tipo;
         
-        if($tipo == 'campaign')
+        if($tipo == 'account')
+            $tipo1 = 'campaign';
+        else if($tipo == 'campaign')
             $tipo1 = 'adset';
         else if($tipo == 'adset')
             $tipo1 = 'ad';
 
         log_message('debug', 'getTableDataFromTipo. Id:' . $id);
             
-        $this->db->select('cost_per_inline_link_click, inline_link_click_ctr, cpm, ' . $tipo1 . '_insights_id as id, ' .
-            $tipo1 . 's.effective_status, "' . $tipo1 . '" as tipo, ' . $tipo1 . 's.name');
+        $this->db->select('cost_per_inline_link_click, inline_link_click_ctr, cpm, ' . $tipo1 . '_insights_id as id_action, ' .
+            $tipo1 . 's.effective_status, "' . $tipo1 . '" as tipo, ' . $tipo1 . 's.name, ' . $tipo1 . 's.id');
         $this->db->from($tipo1.'_insights');
         $this->db->join($tipo1."s", $tipo1 . "s.id = " . $tipo1 . "_insights." . $tipo1 . "_id");
         $this->db->where($tipo1.'_insights.' . $tipo.'_id', $id);
@@ -1071,6 +1077,8 @@ class Metricas extends CI_Model{
         $this->db->where('bydate is null');
         $this->db->where('effective_status', 'ACTIVE');
         $result = $this->db->get();
+
+        $sql = $this->db->last_query();
 
         log_message('debug', 'Last Query: ' . $this->db->last_query());
 
@@ -1117,18 +1125,28 @@ class Metricas extends CI_Model{
     *
     * @param	id: O Id do tipo que será pesquisado
     * @param    tipo string: Qual tipo será pego: ad, adset, campaign
+    * @param    before boolean: Se vai trazer as conversões a partir de um anterior:
+    *               exemplo: se true, account traz campaign, campaign traz adset, adset traz ad
     * @return	
     *    lista de todas as conversões possíveis para este id
     */
-    public function getPossibleConversions($id, $tipo)
+    public function getPossibleConversions($id, $tipo, $before = false)
     {
         log_message('debug', 'getPossibleConversions. Id:' . $id);
+
+        $subtipo = $tipo;
+        if($before)
+        {
+            if($subtipo == 'account') $tipo = 'campaign';
+            else if($subtipo == 'campaign') $tipo = 'adset';
+            else if($subtipo == 'adset') $tipo = 'ad'; 
+        }
         
         $this->db->distinct();
         $this->db->select('action_type');
         $this->db->from($tipo.'_insights_actions');
         $this->db->like('action_type', 'offsite_conversion.', 'after');
-        $this->db->where($tipo.'_id', $id);
+        $this->db->where($subtipo.'_id', $id);
         
         $result = $this->db->get();
 
@@ -1184,12 +1202,13 @@ class Metricas extends CI_Model{
             foreach($tipos as $val)
             {
                 $dados = array();
+                $dados['id'] = $val->id;
                 $dados['nome'] = $val->name;
                 $dados['cpc'] = $val->cost_per_inline_link_click;
                 $dados['ctr'] = $val->inline_link_click_ctr;
                 $dados['cpm'] = $val->cpm;
 
-                $actions = $this->getTableDataActions($val->id, $val->tipo);
+                $actions = $this->getTableDataActions($val->id_action, $val->tipo);
                 foreach($actions as $action)    
                 {
                     if($action->action_type == 'offsite_conversion.fb_pixel_custom')
@@ -2578,7 +2597,7 @@ campaigns.name as campanha, accounts.name as conta");
     * getConfigPlanilha
     *
     * Pega dados da configuração da Planilha
-    * @param    $preset: facebook_id do usuario logado
+    * @param    $preset: preset definido
     * @return	-
     */
     public function getConfigPlanilha($id)
@@ -2592,6 +2611,25 @@ campaigns.name as campanha, accounts.name as conta");
         $this->db->where('planilhacampospreset.idplanilhacampospreset', $id);  
 
         $result = $this->db->get();
+
+        return $result->result();
+
+    }
+
+    /**
+    * getConfigPlanilha
+    *
+    * Pega ordem da Planilha
+    * @param    $preset: preset definido
+    * @return	-
+    */
+    public function getPlanilhaOrdem($id)
+    {
+        log_message('debug', 'getPlanilhaOrdem');
+
+        $this->db->where('preset', $id);  
+        $this->db->order_by('ordem');
+        $result = $this->db->get('planilhacampos');
 
         return $result->result();
 

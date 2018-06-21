@@ -14,8 +14,8 @@ class App extends CI_Controller {
         $this->load->library('facebook');
         
 
-        $this->load->library('excel_build');
-        //$this->load->library('table_build');
+        //$this->load->library('excel_build');
+        $this->load->library('table_build');
 
         $this->load->helper('constants_helper');
         $this->load->helper('data_process_helper');    
@@ -467,6 +467,10 @@ class App extends CI_Controller {
         die('Erro. Sem acesso ao sistema');
       }
 
+      if($tipo == 'campanha') $tipo = 'campaign';
+      else if($tipo == 'conjunto') $tipo = 'adset';
+      else if($tipo == 'anuncio') $tipo = 'ad';
+
       //Se não for só geral, processa os dados por dia
       if($sogeral == false)
       {
@@ -718,20 +722,18 @@ class App extends CI_Controller {
         }
 
         //Chama a função de gerar planilha
-        $filename = $this->excel_build->generate_excel($retorno, $this->metricas, $sem_dado_venda, $comissao, 1, $id, $tipo);
-        //$filename = $this->table_build->generate_table($retorno, $this->metricas, $sem_dado_venda, $comissao, $id, $tipo);        
+        //$filename = $this->excel_build->generate_excel($retorno, $this->metricas, $sem_dado_venda, $comissao, 1, $id, $tipo);
+        $filename = $this->table_build->generate_table($retorno, $this->metricas, $sem_dado_venda, $comissao, 1, $id, $tipo);        
 
         $resumo = false;
 
-        if($tipo!='ads')
-          $resumo = $this->get_resumo($id, $tipo, $comissao, $translate);
+        $html_return = array(
+          'size' => strlen($filename),
+          'content' => $filename
+        );
 
-        if(!$resumo)
-          $resumo = 'Nenhum';
-
-        $ret = array("filename" => $filename,
+        $ret = array("filename" => $html_return,
                       "dados" => $retorno,
-                      "resumo" => $resumo,
                       "conversoes" => $conversions,
                       "nomes_conversoes" => $translate);
 
@@ -764,6 +766,27 @@ class App extends CI_Controller {
         return false;
 
       $header = "<tr>";
+
+      if($tipo == 'account')
+      {
+        $header .="<th></th>";
+        $subtipo = 'campanha';
+        $menor = 'conjuntos';
+        $count = 5;
+      }
+      else if($tipo == 'campaign')
+      {
+        $header .="<th></th>";
+        $subtipo = 'conjunto';
+        $menor = 'anuncios';
+        $count = 5;
+      }
+      else 
+      {
+        $count = 4;
+        $subtipo = 'anuncio';
+      } 
+
       $header .="<th>Nome</th>";
       $header .="<th>CPC</th>";
       $header .="<th>CTR</th>";
@@ -772,15 +795,22 @@ class App extends CI_Controller {
       {
         foreach($translate as $key => $val)
         {
+          $count++;
           $header .="<th>".$val."</th>";
         }
       }
-      $header .= "<tr>";
+      $header .="<th></th>";
+      $count++;
+      $header .= "</tr>";
 
       $body = "";
       foreach($retorno as $ret)
       {
+        $title = $subtipo . " de " . $ret['nome'];
         $body .= "<tr>";
+        if($tipo != 'adset')
+          $body .= '<td width="10px"><button class="btn_' . $menor . '" id="' . $ret['id'] . '">+</button></td>';
+        
         $body .= "<td>" . $ret['nome'] . "</td>";
         $body .= "<td>" . $ret['cpc'] . "</td>";
         $body .= "<td>" . $ret['ctr'] . "</td>";
@@ -795,11 +825,18 @@ class App extends CI_Controller {
               $body .="<td>-</td>";
           }
         }
+        $body .= '<td width="10px"><button class="btnvernumeros" id="' . $subtipo . '_' . $ret['id'] . '">Ver números</button></td>';
+
         $body .= "</tr>";
+        $body .= "<tr class='" . $subtipo . "s' id='tr_" . $ret['id'] . "'>";
+        $body .= "<td id=td_" . $ret['id'] . " colspan=" . $count . "></td>";
       }   
 
-      $val_ret['header'] = $header;
-      $val_ret['body'] = $body;
+      $val_ret = "<h2>" . $title . "</h2>";
+      $val_ret .= "<table class='table table-bordered table-striped table-condensed table-hover'>";
+      $val_ret .= $header;
+      $val_ret .= $body;
+      $val_ret .= "</table>";
 
       return $val_ret;                                
     }
@@ -1157,7 +1194,7 @@ class App extends CI_Controller {
       $userID = $this->session->userdata('facebook_id');
       $data['userData'] = $this->session->userdata('userData');
       //Lista Contas
-      $contas = $this->metricas->getContas($userID);
+      $contas = $this->metricas->getContasDetalhes($userID);
       $data['contas'] = $contas;
 
       // Load login & profile view
@@ -1569,47 +1606,29 @@ class App extends CI_Controller {
     /**
     * fill_combo
     *
-    * Função para preencher os combos de anúncios, conjuntos e campanhas para mostrar planilha
+    * Função para preencher os resumos de conjunto e anúncio
     */
     public function fill_combo()
     {
       log_message('debug', 'fill_combo');
 
       $id = $this->input->post('id'); 
-      $tipo = $this->input->post('tipo');   
+      $tipo = $this->input->post('tipo');  
+      $comissao = 0;
 
-      $retorno = $this->metricas->get_from_tipo($id, $tipo);
-
-      $ret = "";
-
-      if($retorno == "Nenhum ativo")
-      {
-        $ret .= "<option value='-1'>Nenhum ativo</option>";
-      }
+      if($tipo == 'campanha')
+        $tipo = 'account';
+      else if($tipo == 'conjunto')
+        $tipo = 'campaign';
       else
-      {
-        if($tipo == 'campaigns')
-          $ret .= "<option value='-1'>Selecione</option>";
-        else
-          $ret .= "<option value='-1'>Todos</option>";
+        $tipo = 'adset';
 
-        foreach($retorno as $val)
-        {
-          $ret .= "<option value='" . $val->id . "'";
-          
-          if(isset($val->effective_object_story_id))
-          {
-            $arr = explode('_', $val->effective_object_story_id);
-            $url = $arr[0] . '/posts/' . $arr[1]; 
-            $ret .= " data-story='" . $url . "'";
-          }
-            
+      $conversions = $this->metricas->getPossibleConversions($id, $tipo, true);
+      $translate = translate_conversions($conversions, $this->metricas);
 
-          $ret .= ">" . $val->name . "</option>";  
-        }
-      }
+      $retorno = $this->get_resumo(trim($id), $tipo, $comissao, $translate);
     
-      echo $ret;
+      echo $retorno;
     }
 
     /**
