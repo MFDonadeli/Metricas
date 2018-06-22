@@ -35,6 +35,38 @@ function translate_conversions($conversions,$db)
 }
 
 /**
+* processa_contas
+*
+* Processa os dados da campanha a partir dos dados vindo do Facebook
+*   - A intenção é colocar em um array associativo cujos index será igual o nome do campo
+*     da tabela
+* @param campaigns(array): Os dados vindos do Facebook
+* @return array: Dados processados
+*/
+function processa_contas($contas)
+{
+  foreach($contas as $conta)
+  {
+    //Atribuição: janela, schedule e pacing do conjunto
+    if(array_key_exists('funding_source_details',$conta))
+    {
+      $fsd = json_encode($conta['funding_source_details']);
+      unset($conta['funding_source_details']);
+      $conta['funding_source_details'] = fsd;
+    }
+
+    if(array_key_exists('insights',$conta))
+    {
+      $conta['insights'] = processa_insights($conta['insights'],'conta');
+    }
+    
+    $contas_ret[] = $conta;
+  }
+
+  return $contas_ret;
+}
+
+/**
 * processa_campaigns
 *
 * Processa os dados da campanha a partir dos dados vindo do Facebook

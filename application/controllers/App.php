@@ -424,6 +424,8 @@ class App extends CI_Controller {
       $detalhes['sync_interval_minutes'] = 12; //De x horas
       $detalhes['id'] = str_replace('act_','',$detalhes['id']);
 
+      //Processa array de contas
+      $contas = processa_contas($detalhes);
       //Processa array de campanhas
       $campaigns = processa_campaigns($campaigns);
       //Processa array de conjunto de anúncios
@@ -432,7 +434,7 @@ class App extends CI_Controller {
       $ads = processa_ads($ads);
       
       //Insere no banco de dados após processamento dos dados
-      $this->metricas->insertAccount($detalhes);
+      $this->metricas->insertAccount($contas);
       $this->metricas->insertCampaign($campaigns);
       $this->metricas->insertAdSet($adsets);
       $this->metricas->insertAd($ads);
