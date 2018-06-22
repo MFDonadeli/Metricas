@@ -43,27 +43,22 @@ function translate_conversions($conversions,$db)
 * @param campaigns(array): Os dados vindos do Facebook
 * @return array: Dados processados
 */
-function processa_contas($contas)
+function processa_contas($conta)
 {
-  foreach($contas as $conta)
+  //Atribuição: janela, schedule e pacing do conjunto
+  if(array_key_exists('funding_source_details',$conta))
   {
-    //Atribuição: janela, schedule e pacing do conjunto
-    if(array_key_exists('funding_source_details',$conta))
-    {
-      $fsd = json_encode($conta['funding_source_details']);
-      unset($conta['funding_source_details']);
-      $conta['funding_source_details'] = fsd;
-    }
-
-    if(array_key_exists('insights',$conta))
-    {
-      $conta['insights'] = processa_insights($conta['insights'],'conta');
-    }
-    
-    $contas_ret[] = $conta;
+    $fsd = json_encode($conta['funding_source_details']);
+    unset($conta['funding_source_details']);
+    $conta['funding_source_details'] = $fsd;
   }
 
-  return $contas_ret;
+  if(array_key_exists('insights',$conta))
+  {
+    $conta['insights'] = processa_insights($conta['insights'],'conta');
+  }
+
+  return $conta;
 }
 
 /**
