@@ -23,7 +23,7 @@ $config['facebook_login_type']          = 'web';
 $config['facebook_login_redirect_url']  = 'app/home';
 $config['facebook_logout_redirect_url'] = 'app/logout';
 $config['facebook_permissions']         = array('email','public_profile','ads_management');
-$config['facebook_graph_version']       = 'v2.11';
+$config['facebook_graph_version']       = 'v3.0';
 $config['facebook_auth_on_load']        = TRUE;
 
 $config['accounts']  = 'name,

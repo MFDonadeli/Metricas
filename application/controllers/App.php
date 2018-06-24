@@ -1643,8 +1643,9 @@ class App extends CI_Controller {
     */
     public function process_pagination($url)
     {
-      
-        $str = "https://graph.facebook.com/v2.11/";
+
+        $version = $this->config->item("facebook_graph_version");
+        $str = "https://graph.facebook.com/" . $version . "/";
         $next = str_replace($str, '', $url);
         $detalhes = $this->facebook->request('get', $next, $this->usrtkn);
 

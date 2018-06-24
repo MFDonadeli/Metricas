@@ -295,19 +295,9 @@ function processa_insights($insights, $tipo)
             $ad['ad_review_feedback_reason'] = $v;
             $ad['ad_review_feedback_description'] = $ad['ad_review_feedback']['global'][$v];
 
-            if(array_key_exists('facebook',$ad['ad_review_feedback']['placement_specific']))
-            {
-                $v = key($ad['ad_review_feedback']['placement_specific']['facebook']);
-                $ad['ad_review_feedback_placement_specific_facebook_reason'] = $v;
-                $ad['ad_review_feedback_placement_specific_facebook_description'] = $ad['ad_review_feedback']['placement_specific']['facebook'][$v];
-            }  
-            
-            if(array_key_exists('instagram',$ad['ad_review_feedback']['placement_specific']))  
-            {
-                $v = key($ad['ad_review_feedback']['placement_specific']['instagram']);
-                $ad['ad_review_feedback_placement_specific_instagram_reason'] = $v;
-                $ad['ad_review_feedback_placement_specific_instagram_description'] = $ad['ad_review_feedback']['placement_specific']['instagram'][$v];
-            }
+            $encode  = json_encode($ad['ad_review_feedback']['placement_specific']);
+            unset($ad['ad_review_feedback']['placement_specific']);
+            $ad['ad_review_feedback']['placement_specific'] = $encode;
           }
           unset($ad['ad_review_feedback']);
         }
@@ -315,28 +305,24 @@ function processa_insights($insights, $tipo)
         //Recomendações para melhorar o anúncio
         if(array_key_exists('recommendations',$ad))
         {
-          foreach($ad['recommendations'][0] as $key=>$val)
-          {
-            $ad['recommendations_'.$key] = $val;
-          }
-          if(count($ad['recommendations']) > 1)
-            log_message('debug','****IMPORTANTE****: Quantidade de Recomenações maior que 1');
-
+          $encode  = json_encode($ad['recommendations']);
           unset($ad['recommendations']); 
+          $ad['recommendations'] = $encode;
         }
 
         if(array_key_exists('tracking_specs',$ad))
         {
-          $ad['tracking_specs_action_type'] = $ad['tracking_specs'][0]['action.type'][0];
+          /*$ad['tracking_specs_action_type'] = $ad['tracking_specs'][0]['action.type'][0];
           foreach($ad['tracking_specs'] as $spec)
           {
             unset($spec['action.type']);
             $key = key($spec);
             if($key != '')
               $ad['tracking_specs_'.$key] = $spec[$key][0];
-          }
-
+          }*/
+          $encode  = json_encode($ad['tracking_specs']);
           unset($ad['tracking_specs']); 
+          $ad['tracking_specs'] = $encode;
         }
 
         if(array_key_exists('bid_info', $ad))
@@ -358,74 +344,17 @@ function processa_insights($insights, $tipo)
           $ad['creative']['ad_id'] = $ad['id'];
           if(array_key_exists('object_story_spec',$ad['creative']))
           {
-            //LINK DATA
-            if(array_key_exists('link_data',$ad['creative']['object_story_spec']))
-            {
-              if(array_key_exists('image_crops', $ad['creative']['object_story_spec']['link_data']))
-                unset($ad['creative']['object_story_spec']['link_data']['image_crops']);
-
-              if(array_key_exists('call_to_action', $ad['creative']['object_story_spec']['link_data']))
-              {
-                $ad['creative']['object_story_spec_link_data_call_to_action'] =
-                  $ad['creative']['object_story_spec']['link_data']['call_to_action']['type'];
-
-                unset($ad['creative']['object_story_spec']['link_data']['call_to_action']);
-              }
-
-              foreach($ad['creative']['object_story_spec']['link_data'] as $key1=>$val1)
-              {
-                if(is_array($val1))
-                {
-                  $val1 = json_encode($val1);
-                }
-
-                $ad['creative']['object_story_spec_link_data_'.$key1] = $val1;                  
-              }
-              unset($ad['creative']['object_story_spec']['link_data']);
-            }
-
-            //VIDEO DATA
-            if(array_key_exists('video_data',$ad['creative']['object_story_spec']))
-            {
-              if(array_key_exists('call_to_action', $ad['creative']['object_story_spec']['video_data']))
-              {
-                $ad['creative']['object_story_spec_video_data_call_to_action_type'] =
-                  $ad['creative']['object_story_spec']['video_data']['call_to_action']['type'];
-                
-                foreach($ad['creative']['object_story_spec']['video_data']['call_to_action']['value'] as $key2=>$val2)
-                {
-                  $col = 'object_story_spec_video_data_call_to_action_value_'.$key2;
-                  if(strlen($col) <= 64)
-                    $ad['creative'][$col] = $val2; 
-                }
-
-                unset($ad['creative']['object_story_spec']['video_data']['call_to_action']);
-              }
-
-              foreach($ad['creative']['object_story_spec']['video_data'] as $key1=>$val1)
-              {
-                $ad['creative']['object_story_spec_video_data_'.$key1] = $val1;                  
-              }
-              unset($ad['creative']['object_story_spec']['video_data']);
-            }
-
-            foreach($ad['creative']['object_story_spec'] as $key=>$val)
-            {
-              $ad['creative']['object_story_spec_'.$key] = $val;
-            }
+            $encode = json_encode($ad['creative']['object_story_spec']);
             unset($ad['creative']['object_story_spec']); 
+            $ad['creative']['object_story_spec'] = $encode;
           } 
 
-          if(array_key_exists('object_story_spec_photo_data',$ad['creative']))
+          if(array_key_exists('template_url_spec',$ad['creative']))
           {
-            if(array_key_exists('caption', $ad['creative']['object_story_spec_photo_data']))
-            {
-              $ad['creative']['object_story_spec_photo_data_caption'] = 
-                $ad['creative']['object_story_spec_photo_data']['caption'];
-
-              unset($ad['creative']['object_story_spec_photo_data']);
-            }
-          }
+            $encode = json_encode($ad['creative']['template_url_spec']);
+            unset($ad['creative']['template_url_spec']); 
+            $ad['creative']['template_url_spec'] = $encode;
+          } 
           //unset($ad['creative']);
         }
 
