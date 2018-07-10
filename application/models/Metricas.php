@@ -36,6 +36,10 @@ class Metricas extends CI_Model{
 
             $this->db->where('facebook_id', $data['facebook_id']); 
             $this->db->update('profiles', $data);
+
+            $period = $this->get_period_data($data['facebook_id']);
+
+            return $period;
         } 
         else
         {
@@ -58,6 +62,8 @@ class Metricas extends CI_Model{
             $this->db->insert('profiles', $data);
 
             $this->saveConfig('12', '1', $data['facebook_id']);
+
+            return null;
             
         }
 
@@ -78,7 +84,8 @@ class Metricas extends CI_Model{
         log_message('debug', 'getContas');
 
         $this->db->select("accounts.id, accounts.name, accounts.updated_time, accounts.account_status, 
-                sum(if(ads.effective_status = 'ACTIVE', 1, 0)) as anuncios_ativos");
+            accounts.balance,     
+            sum(if(ads.effective_status = 'ACTIVE', 1, 0)) as anuncios_ativos");
         $this->db->from("accounts");
         $this->db->join("ads","accounts.id = ads.account_id", "left");
         
@@ -1029,10 +1036,17 @@ class Metricas extends CI_Model{
     public function getTableData($id, $tipo)
     {
         log_message('debug', 'getTableData. Id:' . $id);
+
+        $user_id = $this->getuserid($fb_id);
+        $filtro_periodo = $this->filtro_periodo($user_id);
             
         $this->db->select('date_start, cost_per_inline_link_click, inline_link_click_ctr, inline_link_clicks,impressions, cpm, relevance_score_score, spend, bydate, ' . $tipo . '_insights_id');
         $this->db->from($tipo.'_insights');
         $this->db->where($tipo.'_id', $id);
+
+        if($filtro_periodo)
+            $this->db->where("date_start > '" . $filtro_periodo . "'");
+
         $this->db->order_by('bydate', 'DESC');
         $this->db->order_by('date_start');
         $result = $this->db->get();
@@ -1051,31 +1065,70 @@ class Metricas extends CI_Model{
     *
     * @param	id: O Id do tipo que será pesquisado
     * @param    tipo string: Qual tipo será pego: ad, adset, campaign
+    * @param    fb_id: Id do Facebook logado
     *             
     * @return	
     *    lista de dados (geral e por dia) do id do tipo pesquisado
     */
-    public function getTableDataFromTipo($id, $tipo)
+    public function getTableDataFromTipo($id, $tipo, $fb_id)
     {
+        log_message('debug', 'getTableDataFromTipo. Id:' . $id);
+
         $tipo1 = $tipo;
+
+        $user_id = $this->getuserid($fb_id);
+        $filtro_periodo = $this->filtro_periodo($user_id);
         
         if($tipo == 'account')
-            $tipo1 = 'campaign';
+        {
+            //Traz campanha
+            $this->db->select('campaign_insights_id as id_action, 
+                 "campaign" as tipo, campaigns.name, campaigns.id, campaigns.effective_status as status,
+                 campaigns.objective');
+            $this->db->from('campaign_insights');
+            $this->db->join('campaigns', 'campaigns.id = campaign_insights.campaign_id','right');
+            $this->db->where('campaigns.account_id', $id);
+
+            $this->db->where('bydate is null');
+            if($filtro_periodo) 
+                $this->db->where("campaigns.updated_time > '" . $filtro_periodo . "'");
+
+            $this->db->order_by('effective_status');
+        }
         else if($tipo == 'campaign')
-            $tipo1 = 'adset';
+        {
+            //Traz conjunto
+            $this->db->select('cost_per_inline_link_click as cpc, inline_link_click_ctr as ctr, cpm, adset_insights_id as id_action, 
+            adsets.effective_status, "adset" as tipo, adsets.name, adsets.id, adsets.effective_status as status,
+            adsets.promoted_object_custom_event_type as objetivo, adsets.daily_budget, adsets.budget_remaining');
+                $this->db->from('adset_insights');
+                $this->db->join('adsets', 'adsets.id = adset_insights.adset_id','right');
+                $this->db->where('adsets.campaign_id', $id);
+
+                $this->db->where('bydate is null');
+
+                if($filtro_periodo) 
+                    $this->db->where("adsets.updated_time > '" . $filtro_periodo . "'");
+
+                $this->db->order_by('effective_status');  
+        }
         else if($tipo == 'adset')
-            $tipo1 = 'ad';
+        {
+            $this->db->select('cost_per_inline_link_click as cpc, inline_link_click_ctr as ctr, cpm, ad_insights_id as id_action, 
+            ads.effective_status as status, ad_creatives.effective_object_story_id,
+             "ad" as tipo, ads.name, ads.id, relevance_score_score as relevancia, spend');
+            $this->db->from('ad_insights');
+            $this->db->join('ads', 'ads.id = ad_insights.ad_id');
+            $this->db->join("ad_creatives", "ads.id = ad_creatives.ad_id",'right');
+            $this->db->where('ads.adset_id', $id);
 
-        log_message('debug', 'getTableDataFromTipo. Id:' . $id);
+            if($filtro_periodo) 
+                $this->db->where("ads.updated_time > '" . $filtro_periodo . "'");
+
+            $this->db->where('bydate is null');
+            $this->db->order_by('effective_status');  
+        }
             
-        $this->db->select('cost_per_inline_link_click, inline_link_click_ctr, cpm, ' . $tipo1 . '_insights_id as id_action, ' .
-            $tipo1 . 's.effective_status, "' . $tipo1 . '" as tipo, ' . $tipo1 . 's.name, ' . $tipo1 . 's.id');
-        $this->db->from($tipo1.'_insights');
-        $this->db->join($tipo1."s", $tipo1 . "s.id = " . $tipo1 . "_insights." . $tipo1 . "_id");
-        $this->db->where($tipo1.'_insights.' . $tipo.'_id', $id);
-
-        $this->db->where('bydate is null');
-        $this->db->where('effective_status', 'ACTIVE');
         $result = $this->db->get();
 
         $sql = $this->db->last_query();
@@ -1145,8 +1198,10 @@ class Metricas extends CI_Model{
         $this->db->distinct();
         $this->db->select('action_type');
         $this->db->from($tipo.'_insights_actions');
+        $this->db->join($tipo.'_insights', $tipo.'_insights.' . $tipo . '_insights_id = '
+            . $tipo . '_insights_actions.' . $tipo . '_insights_id');
         $this->db->like('action_type', 'offsite_conversion.', 'after');
-        $this->db->where($subtipo.'_id', $id);
+        $this->db->where($tipo.'_insights.' . $subtipo.'_id', $id);
         
         $result = $this->db->get();
 
@@ -1186,12 +1241,13 @@ class Metricas extends CI_Model{
     * @param id: Id do tipo
     * @param tipo: Tipo
     * @param comissao: Comissao para cálculo do ROI
+    * @param id_fb: id_facebook logado
     */
-    public function get_resumo($id, $tipo, $comissao)
+    public function get_resumo($id, $tipo, $comissao, $id_fb)
     {
         log_message('debug', 'get_resumo. Id:' . $id);   
 
-        $tipos = $this->getTableDataFromTipo($id, $tipo);
+        $tipos = $this->getTableDataFromTipo($id, $tipo, $id_fb);
 
         $dados_ret = false;
 
@@ -1199,16 +1255,17 @@ class Metricas extends CI_Model{
         {
             $conversions = $this->getPossibleConversions($id, $tipo);
             
-            foreach($tipos as $val)
+            foreach($tipos as $valores)
             {
                 $dados = array();
-                $dados['id'] = $val->id;
-                $dados['nome'] = $val->name;
-                $dados['cpc'] = $val->cost_per_inline_link_click;
-                $dados['ctr'] = $val->inline_link_click_ctr;
-                $dados['cpm'] = $val->cpm;
+                foreach($valores as $key => $val)
+                {
+                    if($key == 'id_action' || $key == 'tipo')
+                        continue;
+                    $dados[$key] = $val;
+                }
 
-                $actions = $this->getTableDataActions($val->id_action, $val->tipo);
+                $actions = $this->getTableDataActions($valores->id_action, $valores->tipo);
                 foreach($actions as $action)    
                 {
                     if($action->action_type == 'offsite_conversion.fb_pixel_custom')
@@ -1341,6 +1398,58 @@ class Metricas extends CI_Model{
         log_message('debug', 'Last Query: ' . $this->db->last_query());
 
         return $result->row();
+    }
+
+    /**
+    * get_sum_gasto
+    *
+    * Traz a soma gasto dos anúncios
+    *
+    * @param	$id: Id do Facebook para trazer a soma
+    * @param    $produto: Se false traz para todos, ou traz para o produto
+    * @return	
+    *    Soma
+    */
+    function get_sum_gasto($id, $today = false, $produto = false)
+    {
+        log_message('debug', 'get_sum_gasto');
+
+        $this->db->select("sum(spend) as gasto");
+        $this->db->from("ad_insights");
+        $this->db->join("accounts", "ad_insights.account_id = accounts.id");
+
+        if($today)
+        {
+            $this->db->where("bydate = 1");
+            $this->db->where("date_start", $today);
+        }
+        else
+            $this->db->where("bydate is null");
+
+        $this->db->where("accounts.facebook_id", $id);
+
+        if($produto)
+        {
+            $sql = $this->db->get_compiled_select();
+            
+            $this->db->select("ad_id");
+            $this->db->from("ads_vendas");
+            $this->db->where("produto", $produto);
+
+            $sql_where = $this->db->get_compiled_select();
+
+            $sql = $sql . " AND ad_insights.ad_id in ( " .  $sql_where . ")";
+        }
+        else
+            $sql = $this->db->get_compiled_select();
+
+        $results = $this->db->query($sql);
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        $this->db->reset_query();
+
+        return $results->row()->gasto;
     }
 
     /**
@@ -1496,12 +1605,16 @@ WHERE roi > 0 and produto = '" . $produto . "'" );
     *
     * @param	id: O Id do tipo que será pesquisado
     * @param    tipo string: Qual tipo será pego: ad, adset, campaign
+    * @param    $fb_id: Id do Facebook logado
     * @return	
     *    lista de dados dos boletos gerados, pagos, cartões e seus valores agrupados por data e id
     */
-    function dados_vendas($id, $tipo)
+    function dados_vendas($id, $tipo, $fb_id)
     {
         log_message('debug', 'dados_vendas');
+
+        $user_id = $this->getuserid($fb_id);
+        $filtro_periodo = $this->filtro_periodo($user_id); 
 
         $this->db->select("sum(boletos_gerados) as boletos_gerados, sum(boletos_pagos) as boletos_pagos, 
             sum(cartoes) as cartoes, sum(boletos_pagos * comissao) as faturamento_boleto, 
@@ -1510,6 +1623,10 @@ WHERE roi > 0 and produto = '" . $produto . "'" );
 
         $this->db->from("ads_vendas");
         $this->db->where($tipo . "_id",$id);
+
+        if($filtro_periodo)
+            $this->db->where("data > '" . $filtro_periodo . "'");
+
         $this->db->group_by(array($tipo."_id","dt"));
         
         $result = $this->db->get();
@@ -1527,12 +1644,16 @@ WHERE roi > 0 and produto = '" . $produto . "'" );
     *
     * @param	id: O Id do tipo que será pesquisado
     * @param    tipo string: Qual tipo será pego: ad, adset, campaign
+    * @param    $fb_id: Id do Facebook logado
     * @return	
     *    lista de dados dos boletos gerados, pagos, cartões e seus valores agrupados por id
     */
-    function dados_vendas_geral($id, $tipo)
+    function dados_vendas_geral($id, $tipo, $fb_id)
     {
         log_message('debug', 'dados_vendas_geral');
+
+        $user_id = $this->getuserid($fb_id);
+        $filtro_periodo = $this->filtro_periodo($user_id); 
 
         $this->db->select("sum(boletos_gerados) as boletos_gerados, sum(boletos_pagos) as boletos_pagos, 
             sum(cartoes) as cartoes, sum(boletos_pagos * comissao) as faturamento_boleto, 
@@ -1540,6 +1661,10 @@ WHERE roi > 0 and produto = '" . $produto . "'" );
 
         $this->db->from("ads_vendas");
         $this->db->where($tipo . "_id",$id);
+
+        if($filtro_periodo)
+            $this->db->where("data > '" . $filtro_periodo . "'");
+
         $this->db->group_by(array($tipo . "_id"));
         
         $result = $this->db->get();
@@ -2054,12 +2179,74 @@ WHERE venda_status = 'Finalizada' and venda_forma_pagamento = 'Boleto')";
             return false;
     }
 
+
+    /**
+    * get_vendas_totais
+    *
+    * Traz vendas no sistema para o usuário logado
+    * @param    id: id do facebook logado
+    * @return	Quantidade de vendas para o id logado
+    */
+    public function get_vendas_totais($id)
+    {
+        log_message('debug', 'get_vendas_totais');  
+        
+        $user_id = $this->getuserid($id);
+
+        $plats = $this->busca_plataformas_vendas($user_id);
+        if($plats)
+            return false;
+        
+        $filtro_periodo = $this->filtro_periodo($user_id);
+
+        if($filtro_periodo)
+        {
+            $this->db->where("date_start > '" . $filtro_periodo . "'");
+        }
+
+        $this->db->select("sum(value) as vendas");
+        $this->db->from("ad_insights_actions");  
+        $this->db->join("accounts", "ad_insights_actions.account_id = accounts.account_id");
+        $this->db->where("action_type =  'offsite_conversion.fb_pixel_purchase'"); 
+        $this->db->where("accounts.facebook_id",$id);
+
+        $result = $this->db->get()->row()->vendas;
+
+        if($result == null)
+            $result = 0;
+
+        return $result;
+
+    }
+
+    /**
+    * get_vendas_plataforma
+    *
+    * Traz vendas no sistema
+    * @param    id: id do facebook logado
+    * @param    plataforma: nome da plataforma para ser consultada a venda or false para todas
+    * @param    nao_confirmados: Traz as associações não confirmadas?
+    * @param    produto: Se estiver preenchido traz o produto específico, senão, traz todos
+    * @param    tipo: 'all' traz para todos. Especificar caso queira o tipo "Cartão", "Boleto Impresso", "Boleto Pago", "Devolvida" 
+    * @param    id_diferente: false para trazer vendas do id logado true para os outros que não seja o logado
+    * @return	array do boletos pagos, gerados e cartões na monetizze
+    *           false se não achar nenhuma venda
+    */
     public function get_vendas_plataforma($id, $plataforma, $nao_confirmados = false, $produto = false, $tipo = 'all', $id_diferente = false)
     {
         log_message('debug', 'get_vendas_plataforma');  
         
         $user_id = $this->getuserid($id);
+        $plats = $this->busca_plataformas_vendas($user_id);
+
+        $filtro_periodo = $this->filtro_periodo($user_id);
+
+        if($filtro_periodo)
+        {
+            $this->db->where("data_compra > '" . $filtro_periodo . "'");
+        }
         
+        //Associações não confirmadas
         if($nao_confirmados)
         {
             $this->db->where("ad_status != 'OK'");    
@@ -2085,16 +2272,49 @@ WHERE venda_status = 'Finalizada' and venda_forma_pagamento = 'Boleto')";
         }
         else
         {
+            $this->db->select("*");
             $this->db->where("user_id", $user_id);
         }
 
 
-        $plataforma = strtolower($plataforma);
-        $result = $this->db->get("lista_vendas_".$plataforma);
+        if(!$plataforma)
+        {
+            if($plats)
+            {
+                $return = array();
+                $sql = $this->db->get_compiled_select("#plataforma#", false);
+                foreach($plats as $key => $val)
+                {
+                    $plataforma = strtolower($key);
+                    //View
+                    $sql_run = str_replace("#plataforma#", "lista_vendas_".$plataforma, $sql);
+                    $result = $this->db->query($sql_run);
+
+                    log_message('debug', 'Num_rows: ' . $result->num_rows() . ' Last Query: ' . $this->db->last_query());
+
+                    $return = array_merge($return, $result->result());       
+                }
+                $this->db->reset_query();
+            }
+            else
+            {
+                $this->db->reset_query();
+                return false;
+            }
+                
+        }
+        else
+        {
+            $plataforma = strtolower($plataforma);
+            //View
+            $result = $this->db->get("lista_vendas_".$plataforma);
+            
+            log_message('debug', 'Num_rows: ' . $result->num_rows() . ' Last Query: ' . $this->db->last_query());
+
+            $return = $result->result();
+        }
         
-        log_message('debug', 'Num_rows: ' . $result->num_rows() . ' Last Query: ' . $this->db->last_query());
-        
-        return $result->result();
+        return $return;
     }
 
     /**
@@ -2509,7 +2729,7 @@ campaigns.name as campanha, accounts.name as conta");
     * getConfig
     *
     * Traz configurações do usuário
-    * @param    $id: id da plataforma
+    * @param    $id: id do Facebook
     * @return	Configurações
     */
     public function getConfig($id)
@@ -2524,6 +2744,80 @@ campaigns.name as campanha, accounts.name as conta");
         log_message('debug', 'Last Query: ' . $this->db->last_query());
 
         return $result->row();
+    }
+
+    /**
+    * filtro_periodo
+    *
+    * Pega o período que o usuário optou por exibir
+    * @param    $id: facebook_id do usuario logado
+    * @return	-
+    */
+    public function filtro_periodo($user_id, $fb_id = false)
+    {
+        log_message('debug', 'filtro_periodo');
+
+        if($fb_id)
+            $user_id = $this->getuserid($user_id);
+
+        $ret = $this->get_period_data($user_id);
+
+        if($ret == null || $ret == 'historico')
+            return false;
+
+        if($ret == '30d')
+            $retorna = date('Y-m-d', strtotime("-30 days"));
+        else if($ret == '7d')
+            $retorna = date('Y-m-d', strtotime("-30 days"));
+        else if($ret == 'mes')
+            $retorna = date('Y-m-d', strtotime(date('Y-m-1')));
+
+        return $retorna;
+        
+        
+    }  
+
+    /**
+    * get_period_data
+    *
+    * Pega o período que o usuário optou por exibir
+    * @param    $id: facebook_id do usuario logado
+    * @return	-
+    */
+    public function get_period_data($id)
+    {
+        log_message('debug', 'get_period_data');   
+
+        //Verifica se existe este perfil no banco
+        $this->db->select('period_shown');
+        $this->db->from('config');
+        $this->db->where('user_id',$id);
+        $result = $this->db->get();
+
+        log_message('debug', 'Last Query: ' . $this->db->last_query());
+
+        return $result->row()->period_shown;
+    }
+
+    /**
+    * set_period_data
+    *
+    * Seta o período que o usuário optou por exibir
+    * @param    $id: facebook_id do usuario logado
+    * @param    $period: Período
+    * @return	-
+    */
+    public function set_period_data($id, $period)
+    {
+        log_message('debug', 'get_period_data');
+
+        $user_id = $this->getuserid($id);  
+        
+        $arr_data = array("period_shown" => $period);
+
+        //Verifica se existe este perfil no banco
+        $this->db->where('user_id', $user_id); 
+        $this->db->update('config', $arr_data);
     }
 
     /**

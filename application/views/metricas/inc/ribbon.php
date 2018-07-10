@@ -22,5 +22,32 @@
 		<span id="search" class="btn btn-ribbon" data-title="search"><i class="fa-search"></i> <span class="hidden-mobile">Search</span></span>
 		</span> -->
 
+		<?php
+			$style_30 = '';
+			$style_7 = '';
+			$style_hist = ''; 
+			$style_mes = ''; 
+			$style_active = "color:black; background-color:white; background-image:none";
+
+			if(!isset($period))
+				$style_hist = $style_active;
+			else if($period == '30d')
+				$style_30 = $style_active;
+			else if($period == '7d')
+				$style_7 = $style_active;
+			else if($period == 'mes')
+				$style_mes = $style_active;
+				
+		?>
+
+		<span class="ribbon-button-alignment pull-right">
+		<span style="color:white; float:left;">Período dos Dados: </span>
+		<span id="sp_hist" class="btn btn-ribbon btn-periodos" style="<?php echo $style_hist; ?>" data-title="historico" data-action="periodos"> Histórico</span>
+		<span id="sp_mes" class="btn btn-ribbon btn-periodos" style="<?php echo $style_mes; ?>" data-title="mes" data-action="periodos"> Este mês</span>
+		<span id="sp_30d" class="btn btn-ribbon btn-periodos" style="<?php echo $style_30; ?>" data-title="30d" data-action="periodos"> 30 dias</span>
+		<span id="sp_7d" class="btn btn-ribbon btn-periodos" style="<?php echo $style_7; ?>" data-title="7d" data-action="periodos"> 7 dias</span>
+		<span>.........  </span>
+		</span>
+
 	</div>
 	<!-- END RIBBON -->

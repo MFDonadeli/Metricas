@@ -1,5 +1,7 @@
 <?php require_once("inc/init.php"); ?>
 
+<script type='text/javascript' src='<?php echo ASSETS_URL; ?>/js/TableLock.js'></script>
+
 <style>
     .table-xtra-condensed > thead > tr > th,
     .table-xtra-condensed > tbody > tr > th,
@@ -44,13 +46,18 @@
                                 <td><?php echo $conta->name; ?></td>
                                 <?php
                                     if($conta->account_status == 1)
+                                    {
                                         echo "<td>Anúncios Ativos: " . $conta->anuncios_ativos . "</td>";
+                                        echo "<td>Total Gasto: " . $conta->balance .  "</td>";
+                                    }
                                     else
-                                        echo "<td>INATIVA OU BLOQUEADA</td>";
+                                    {
+                                        echo "<td colspan=2>INATIVA OU BLOQUEADA</td>";
+                                    }
                                 ?>
                             </tr>
                             <tr class="campanhas" id="tr_<?php echo $conta->id; ?>">
-                                <td id="td_<?php echo $conta->id; ?>" colspan=3></td>
+                                <td id="td_<?php echo $conta->id; ?>" colspan="4" style='background-color:red;'></td>
                             </tr>
                             <?php
                                 endforeach;
@@ -274,18 +281,18 @@
     $('.btn_campanhas').click(function(e){
       e.preventDefault();
 
-      valor = $(this).val();
+      valor = $(this).text();
       id = $(this).attr('id');
 
       if(valor == "+")
       {
-        $(this).val('-');
+        $(this).text('-');
         ajax_get_details(id, 'campanha');
         $("#tr_" + id).show();
       }
       else
       {
-        $(this).val('+');
+        $(this).text('+');
         $("#tr_" + id).hide();
       }
     });
@@ -294,18 +301,18 @@
     $(document).on('click', '.btn_conjuntos', function(e){
       e.preventDefault();
 
-      valor = $(this).val();
+      valor = $(this).text();
       id = $(this).attr('id');
 
       if(valor == "+")
       {
-        $(this).val('-');
+        $(this).text('-');
         ajax_get_details(id, 'conjunto');
         $("#tr_" + id).show();
       }
       else
       {
-        $(this).val('+');
+        $(this).text('+');
         $("#tr_" + id).hide();
       }
     });
@@ -314,18 +321,18 @@
     $(document).on('click', '.btn_anuncios', function(e){
       e.preventDefault();
 
-      valor = $(this).val();
+      valor = $(this).text();
       id = $(this).attr('id');
 
       if(valor == "+")
       {
-        $(this).val('-');
+        $(this).text('-');
         ajax_get_details(id, 'anuncio');
         $("#tr_" + id).show();
       }
       else
       {
-        $(this).val('+');
+        $(this).text('+');
         $("#tr_" + id).hide();
       }
     });
@@ -344,7 +351,7 @@
             async:false,
             success: function(msg) { 
                 console.log(msg);
-                $('#td_' + id).html(msg);    
+                $('#td_' + id).html(msg); 
             }
         }).responseText;
 
@@ -444,6 +451,8 @@
                 //$('#numeros-content').html("<a class='btn btn-primary btn-lg' href='<?php echo base_url(); ?>template/" + obj.filename.trim() + "'>Baixar Planilha</a><br><br><iframe width='100%' height='600 px' src='https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>template/" + obj.filename.trim() + "'>");
                 $('#numeros-content').html(obj.filename.content);
                 $('#grafico').show();
+
+                TableLock("table_numero", "freeze_vertical", "freeze_horizontal", "freeze_both");
                 //var redirectWindow = window.open('https://view.officeapps.live.com/op/embed.aspx?src=<?php echo base_url(); ?>template/' + obj.filename.trim(),'_blank');
 
                 //$("#wid-id-3").wrap("<div id='jarviswidget-fullscreen-mode'></div>")

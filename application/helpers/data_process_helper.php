@@ -405,6 +405,16 @@ function processa_insights($insights, $tipo)
           unset($adset['promoted_object']); 
         }
 
+        if(array_key_exists('frequency_control_specs', $adset))
+        {
+          foreach($adset['frequency_control_specs'][0] as $key=>$val)
+          {
+            $adset['frequency_control_specs_'.$key] = $val;
+          }
+          log_message('debug','****IMPORTANTE****: Quantidade de frequency_control_specs:' . count($adset['frequency_control_specs']));
+          unset($adset['frequency_control_specs']);   
+        }
+
         if(array_key_exists('bid_info', $adset))
         {
           $adset['bid_info'] = $adset['bid_info']['ACTIONS'];
@@ -453,6 +463,33 @@ function processa_insights($insights, $tipo)
       }
 
       return $retorno;
+    }
+
+    /**
+     * createDateRange
+     * 
+     * Returns every date between two dates as an array
+     * @param string $startDate the start of the date range
+     * @param string $endDate the end of the date range
+     * @param string $format DateTime format, default is Y-m-d
+     * @return array returns every date between $startDate and $endDate, formatted as "Y-m-d"
+     */
+    function createDateRange($startDate, $format = "Y-m-d")
+    {
+        $today = date($format);
+
+        $begin = new DateTime($startDate);
+        $end = new DateTime($today);
+
+        $interval = new DateInterval('P1D'); // 1 Day
+        $dateRange = new DatePeriod($begin, $interval, $end);
+
+        $range = [];
+        foreach ($dateRange as $date) {
+            $range[$date->format($format)] = 0;
+        }
+
+        return $range;
     }
 
     

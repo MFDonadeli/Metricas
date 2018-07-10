@@ -608,14 +608,16 @@ class App extends CI_Controller {
       //Comissão tem que ser número
       if(!is_numeric($comissao)) $comissao = 0;
 
+      $fb_id = $this->session->userdata('facebook_id');
+
       //Caso não haja dados de postback sincronizado para o id
       $sem_dado_venda = true;
       //Traz os dados a serem mostrados na planilha
-      $resultado = $this->metricas->getTableData($id, $tipo);
+      $resultado = $this->metricas->getTableData($id, $tipo, $fb_id);
       //Traz os dados de postback sincronizado, por dia
-      $dados_vendas = $this->metricas->dados_vendas($id, $tipo);
+      $dados_vendas = $this->metricas->dados_vendas($id, $tipo, $fb_id);
       //Traz os dados de postback sincronizado, geral
-      $dados_vendas_geral = $this->metricas->dados_vendas_geral($id, $tipo);
+      $dados_vendas_geral = $this->metricas->dados_vendas_geral($id, $tipo, $fb_id);
 
       $conversions = "";
 
@@ -762,80 +764,160 @@ class App extends CI_Controller {
     {
       log_message('debug', 'get_resumo');   
 
-      $retorno = $this->metricas->get_resumo($id, $tipo, $comissao);
+      $retorno = $this->metricas->get_resumo($id, $tipo, $comissao,$this->session->userdata('facebook_id'));
 
       if(!$retorno)
         return false;
 
       $header = "<tr>";
+      $body = "";
 
       if($tipo == 'account')
       {
-        $header .="<th></th>";
         $subtipo = 'campanha';
         $menor = 'conjuntos';
-        $count = 5;
+        $count = 6;
+
+        $header .="<th></th>";
+        $header .= "<th>Status</th>";
+        $header .= "<th>Nome</th>";
+        $header .= "<th>Objetivo</th>";
+        $header .= "<th>Conversões</th>";
+        $header .="<th></th>";
+        $header .= "</tr>";
+
+        foreach($retorno as $ret)
+        {
+          $conv = "-";
+
+          $body .= '<tr>';
+          $body .= '<td width="10px"><button class="btn_conjuntos" id="' . $ret['id'] . '">+</button></td>';
+          $body .= '<td>' . $ret['status'] . '</td>';
+          $body .= '<td>' . $ret['name'] . '</td>';
+          $body .= '<td>' . $ret['objective'] . '</td>';
+          if($translate)
+          {
+            foreach($translate as $key => $val)
+            {
+              if(isset($ret[$key]))
+                $conv .= "<strong>" . $val . ":</strong> " . $ret[$key] ."<br>";
+            }
+          }
+          $body .= '<td style="font-size: x-small;">' . $conv . '</td>';
+          $body .= '<td width="10px"><button class="btnvernumeros" id="campanha_' . $ret['id'] . '">Ver números</button></td>';
+
+          $body .= "</tr>";
+          $body .= "<tr class='campanhas' id='tr_" . $ret['id'] . "' style='display: none;background-color:green;'>";
+          $body .= "<td id=td_" . $ret['id'] . " colspan=" . $count . "></td>";
+        }
+
       }
       else if($tipo == 'campaign')
       {
         $header .="<th></th>";
         $subtipo = 'conjunto';
         $menor = 'anuncios';
-        $count = 5;
+        $count = 9;
+
+        $header .= "<th>Status</th>";
+        $header .= "<th>Nome</th>";
+        $header .= "<th>Objetivo</th>";
+        $header .= "<th>Métricas</th>";
+        $header .= "<th>Orçamento</th>";
+        $header .= "<th>Conversões</th>";
+        $header .="<th></th>";
+        $header .= "</tr>";
+
+        foreach($retorno as $ret)
+        {
+          $conv = "-";
+
+          $body .= '<tr>';
+          $body .= '<td width="10px"><button class="btn_anuncios" id="' . $ret['id'] . '">+</button></td>';
+          $body .= '<td>' . $ret['status'] . '</td>';
+          $body .= '<td>' . $ret['name'] . '</td>';
+          $body .= '<td>' . $ret['objetivo'] . '</td>';
+
+          $metricas = "CPC: " . $ret['cpc'] . "<br>";
+          $metricas .= "CTR: " . $ret['ctr'] . "<br>";
+          $metricas .= "CPM: " . $ret['cpm'] . "<br>";
+
+          $body .= '<td>' . $metricas . '</td>';
+
+          $metricas = "Por Dia: " . $ret['daily_budget'] . "<br>";
+          $metricas .= "Resta: " . $ret['budget_remaining'] . "<br>";
+
+          $body .= '<td>' . $metricas . '</td>';
+
+          if($translate)
+          {
+            foreach($translate as $key => $val)
+            {
+              if(isset($ret[$key]))
+                $conv .= "<strong>" . $val . ":</strong> " . $ret[$key] ."<br>";
+            }
+          }
+          $body .= '<td style="font-size: x-small;">' . $conv . '</td>';
+          $body .= '<td width="10px"><button class="btnvernumeros" id="conjunto_' . $ret['id'] . '" >Ver números</button></td>';
+
+          $body .= "</tr>";
+          $body .= "<tr class='conjuntos' id='tr_" . $ret['id'] . "' style='display: none;background-color:yellow;'>";
+          $body .= "<td id=td_" . $ret['id'] . " colspan=" . $count . "></td>";
+        }
       }
       else 
       {
         $count = 4;
         $subtipo = 'anuncio';
-      } 
 
-      $header .="<th>Nome</th>";
-      $header .="<th>CPC</th>";
-      $header .="<th>CTR</th>";
-      $header .="<th>CPM</th>";
-      if($translate)
-      {
-        foreach($translate as $key => $val)
-        {
-          $count++;
-          $header .="<th>".$val."</th>";
-        }
-      }
-      $header .="<th></th>";
-      $count++;
-      $header .= "</tr>";
+        $header .= "<th>Status</th>";
+        $header .= "<th>Nome</th>";
+        $header .= "<th>Métricas</th>";
+        $header .= "<th>Gasto</th>";
+        $header .= "<th>Relevância</th>";
+        $header .= "<th>Conversões</th>";
+        $header .= "<th></th>";
+        $header .="<th></th>";
+        $header .= "</tr>";
 
-      $body = "";
-      foreach($retorno as $ret)
-      {
-        $title = $subtipo . " de " . $ret['nome'];
-        $body .= "<tr>";
-        if($tipo != 'adset')
-          $body .= '<td width="10px"><button class="btn_' . $menor . '" id="' . $ret['id'] . '">+</button></td>';
-        
-        $body .= "<td>" . $ret['nome'] . "</td>";
-        $body .= "<td>" . $ret['cpc'] . "</td>";
-        $body .= "<td>" . $ret['ctr'] . "</td>";
-        $body .= "<td>" . $ret['cpm'] . "</td>";
-        if($translate)
+        foreach($retorno as $ret)
         {
-          foreach($translate as $key => $val)
+          $conv = "-";
+
+          $view_ad = explode("_", $ret['effective_object_story_id']);
+
+          $body .= '<tr>';
+          $body .= '<td>' . $ret['status'] . '</td>';
+          $body .= '<td>' . $ret['name'] . '</td>';
+
+          $metricas = "CPC: " . $ret['cpc'] . "<br>";
+          $metricas .= "CTR: " . $ret['ctr'] . "<br>";
+          $metricas .= "CPM: " . $ret['cpm'] . "<br>";
+
+          $body .= '<td>' . $metricas . '</td>';
+          $body .= '<td>' . $ret['spend'] . '</td>';
+          $body .= '<td>' . $ret['relevancia'] . '</td>';
+          if($translate)
           {
-            if(isset($ret[$key]))
-              $body .="<td>".$ret[$key]."</td>";
-            else
-              $body .="<td>-</td>";
+            foreach($translate as $key => $val)
+            {
+              if(isset($ret[$key]))
+                $conv .= "<strong>" . $val . ":</strong> " . $ret[$key] ."<br>";
+            }
           }
+          $body .= '<td style="font-size: x-small;">' . $conv . '</td>';
+          $body .= '<td><a href="https://facebook.com/' . $view_ad[0] . '/posts/' . $view_ad[1] . '" target="_blank">Ver Anúncio</a></td>';
+          $body .= '<td width="10px"><button class="btnvernumeros" id="anuncio_' . $ret['id'] . '">Ver números</button></td>';
+
+          $body .= "</tr>";
         }
-        $body .= '<td width="10px"><button class="btnvernumeros" id="' . $subtipo . '_' . $ret['id'] . '">Ver números</button></td>';
+      } 
+      
+      
+        
 
-        $body .= "</tr>";
-        $body .= "<tr class='" . $subtipo . "s' id='tr_" . $ret['id'] . "'>";
-        $body .= "<td id=td_" . $ret['id'] . " colspan=" . $count . "></td>";
-      }   
-
-      $val_ret = "<h2>" . $title . "</h2>";
-      $val_ret .= "<table class='table table-bordered table-striped table-condensed table-hover'>";
+      //$val_ret = "<h2>" . $title . "</h2>";
+      $val_ret = "<table class='table table-bordered table-striped table-condensed table-hover'>";
       $val_ret .= $header;
       $val_ret .= $body;
       $val_ret .= "</table>";
@@ -878,6 +960,10 @@ class App extends CI_Controller {
 
         //Para cada conta deste Facebook
         $results = $this->metricas->getContas($profile->id);
+
+        if(!$results)
+          continue;
+
         foreach($results as $result)
         {
           //Sincroniza as contas
@@ -1211,6 +1297,41 @@ class App extends CI_Controller {
     */
     public function desempenho_produto()
     {
+      $id = $this->session->userdata('facebook_id');
+
+      $tokens = $this->metricas->getUserTokens($id);
+
+      if(!$tokens)
+        $data['token_msg'] = "Você não tem nenhum postback configurado!";
+
+      $vendas = $this->metricas->get_best_ads($id);
+
+      if(!$vendas)
+        $data['ads_msg'] = "Não existem anúncios com vendas na sua conta";
+      else
+      {
+        foreach($vendas as $venda)
+        {
+          if(empty($venda->tipo_id))
+          {
+            $data['ads_msg'] = "Existem anúncios que não foram acessadas as métricas, por favor gere as métricas para todos os anúncios das contas cadastradas para ter o seu resultado completo!";
+          }
+        } 
+      }
+
+      $data['vendas'] = $vendas;
+
+      $this->load->view('metricas/desempenho_produto',$data);   
+
+    }
+
+    /**
+    * painel
+    *
+    * Traz os tokens para o usuario logado
+    */
+    public function painel()
+    {
       log_message('debug', 'desempenho_produto'); 
 
       $id = $this->metricas->getuserid($this->session->userdata('facebook_id'));
@@ -1219,8 +1340,21 @@ class App extends CI_Controller {
 
       $data['produtos'] = $result;
 
-      $this->load->view('metricas/desempenho_produto',$data);
+      //Pega desempenho de todos os produto
+      //$data['desempenho'] = $this->get_desempenho_produto(true);
 
+      $tokens = $this->metricas->getUserTokens($id);
+
+      if(!$tokens)
+        $data['token_msg'] = "Você não tem nenhum postback configurado!";
+
+      $vendas = $this->metricas->get_best_ads($id);
+
+      if(!$vendas)
+        $data['ads_msg'] = "Não existem anúncios com vendas na sua conta";
+
+      $this->load->view('metricas/painel',$data);
+      
     }
 
     /**
@@ -1229,16 +1363,24 @@ class App extends CI_Controller {
     * Carrega informações do resumo consolidado dos dados de postback por produto
     *  e seu próprio desempenho comparando com outros anunciantes.
     */
-    public function get_desempenho_produto()
+    public function get_desempenho_produto($todos = false)
     {
       log_message('debug', 'get_desempenho_produto  '); 
 
-      if(isset($_POST['produto']))
+      if(isset($_POST['produto']) || $todos)
       {
         $produto = $this->input->post('produto');
         $val = $this->input->post('val');
         $plataforma = $this->input->post('plataforma');
 
+        if($todos || $val == -1)
+        {
+          $produto = false;
+          $val = null;
+          $plataforma = false;
+        }
+        
+        $venda_array = array();
         $vendas_user_cartao = $this->metricas->get_vendas_plataforma($this->session->userdata('facebook_id'), $plataforma, false, $produto, 'Cartão');
         $vendas_user_bimpresso = $this->metricas->get_vendas_plataforma($this->session->userdata('facebook_id'), $plataforma, false, $produto, 'Boleto Impresso');
         $vendas_user_bpago = $this->metricas->get_vendas_plataforma($this->session->userdata('facebook_id'), $plataforma, false, $produto, 'Boleto Pago');
@@ -1254,111 +1396,123 @@ class App extends CI_Controller {
         $user_bpago = count($vendas_user_bpago);
         $user_devolvida = count($vendas_user_devolvida);
 
-        $user_vendas = $user_cartao + $user_bpago - $user_devolvida;
+        $totais = $this->metricas->get_vendas_totais($this->session->userdata('facebook_id'));
+        if($totais !== false)
+          $user_vendas = $totais;
+        else
+          $user_vendas = $user_cartao + $user_bpago - $user_devolvida;
+
         $user_conversao = $user_bpago == 0 ? 0 : ($user_bpago / ($user_bimpresso + $user_bpago)) * 100;
 
-        $primeira_data_user[] = $user_cartao == 0 ? null : $vendas_user_cartao[0]->data_compra;
-        $primeira_data_user[] = $user_bpago == 0 ? null : $vendas_user_bpago[0]->data_compra;
-
         $today = date('Y-m-d');
-        //$today = '2017-08-22 14:46:56';
-        $sete_dias = date('Y-m-d',strtotime($today . "-7 days"));
-        $tres_dias = date('Y-m-d',strtotime($today . "-3 days"));
-
+        //$today = '2017-07-14';
+        
         $intervalo = 0;
-        if($user_vendas > 0)
+        if($user_vendas > 0 && $totais === false)
         {
+          $primeira_data_user[] = $user_cartao == 0 ? null : $vendas_user_cartao[0]->data_compra;
+          $primeira_data_user[] = $user_bpago == 0 ? null : $vendas_user_bpago[0]->data_compra;
+
           $primeira_venda = min(array_filter($primeira_data_user));
           
           $dt1 = new DateTime($primeira_venda);
           $dt2 = new DateTime('today');
           $intervalo = $dt2->diff($dt1)->format('%a');  
         }
+        else
+        {
+          $primeira_venda = date('Y-m-d', strtotime("-30 days"));
+        }
+
+        $periodo = $this->metricas->filtro_periodo($this->session->userdata('facebook_id'), true);
+        if(!$periodo) 
+          $periodo = date('Y-m-d', strtotime($primeira_venda));
+
+        $venda_array = createDateRange($periodo);
 
         $user_comissao_cartao = 0;
         $user_comissao_boleto = 0;
         $user_comissao_devolvida = 0;
-        $user_venda_7dias = 0;
-        $user_venda_3dias = 0;
-        $user_venda_cartao_7dias = 0;
-        $user_venda_cartao_3dias = 0;
-        $user_venda_bpago_7dias = 0;
-        $user_venda_bpago_3dias = 0;
-        $user_venda_bimpresso_7dias = 0;
-        $user_venda_bimpresso_3dias = 0;
+        $user_venda_hoje = 0;
+        $user_venda_cartao_hoje = 0;
+        $user_venda_bpago_hoje = 0;
+        $user_venda_bimpresso_hoje = 0;
+        $user_comissao_cartao_hoje = 0;
+        $user_comissao_boleto_hoje = 0;
+        $user_comissao_devolvida_hoje = 0;
 
-        foreach($vendas_user_cartao as $venda)
+        if(is_array($vendas_user_cartao))
         {
-          if($venda->data_compra >= $sete_dias)
+          foreach($vendas_user_cartao as $venda)
           {
-            $user_venda_7dias++;
-            $user_venda_cartao_7dias++;
-          }
+            $date = date('Y-m-d', strtotime($venda->data_compra));
+            
+            $venda_array[$date]++;
 
-          if($venda->data_compra >= $tres_dias)
-          {
-            $user_venda_3dias++;
-            $user_venda_cartao_3dias++;
-          }
+            if($date == $today)
+            {
+              $user_venda_hoje++;
+              $user_venda_cartao_hoje++;
+              $user_comissao_cartao_hoje += $venda->comissao; 
+            }
 
-          $user_comissao_cartao += $venda->comissao;          
+            $user_comissao_cartao += $venda->comissao;          
+          }
         }
 
         $comissao_boleto = 0;
-        foreach($vendas_user_bpago as $venda)
+        if(is_array($vendas_user_bpago))
         {
-          if($venda->data_compra >= $sete_dias)
+          foreach($vendas_user_bpago as $venda)
           {
-            $user_venda_7dias++;
-            $user_venda_bpago_7dias++;
-          }
+            $date = date('Y-m-d', strtotime($venda->data_compra));
+            
+            $venda_array[$date]++;
 
-          if($venda->data_compra >= $tres_dias)
-          {
-            $user_venda_3dias++;
-            $user_venda_bpago_3dias++;
-          }
+            if($date == $today)
+            {
+              $user_venda_hoje++;
+              $user_venda_bpago_hoje++;
+              $user_comissao_boleto_hoje += $venda->comissao;  
+            }
 
-          $user_comissao_boleto += $venda->comissao;          
+            $user_comissao_boleto += $venda->comissao;          
+          }
         }
 
-        foreach($vendas_user_bimpresso as $venda)
+        if(is_array($vendas_user_bimpresso))
         {
-          if($venda->data_compra >= $sete_dias)
+          foreach($vendas_user_bimpresso as $venda)
           {
-            $user_venda_bimpresso_7dias++;
-          }
+            if(date('Y-m-d', strtotime($venda->data_compra)) == $today)
+            {
+              $user_venda_bimpresso_hoje++;
+            }
 
-          if($venda->data_compra >= $tres_dias)
-          {
-            $user_venda_bimpresso_7dias++;
+            $comissao_boleto += $venda->comissao;          
           }
-
-          $comissao_boleto += $venda->comissao;          
         }
 
         $comissao_devolvida = 0;
-        foreach($vendas_user_devolvida as $venda)
+        if(is_array($vendas_user_devolvida))
         {
-          $comissao_devolvida += $venda->comissao; 
-          
-          if($venda->data_compra >= $sete_dias)
+          foreach($vendas_user_devolvida as $venda)
           {
-            $user_venda_7dias--;
-          }
+            $comissao_devolvida += $venda->comissao; 
+            
+            if($venda->data_compra == date('Y-m-d', strtotime($today)))
+            {
+              $user_venda_hoje--;
+              $user_comissao_devolvida_hoje += $venda->comissao; 
+            }
 
-          if($venda->data_compra >= $tres_dias)
-          {
-            $user_venda_3dias--;
+            $user_comissao_devolvida += $venda->comissao; 
           }
-
-          $user_comissao_devolvida += $venda->comissao; 
         }
        
         $media_vendas_user = $intervalo == 0 ? 0 : $user_vendas / $intervalo;
-        $media_vendas_7dias_user = $user_venda_7dias / 7;
-        $media_vendas_3dias_user = $user_venda_3dias / 3;
         $user_comissao = $user_comissao_cartao + $user_comissao_boleto - $user_comissao_devolvida;
+        $user_comissao_hoje = $user_comissao_cartao_hoje + $user_comissao_boleto_hoje - $user_comissao_devolvida_hoje;
 
         $data['user_vendas'] = $user_vendas;
         $data['media_vendas_user'] = sprintf("%.2f", $media_vendas_user);
@@ -1368,14 +1522,27 @@ class App extends CI_Controller {
         $data['user_bimpresso'] = $user_bimpresso;
         $data['user_conversao'] = sprintf("%.2f", $user_conversao);
         $data['user_devolvida'] = $user_devolvida;
-        $data['user_venda_7dias'] = $user_venda_7dias;
-        $data['media_vendas_7dias_user'] = sprintf("%.2f", $media_vendas_7dias_user);
-        $data['user_venda_3dias'] = $user_venda_3dias;
-        $data['media_vendas_3dias_user'] = sprintf("%.2f", $media_vendas_3dias_user);
+
+        $data['user_venda_hoje'] = $user_venda_hoje;
+        $data['user_comissao_hoje'] = sprintf("%.2f", $user_comissao_hoje);
+        $data['user_cartao_hoje'] = $user_venda_cartao_hoje;
+        $data['user_bpago_hoje'] = $user_venda_bpago_hoje;
+        $data['user_bimpresso_hoje'] = $user_venda_bimpresso_hoje;
+        $data['user_devolvida_hoje'] = $user_comissao_devolvida_hoje;
+
+        $valor_gasto = $this->metricas->get_sum_gasto($this->session->userdata('facebook_id'), false, $produto);
+        $valor_gasto_hoje = $this->metricas->get_sum_gasto($this->session->userdata('facebook_id'), $today, $produto);
+
+        $data['valor_gasto'] = ($valor_gasto ? round($valor_gasto,2) : "0.00");
+        $data['valor_gasto_hoje'] = ($valor_gasto_hoje ? round($valor_gasto_hoje,2) : "0.00");
 
         $html = $this->load->view('metricas/apresenta_desempenho',$data, true);
 
-        echo $html;
+        $array_retorno['html'] = $html;
+        $array_retorno['array_x'] = array_keys($venda_array);
+        $array_retorno['array_y'] = array_values($venda_array);
+
+        echo json_encode($array_retorno);
       }
 
     }
@@ -1551,7 +1718,9 @@ class App extends CI_Controller {
               $this->fb_id = $userID;
 
               // Insert or update user data
-              $this->metricas->checkUser($userData);
+              $period = $this->metricas->checkUser($userData);
+
+              $data['period'] = $period;
 
               unset($userData['token']);
               unset($userData['token_expiration']);
@@ -1582,6 +1751,21 @@ class App extends CI_Controller {
         {
           redirect("app/");
         }
+    }
+
+    /**
+    * set_period
+    * 
+    * Função para setar o período que os dados vão ser mostrados
+    */
+    public function set_period()
+    {
+      if(isset($_POST['periodo']))
+      {
+        $period = $this->input->post('periodo');
+        $id = $this->session->userdata('facebook_id');
+        $this->metricas->set_period_data($id, $period);
+      }  
     }
 
     /**
@@ -1628,7 +1812,7 @@ class App extends CI_Controller {
       $conversions = $this->metricas->getPossibleConversions($id, $tipo, true);
       $translate = translate_conversions($conversions, $this->metricas);
 
-      $retorno = $this->get_resumo(trim($id), $tipo, $comissao, $translate);
+      $retorno = $this->get_resumo(trim($id), $tipo, $comissao, $translate,$this->session->userdata('facebook_id'));
     
       echo $retorno;
     }
@@ -1902,41 +2086,6 @@ class App extends CI_Controller {
       $ret = $this->load->view('metricas/resumo_funil',$data, true); 
 
       echo $ret;
-    }
-
-    /**
-    * painel
-    *
-    * Traz os tokens para o usuario logado
-    */
-    public function painel()
-    {
-      $id = $this->session->userdata('facebook_id');
-
-      $tokens = $this->metricas->getUserTokens($id);
-
-      if(!$tokens)
-        $data['token_msg'] = "Você não tem nenhum postback configurado!";
-
-      $vendas = $this->metricas->get_best_ads($id);
-
-      if(!$vendas)
-        $data['ads_msg'] = "Não existem anúncios com vendas na sua conta";
-      else
-      {
-        foreach($vendas as $venda)
-        {
-          if(empty($venda->tipo_id))
-          {
-            $data['ads_msg'] = "Existem anúncios que não foram acessadas as métricas, por favor gere as métricas para todos os anúncios das contas cadastradas para ter o seu resultado completo!";
-          }
-        } 
-      }
-
-      $data['vendas'] = $vendas;
-
-      $this->load->view('metricas/painel',$data); 
-      
     }
 
     public function get_activities()

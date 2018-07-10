@@ -1,104 +1,100 @@
 <style>
-    #exampleB {
+    .exampleB {
         margin: 10px;
     }
 
     .example3 {
         width: 150px;
-        height: 100px;
-        background-color: #85b9e9;
-        margin-right: 20px;
+        height: 70px;
+        background-color: white;
+        margin: 5px;
         float: left;
         box-shadow: 0px 0px 10px #666666;  
     }
+
+    .destaque-numero{
+        font-size: 19px;
+        font-weight: bold;
+    }
+
 </style>
-<div id="exampleB">
+<div class="exampleB">
 <div class="example3">
    <center>
-      Vendas
-      <h3>
-         <strong><?php echo $user_vendas; ?></strong>
-      </h3>
-      <p>
-         Média de <?php echo $media_vendas_user; ?> por dia
-      </p>
+      Vendas Hoje<br>
+         <span class='destaque-numero'><?php echo $user_venda_hoje; ?></span>
    </center>
 </div>
 <div class="example3">
    <center>
-      Valor Recebido
-      <h3>
-         <strong>R$ <?php echo $user_comissao; ?></strong>
-      </h3>
+      Faturamento Hoje<br>
+         <span class='destaque-numero'>R$ <?php echo $user_comissao_hoje; ?></span>
+   </center>
+</div>
+<div class="example3">
+   <center>
+      Vendas no Período<br>
+         <span class='destaque-numero'><?php echo $user_vendas; ?></span><br>
+         Média de <?php echo $media_vendas_user; ?> por dia
+   </center>
+</div>
+<div class="example3">
+   <center>
+      Faturamento no Período<br>
+         <span class='destaque-numero'>R$ <?php echo $user_comissao; ?></span>
+   </center>
+</div>
+<div class="example3">
+   <center>
+      Investimento Hoje<br>
+         <span class='destaque-numero'>R$ <?php echo $valor_gasto_hoje; ?></span>
+   </center>
+</div>
+<div class="example3">
+   <center>
+      Investimento no Período<br>
+         <span class='destaque-numero'>R$ <?php echo $valor_gasto; ?></span>
+   </center>
+</div>
+<div class="example3">
+   <center>
+      Devoluções Hoje<br>
+         <span class='destaque-numero'><?php echo $user_devolvida_hoje; ?></span>
+   </center>
+</div>
+<div class="example3">
+   <center>
+      Devoluções no Período<br>
+        <span class='destaque-numero'><?php echo $user_devolvida; ?></span>
+   </center>
+</div>
+<div class="example3">
+   <center>
+      Cartões<br>
+      <span class='destaque-numero'><?php echo $user_cartao; ?></span><br>
+         Hoje: <?php echo $user_cartao_hoje; ?>
+   </center>
+</div>
+<div class="example3">
+   <center>
+      Boletos Pagos<br>
+      <span class='destaque-numero'><?php echo $user_bpago; ?></span><br>
+         Hoje: <?php echo $user_bpago_hoje; ?>
+   </center>
+</div>
+<div class="example3">
+   <center>
+      Boletos Gerados<br>
+      <span class='destaque-numero'><?php echo $user_bimpresso; ?></span><br>
+      Hoje: <?php echo $user_bimpresso_hoje; ?>
+   </center>
+</div>
+<div class="example3">
+   <center>
+      Conversão de Boletos<br>
+      <span class='destaque-numero'><?php echo $user_conversao; ?>%</span><br>
    </center>
 </div>
 <p style="clear: left;"> </p>
 </div>
-<div id="exampleB">
-<div class="example3">
-   <center>
-      Cartões
-      <h3>
-         <strong><?php echo $user_cartao; ?></strong>
-      </h3>
-   </center>
-</div>
-<div class="example3">
-   <center>
-      Boletos Pagos
-      <h3>
-         <strong><?php echo $user_bpago; ?></strong>
-      </h3>
-   </center>
-</div>
-<div class="example3">
-   <center>
-      Boletos Gerados
-      <h3>
-         <strong><?php echo $user_bimpresso; ?></strong>
-      </h3>
-   </center>
-</div>
-<div class="example3">
-   <center>
-      Conversão de Boletos
-      <h3>
-         <strong><?php echo $user_conversao; ?>%</strong>
-      </h3>
-   </center>
-</div>
-<div class="example3">
-   <center>
-      Devoluções
-      <h3>
-         <strong><?php echo $user_devolvida; ?></strong>
-      </h3>
-   </center>
-</div>
-<p style="clear: left;"></p>
-</div>
-<div id="exampleB">
-<div class="example3">
-   <center>
-      Vendas Última Semana
-      <h3>
-         <strong><?php echo $user_venda_7dias; ?></strong>
-      </h3>
-      <p>
-         Média de <?php echo $media_vendas_7dias_user; ?> por dia
-      </p>
-   </center>
-</div>
-<div class="example3">
-   <center>
-      Vendas Últimos 3 dias
-      <h3>
-         <strong><?php echo $user_venda_3dias; ?></strong>
-      </h3>
-      <p>
-         Média de <?php echo $media_vendas_3dias_user; ?> por dia
-      </p>
-   </center>
-</div>
-<p style="clear: left;"></p>
-</div>
+

@@ -1,113 +1,108 @@
 <?php require_once("inc/init.php"); ?>
 
-<div class="row">
-	<div class="col-xs-12 col-sm-7 col-md-7 col-lg-4">
-		<h1 class="page-title txt-color-blueDark">
-			<i class="fa fa-home"></i> 
-			Desempenho por produto
-		</h1>
-	</div>
-</div>
+<style>
+.box{
+	display: inline-block;
+	vertical-align: top;
+	width:25%;
+  	min-width: 200px;
+	margin:10px;
+  	border: 1px solid;
+}
+
+#index-container{
+	height:100%;
+	overflow:hidden;
+}
+
+#index-main-content{
+	float:left;     
+}
+
+#right-side-bar{
+	width: 75%;
+	float:right; 
+}
+
+.w20{
+  width: 25%;
+}
+
+</style>
 
 <div class="row">
 	<div class="col-sm-12">
 		
 		<div class="well">
-            <select class='form-control' name="produtos" id="cmbprodutos">
-                <option value="-1">Selecione</option>
-                <?php 
-                    foreach($produtos as $prod_usr):
-                ?>
-                        <option data-plataforma="<?php echo $prod_usr->plataforma; ?>"><?php echo $prod_usr->nome; ?></option>
-                <?php
-                    endforeach;
-                ?>
-            </select>
+			<?php
+                if(isset($token_msg))
+                {
+                    echo "<div class='alert alert-warning fade in'>";
+                    echo $token_msg;
+                    echo "</div>";
+                }
+
+                if(isset($ads_msg))
+                {
+                    echo "<div class='alert alert-info fade in'>";
+                    echo $ads_msg;
+                    echo "</div>";
+                }
+
+				if($vendas)
+				{
+					echo "<div id='index-container'>";
+					echo "<div id='index-main-content'>";
+
+					foreach($vendas as $venda)
+					{
+						if($venda->tipo_id)
+						{
+							if($venda->roi != "")
+							{
+								if($venda->roi == '0%')
+								{
+									echo "<div id='div_" . $venda->ad_id . "' class='alert alert-info fade in box'>";    
+								}
+								else if($venda->roi[0] == '-')
+								{
+									echo "<div id='div_" . $venda->ad_id . "' class='alert alert-danger fade in box'>";     
+								}
+								else
+									echo "<div id='div_" . $venda->ad_id . "' class='alert alert-success fade in box'>";   
+									
+								echo "<strong>Conta: </strong>" . $venda->conta . "<br>";
+								echo "<strong>Anúncio: </strong>" . $venda->anuncio . "<br>";
+								echo "<strong>Conjunto: </strong>" . $venda->conjunto . "<br>";
+								echo "<strong>Campanha: </strong>" . $venda->campanha . "<br>";
+								echo "<strong>ROI:</strong> <h4>$venda->roi</h4>";
+
+								echo "</div>";
+							}
+						}
+					}
+
+					echo "</div>"; //index-main-content
+					echo "<div id='right-side-bar'></div>";
+					echo "</div>"; 	//index-container
+				}
+                    
+            ?>
+
+
 		</div> <!-- well -->
 	</div> <!-- col-sm-12 -->
 </div><!-- row -->
 
-<!-- POSTBACKS -->
-    <div id="resultado" class="row">
-    <!-- NEW WIDGET START -->
-		<article class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+<input type="hidden" id="ad_id">
 
-			<!-- Widget ID (each widget will need unique ID)-->
-			<div class="jarviswidget" id="wid-id-0" data-widget-editbutton="false">
-				<!-- widget options:
-				usage: <div class="jarviswidget" id="wid-id-0" data-widget-editbutton="false">
-
-				data-widget-colorbutton="false"
-				data-widget-editbutton="false"
-				data-widget-togglebutton="false"
-				data-widget-deletebutton="false"
-				data-widget-fullscreenbutton="false"
-				data-widget-custombutton="false"
-				data-widget-collapsed="true"
-				data-widget-sortable="false"
-
-				-->
-				<header>
-					<span class="widget-icon"> <i class="fa fa-table"></i> </span>
-					<h2>Desempenho do Produto</h2>
-				</header>
-
-				<!-- widget div-->
-				<div>
-
-					<!-- widget edit box -->
-					<div class="jarviswidget-editbox">
-						<!-- This area used as dropdown edit box -->
-
-					</div>
-					<!-- end widget edit box -->
-
-					<!-- widget content -->
-					<div class="widget-body">
-
-                        
-					</div>
-					<!-- end widget content -->
-
-				</div>
-				<!-- end widget div -->
-
-			</div>
-			<!-- end widget -->
-
-		</article>
-		<!-- WIDGET END -->
 </section>
 
 <script>
-
-	$( document ).ready(function() {
-        $('#resultado').hide();
-    });
-
-    $('#cmbprodutos').change(function(){
-        var form_data = { 
-            produto: $(this).find(':selected').text(),
-            val: $(this).val(),
-            plataforma: $(this).find(':selected').data('plataforma')
-        };
-
-        var resp = $.ajax({
-            url: '<?php echo base_url(); ?>app/get_desempenho_produto',
-            type: 'POST',
-            data: form_data,
-            global: false,
-            async:false,
-            success: function(msg) { 
-                resp = msg; 
-            }
-        }).responseText;
-
-        $('.widget-body').html(resp); 
-		$('#resultado').show();
-    });
-
+    
 </script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.min.js"></script>
 
 <script type="text/javascript">
 	
@@ -168,13 +163,59 @@
 	
 	// pagefunction
 	
-	var pagefunction = function() {
-		// clears the variable if left blank
-	};
-	
 	// end pagefunction
 	
 	// run pagefunction
-	pagefunction();
+	var pagefunction = function() {
+		$('#right-side-bar').hide();
+    }
+
+    var pagedestroy = function(){
+		
+		//destroy all charts
+    	myLine.destroy();
+		LineConfig=null;
+
+    	if (debugState){
+			root.console.log("✔ Chart.js charts destroyed");
+		} 
+	}
+
+	$('.box').click(function(){
+		var val = $(this).attr('id');
+		var id = val.replace("div_", "");
+
+		var val_cmp = $("#ad_id").val();
+
+		if(val == val_cmp)
+		{
+			$('#right-side-bar').hide();
+			$('#index-main-content').removeClass('w20');
+			$("#ad_id").val("");
+
+			return;
+		}
+		else
+		{
+			$('#right-side-bar').show();
+			$('#index-main-content').addClass('w20');
+			$("#ad_id").val(val);
+		}
+
+		var form_data = { id: id };
+
+
+        var resp = $.ajax({
+            url: '<?php echo base_url(); ?>app/resumo_funil',
+            type: 'POST',
+            data: form_data,
+            global: false,
+            async: true,
+            success: function(msg) { 
+                $('#right-side-bar').html(msg);
+            }
+        }).responseText;
+
+	});
 	
 </script>

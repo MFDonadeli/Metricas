@@ -69,35 +69,38 @@ class Table_build
         //Coloca as conversões na planilha
         $item_conversoes = $this->inserirConversoes($item_conversoes);
 
-        $return = "<table class='table table-numeros table-xtra-condensed'>";
+        $return = "<table id='table_numero' class='table table-xtra-condensed'>";
         foreach($ordem as $ord)
         {   
             //Trata exclusivamente as conversões
             if($ord->campo_descricao == '#TpConversao')
             {
-                foreach($item_conversoes as $key=>$val)
+                if($item_conversoes)
                 {
-                    $return .= "<tr>";
-                    for($i=0;$i<count($dados);$i++)
+                    foreach($item_conversoes as $key=>$val)
                     {
-                        $date_start = explode(" ", $dados[$i]->date_start)[0];
-                        $date = DateTime::createFromFormat('Y-m-d', $date_start);
-                        $col_name = "col_".$date->format('dM');
-                        $row_name = "row_".str_replace(' ', '', preg_replace("/[^a-zA-Z0-9\s]/", "", $val));
-
-                        if($i == 0)
-                            $return .= "<th class='$row_name $col_name'>" . $val . "</th>";  
-
-                        $valor = $dados[$i]->conversao->{$key};
-                        if(strpos($valor,'.') !== false)
+                        $return .= "<tr>";
+                        for($i=0;$i<count($dados);$i++)
                         {
-                            $valor = round(floatval($valor), 2);
+                            $date_start = explode(" ", $dados[$i]->date_start)[0];
+                            $date = DateTime::createFromFormat('Y-m-d', $date_start);
+                            $col_name = "col_".$date->format('dM');
+                            $row_name = "row_".str_replace(' ', '', preg_replace("/[^a-zA-Z0-9\s]/", "", $val));
+
+                            if($i == 0)
+                                $return .= "<th class='$row_name $col_name'>" . $val . "</th>";  
+
+                            $valor = $dados[$i]->conversao->{$key};
+                            if(strpos($valor,'.') !== false)
+                            {
+                                $valor = round(floatval($valor), 2);
+                            }
+                                
+                            $return .= "<td class='$row_name $col_name'>" . $valor . "</td>";    
+                        
                         }
-                            
-                        $return .= "<td class='$row_name $col_name'>" . $valor . "</td>";    
-                    
+                        $return .= "</tr>";
                     }
-                    $return .= "</tr>";
                 }
             }
             //Fim do tratamento das conversões
@@ -115,7 +118,13 @@ class Table_build
                 $row_name = "row_".str_replace(' ', '', preg_replace("/[^a-zA-Z0-9\s]/", "", $ord->campo_descricao));
 
                 if($i == 0)
-                    $return .= "<th class='freeze_vertical $row_name $col_name'>" . $ord->campo_descricao . "</td>";
+                {
+                    if($ord->origem_bd == 'date_start')
+                        $return .= "<th class='freeze_both $row_name $col_name'>" . $ord->campo_descricao . "</td>";
+                    else
+                        $return .= "<th class='freeze_vertical $row_name $col_name'>" . $ord->campo_descricao . "</td>";
+                }
+                    
 
                 if(isset($ord->origem_bd))
                 {
@@ -189,7 +198,10 @@ class Table_build
         $return .= "</table>";
 
         $vendendo = $db_metricas->get_dados_vendendo($this->produto);
-        $kpis = $this->processa_kpis($dados, $comissao, $sem_dado_venda, $vendendo, $config);
+        $kpis = "";
+        
+        if($item_conversoes)
+            $kpis = $this->processa_kpis($dados, $comissao, $sem_dado_venda, $vendendo, $config);
 
         $return = $this->monta_html($return, $kpis);
 
@@ -213,7 +225,11 @@ class Table_build
 
         $last = count($dados)-1;
         $cpc = $dados[$last]->cost_per_inline_link_click;
-        $vendas = $dados[$last]->conversao->{'offsite_conversion.fb_pixel_purchase'};
+
+        if(isset($dados[$last]->conversao->{'offsite_conversion.fb_pixel_purchase'}))
+            $vendas = $dados[$last]->conversao->{'offsite_conversion.fb_pixel_purchase'};
+        else
+            $vendas = 0;
 
         if($vendas == 0)
             $c1v = 200;
@@ -324,7 +340,8 @@ class Table_build
     $return =    '<div class="numeros_">';
     $return .=    '        <ul class="nav nav-tabs">';
     $return .=    '            <li class="active"><a data-toggle="tab" href="#numeros">Numeros</a></li>';
-    $return .=    '            <li><a data-toggle="tab" href="#kpis">KPIs</a></li>';
+    if($kpis != "")
+        $return .=    '            <li><a data-toggle="tab" href="#kpis">KPIs</a></li>';
     $return .=    '        </ul>';
 
     $return .=    '        <div class="tab-content">';

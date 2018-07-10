@@ -54,7 +54,8 @@ objective,
 spend_cap,
 start_time,
 stop_time,
-updated_time');
+updated_time,
+bid_strategy');
 
 define('ADSETS', 'id,
 status,
@@ -72,8 +73,6 @@ created_time,
 daily_budget,
 effective_status,
 end_time,
-is_autobid,
-is_average_price_pacing,
 lifetime_budget,
 lifetime_imps,
 optimization_goal,
@@ -84,7 +83,11 @@ rtb_flag,
 start_time,
 updated_time,
 use_new_app_click,
-targeting');
+targeting,
+bid_strategy,
+destination_type,
+frequency_control_specs
+');
 
 define('ADS', 'id,
 status,
